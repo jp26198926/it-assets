@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -130,60 +129,62 @@ export function DataTable<TData, TValue>({
       />
 
       {/* Desktop Table View */}
-      <div className="hidden lg:block bg-white shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="bg-[#3b82f6] hover:bg-[#3b82f6]">
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="h-12 text-xs font-semibold uppercase tracking-wider text-white">
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className="border-b border-[#f0f4f8] transition-colors hover:bg-[#f8fafc] last:border-0"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-4">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+      <div className="hidden lg:block bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full caption-bottom text-sm">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="bg-[#3b82f6] hover:bg-[#3b82f6]">
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id} className="h-12 text-xs font-semibold uppercase tracking-wider text-white">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-40 text-center"
-                >
-                  <div className="flex flex-col items-center justify-center gap-3 text-[#64748b]">
-                    <div className="bg-[#f0f4f8] p-4">
-                      <Package className="size-8 text-[#94a3b8]" />
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className="border-b border-[#f0f4f8] transition-colors hover:bg-[#f8fafc] last:border-0"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="py-4">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-40 text-center"
+                  >
+                    <div className="flex flex-col items-center justify-center gap-3 text-[#64748b]">
+                      <div className="bg-[#f0f4f8] p-4">
+                        <Package className="size-8 text-[#94a3b8]" />
+                      </div>
+                      <p className="font-semibold text-[#1a1f36]">No results found</p>
+                      <p className="text-sm">Try adjusting your search or filter criteria</p>
                     </div>
-                    <p className="font-semibold text-[#1a1f36]">No results found</p>
-                    <p className="text-sm">Try adjusting your search or filter criteria</p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </table>
+        </div>
       </div>
 
       {/* Mobile Card View */}
