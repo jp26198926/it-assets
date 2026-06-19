@@ -16,6 +16,7 @@ import {
   BarChart3,
   TrendingDown,
   Package,
+  FileStack,
 } from "lucide-react";
 import {
   Collapsible,
@@ -62,6 +63,11 @@ const menuItems: MenuItem[] = [
       { title: "Software Assets", url: "/assets?filter=software", icon: Laptop },
       { title: "Licenses", url: "/assets?filter=licenses", icon: Shield },
     ],
+  },
+  {
+    title: "Pages",
+    url: "/pages",
+    icon: FileStack,
   },
   {
     title: "Users & Assignments",

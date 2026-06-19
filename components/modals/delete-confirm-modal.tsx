@@ -26,7 +26,7 @@ export function DeleteConfirmModal({
   onConfirm,
 }: DeleteConfirmModalProps) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={(isOpen) => { if (isOpen) onOpenChange(isOpen); }}>
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
           <div className="mx-auto flex size-12 items-center justify-center bg-red-50">
