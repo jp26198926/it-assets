@@ -17,6 +17,7 @@ interface DeleteConfirmModalProps {
   onOpenChange: (open: boolean) => void;
   assetName: string;
   onConfirm: () => void;
+  title?: string;
 }
 
 export function DeleteConfirmModal({
@@ -24,16 +25,17 @@ export function DeleteConfirmModal({
   onOpenChange,
   assetName,
   onConfirm,
+  title = "Delete",
 }: DeleteConfirmModalProps) {
   return (
-    <AlertDialog open={open} onOpenChange={(isOpen) => { if (isOpen) onOpenChange(isOpen); }}>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
           <div className="mx-auto flex size-12 items-center justify-center bg-red-50">
             <AlertTriangle className="size-6 text-red-600" />
           </div>
           <AlertDialogTitle className="text-center text-lg">
-            Delete Asset
+            {title}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-center">
             Are you sure you want to delete <strong className="text-foreground">{assetName}</strong>?
