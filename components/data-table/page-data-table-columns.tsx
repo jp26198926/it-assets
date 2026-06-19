@@ -219,6 +219,15 @@ export function createPageColumns(
       },
     },
     {
+      accessorKey: "order",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Order" />
+      ),
+      cell: ({ row }) => (
+        <span className="text-sm tabular-nums text-[#1a1f36]">{row.getValue("order") ?? 0}</span>
+      ),
+    },
+    {
       accessorKey: "parent_name",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Parent" />

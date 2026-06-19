@@ -7,6 +7,7 @@ export interface Page {
   parent_id: string | null;
   parent_name?: string;
   section: string | null;
+  order: number;
   status_id: string;
   status?: string;
   created_at: Date;
@@ -23,6 +24,7 @@ export interface CreatePageInput {
   icon: string;
   parent_id?: string;
   section?: string;
+  order?: number;
 }
 
 export interface UpdatePageInput extends Partial<CreatePageInput> {}

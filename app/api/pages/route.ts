@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
       description: body.description,
       parent_id: body.parent_id,
       section: body.section,
+      order: body.order,
     });
 
     return apiSuccess(page, 201);

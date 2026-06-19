@@ -8,6 +8,7 @@ export interface IPage extends Document, BaseAuditFields {
   icon: string;
   parent_id: Types.ObjectId | null;
   section: string | null;
+  order: number;
   status_id: Types.ObjectId;
 }
 
@@ -38,6 +39,10 @@ const PageSchema = new Schema<IPage>({
     type: String,
     default: null,
   },
+  order: {
+    type: Number,
+    default: 0,
+  },
   status_id: {
     type: Schema.Types.ObjectId,
     ref: "PageStatus",
@@ -49,6 +54,7 @@ const PageSchema = new Schema<IPage>({
 PageSchema.index({ name: 1 }, { unique: true });
 PageSchema.index({ parent_id: 1 });
 PageSchema.index({ status_id: 1 });
+PageSchema.index({ order: 1 });
 
 export const Page =
   mongoose.models.Page ||

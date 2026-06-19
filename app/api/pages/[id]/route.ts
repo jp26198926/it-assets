@@ -31,6 +31,7 @@ export async function PUT(
       icon: body.icon,
       parent_id: body.parent_id,
       section: body.section,
+      order: body.order,
     });
 
     return apiSuccess(page);

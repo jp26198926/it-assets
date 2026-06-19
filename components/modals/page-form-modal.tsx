@@ -143,6 +143,7 @@ const defaultFormData: CreatePageInput = {
   icon: "Home",
   parent_id: "",
   section: "",
+  order: 0,
 };
 
 export function PageFormModal({
@@ -165,6 +166,7 @@ export function PageFormModal({
         icon: page.icon,
         parent_id: page.parent_id || "",
         section: page.section || "",
+        order: page.order ?? 0,
       });
     } else {
       setFormData(defaultFormData);
@@ -191,6 +193,7 @@ export function PageFormModal({
           description: formData.description || undefined,
           parent_id: formData.parent_id || undefined,
           section: formData.section || undefined,
+          order: formData.order ?? 0,
         });
         onOpenChange(false);
       } catch {
@@ -289,6 +292,19 @@ export function PageFormModal({
             )}
           </div>
           <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="order">Order</Label>
+              <Input
+                id="order"
+                type="number"
+                value={formData.order ?? 0}
+                onChange={(e) =>
+                  setFormData({ ...formData, order: parseInt(e.target.value) || 0 })
+                }
+                placeholder="0"
+              />
+              <p className="text-xs text-muted-foreground">Lower numbers appear first in sidebar</p>
+            </div>
             <div className="space-y-2">
               <Label>Parent Page</Label>
               <Select

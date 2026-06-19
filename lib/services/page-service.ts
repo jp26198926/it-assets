@@ -15,6 +15,7 @@ function toPage(p: Record<string, unknown>): Page {
     parent_id: parentId?._id.toString() ?? null,
     parent_name: parentId?.name,
     section: (p.section as string) ?? null,
+    order: (p.order as number) ?? 0,
     status_id: statusId._id.toString(),
     status: statusId.status,
     created_at: p.created_at as Date,
@@ -43,7 +44,7 @@ export async function getSidebarPages(): Promise<Page[]> {
   const pages = await PageModel.find({ status_id: activeStatus._id, deleted_at: null })
     .populate("status_id", "status")
     .populate("parent_id", "name")
-    .sort({ created_at: 1 })
+    .sort({ order: 1, created_at: 1 })
     .lean();
 
   return pages.map((p) => toPage(p as unknown as Record<string, unknown>));
@@ -125,6 +126,7 @@ export async function createPage(data: CreatePageInput): Promise<Page> {
     icon: data.icon,
     parent_id: data.parent_id || null,
     section: data.section || null,
+    order: data.order ?? 0,
     status_id: activeStatus._id,
   });
 
@@ -148,6 +150,7 @@ export async function updatePage(id: string, data: UpdatePageInput): Promise<Pag
   if (data.icon !== undefined) updateData.icon = data.icon;
   if (data.parent_id !== undefined) updateData.parent_id = data.parent_id || null;
   if (data.section !== undefined) updateData.section = data.section || null;
+  if (data.order !== undefined) updateData.order = data.order;
   updateData.updated_at = new Date();
 
   const page = await PageModel.findByIdAndUpdate(id, updateData, { new: true })

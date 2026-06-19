@@ -186,6 +186,10 @@ export function PageViewModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Section</p>
                 <p className="text-sm mt-1">{page.section || "N/A"}</p>
               </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Order</p>
+                <p className="text-sm mt-1">{page.order ?? 0}</p>
+              </div>
             </div>
             <div className="space-y-4">
               <div>
