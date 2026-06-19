@@ -4,7 +4,7 @@ import { UserStatus as UserStatusModel } from "@/lib/db/models/user-status";
 import { Role as RoleModel } from "@/lib/db/models/role";
 import { Department as DepartmentModel } from "@/lib/db/models/department";
 import bcrypt from "bcryptjs";
-import type { CreateUserInput, UpdateUserInput, UserFilters, User, UserStatus as UserStatusType, UserSelectItem } from "@/lib/types/user";
+import type { CreateUserInput, UpdateUserInput, ProfileUpdateInput, UserFilters, User, UserStatus as UserStatusType, UserSelectItem } from "@/lib/types/user";
 
 function toUser(u: Record<string, unknown>): User {
   const statusId = u.status_id as unknown as { _id: { toString(): string }; status: string };
@@ -34,6 +34,10 @@ function toUser(u: Record<string, unknown>): User {
     first_name: u.first_name as string,
     last_name: u.last_name as string,
     email: u.email as string,
+    avatar_url: (u.avatar_url as string) ?? null,
+    phone: (u.phone as string) ?? null,
+    phone_verified: (u.phone_verified as boolean) ?? false,
+    phone_verified_at: (u.phone_verified_at as Date) ?? null,
     department_id,
     department_name,
     role_id,
@@ -210,6 +214,104 @@ export async function restoreUser(id: string): Promise<void> {
     deleted_at: null,
     deleted_reason: null,
     status_id: activeStatus?._id,
+    updated_at: new Date(),
+  });
+}
+
+export async function getUserByEmail(email: string): Promise<User | null> {
+  await connectDB();
+
+  const user = await UserModel.findOne({ email })
+    .populate("status_id", "status")
+    .populate("role_id", "name")
+    .populate("department_id", "name")
+    .lean();
+
+  if (!user) return null;
+
+  return toUser(user as unknown as Record<string, unknown>);
+}
+
+export async function createInactiveUser(data: CreateUserInput): Promise<User> {
+  await connectDB();
+
+  const inactiveStatus = await UserStatusModel.findOne({ status: "Inactive" }).lean();
+  if (!inactiveStatus) throw new Error("Inactive status not found");
+
+  const viewerRole = await RoleModel.findOne({ name: "Viewer" }).lean();
+  if (!viewerRole) throw new Error("Viewer role not found");
+
+  const passwordHash = await bcrypt.hash(data.password, 10);
+
+  const user = await UserModel.create({
+    first_name: data.first_name,
+    last_name: data.last_name,
+    email: data.email,
+    password_hash: passwordHash,
+    department_id: data.department_id || null,
+    role_id: viewerRole._id,
+    status_id: inactiveStatus._id,
+    is_verified: false,
+  });
+
+  const populated = await UserModel.findById(user._id)
+    .populate("status_id", "status")
+    .populate("role_id", "name")
+    .populate("department_id", "name")
+    .lean();
+
+  if (!populated) throw new Error("Failed to create user");
+
+  return toUser(populated as unknown as Record<string, unknown>);
+}
+
+export async function getUserCount(): Promise<number> {
+  await connectDB();
+  return UserModel.countDocuments({ deleted_at: null });
+}
+
+export async function updateProfile(userId: string, data: ProfileUpdateInput): Promise<User> {
+  await connectDB();
+
+  const updateData: Record<string, unknown> = {};
+  if (data.first_name !== undefined) updateData.first_name = data.first_name;
+  if (data.last_name !== undefined) updateData.last_name = data.last_name;
+  if (data.phone !== undefined) updateData.phone = data.phone || null;
+  if (data.avatar_url !== undefined) updateData.avatar_url = data.avatar_url || null;
+  updateData.updated_at = new Date();
+
+  const user = await UserModel.findByIdAndUpdate(userId, updateData, { new: true })
+    .populate("status_id", "status")
+    .populate("role_id", "name")
+    .populate("department_id", "name")
+    .lean();
+
+  if (!user) throw new Error("User not found");
+
+  return toUser(user as unknown as Record<string, unknown>);
+}
+
+export async function updateUserEmail(userId: string, newEmail: string): Promise<void> {
+  await connectDB();
+
+  const existingUser = await UserModel.findOne({ email: newEmail }).lean();
+  if (existingUser && (existingUser._id as { toString(): string }).toString() !== userId) {
+    throw new Error("Email already in use");
+  }
+
+  await UserModel.findByIdAndUpdate(userId, {
+    email: newEmail,
+    updated_at: new Date(),
+  });
+}
+
+export async function updateUserPhone(userId: string, newPhone: string): Promise<void> {
+  await connectDB();
+
+  await UserModel.findByIdAndUpdate(userId, {
+    phone: newPhone,
+    phone_verified: true,
+    phone_verified_at: new Date(),
     updated_at: new Date(),
   });
 }

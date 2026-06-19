@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Breadcrumb,
@@ -10,12 +12,38 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { usePathname } from "next/navigation";
-import { Search, Bell, MessageSquare } from "lucide-react";
+import { Search, Bell, MessageSquare, User, LogOut, KeyRound, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { getCurrentUser, logout } from "@/lib/actions/auth-actions";
+import { UserChangePasswordModal } from "@/components/modals/user-change-password-modal";
+import { ProfileModal } from "@/components/modals/profile-modal";
+import { toast } from "sonner";
+import type { AuthUser } from "@/lib/types/auth";
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const segments = pathname.split("/").filter(Boolean);
+
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  const fetchUser = useCallback(async () => {
+    const currentUser = await getCurrentUser();
+    setUser(currentUser);
+  }, []);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
   const breadcrumbItems = segments.map((segment, index) => {
     const href = "/" + segments.slice(0, index + 1).join("/");
@@ -24,6 +52,26 @@ export function Header() {
 
     return { href, label, isLast };
   });
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
+  };
+
+  const handleChangePassword = async (password: string) => {
+    const { changeMyPassword } = await import("@/lib/actions/auth-actions");
+    const result = await changeMyPassword("", password);
+    if (result.success) {
+      toast.success("Password changed successfully");
+    } else {
+      toast.error(result.error || "Failed to change password");
+      throw new Error(result.error);
+    }
+  };
 
   return (
     <header className="flex h-14 sm:h-16 shrink-0 items-center justify-between gap-2 sm:gap-4 border-b border-[#e2e8f0] bg-white px-4 sm:px-6">
@@ -80,16 +128,52 @@ export function Header() {
 
         <div className="hidden sm:block h-8 w-px bg-[#e2e8f0] mx-1" />
 
-        <div className="flex items-center gap-2 sm:gap-3 cursor-pointer px-1 sm:px-2 py-1.5 hover:bg-[#f0f4f8] transition-colors">
-          <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-[#1a1f36]">Thomas Anree</p>
-            <p className="text-xs text-[#64748b]">UX Designer</p>
-          </div>
-          <div className="flex size-8 sm:size-9 items-center justify-center bg-gradient-to-br from-[#3b82f6] to-[#2563eb] text-white text-xs font-bold shadow-md shadow-[#3b82f6]/20">
-            TA
-          </div>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2 sm:gap-3 px-1 sm:px-2 py-1.5 hover:bg-[#f0f4f8] transition-colors rounded-md">
+              <div className="text-right hidden sm:block">
+                <p className="text-sm font-semibold text-[#1a1f36]">
+                  {user ? `${user.firstName} ${user.lastName}` : "Loading..."}
+                </p>
+                <p className="text-xs text-[#64748b]">{user?.role || ""}</p>
+              </div>
+              <div className="flex size-8 sm:size-9 items-center justify-center bg-gradient-to-br from-[#3b82f6] to-[#2563eb] text-white text-xs font-bold shadow-md shadow-[#3b82f6]/20">
+                {user ? getInitials(user.firstName, user.lastName) : "..."}
+              </div>
+              <ChevronDown className="size-4 text-[#64748b] hidden sm:block" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => setProfileOpen(true)} className="cursor-pointer">
+              <User className="size-4 mr-2" />
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setChangePasswordOpen(true)} className="cursor-pointer">
+              <KeyRound className="size-4 mr-2" />
+              Change Password
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600">
+              <LogOut className="size-4 mr-2" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+
+      <UserChangePasswordModal
+        open={changePasswordOpen}
+        onOpenChange={setChangePasswordOpen}
+        userName={user ? `${user.firstName} ${user.lastName}` : ""}
+        onSubmit={handleChangePassword}
+      />
+
+      <ProfileModal
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
+        user={user}
+        onUserUpdate={setUser}
+      />
     </header>
   );
 }

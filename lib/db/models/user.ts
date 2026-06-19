@@ -6,6 +6,10 @@ export interface IUser extends Document, BaseAuditFields {
   last_name: string;
   email: string;
   password_hash: string;
+  avatar_url: string | null;
+  phone: string | null;
+  phone_verified: boolean;
+  phone_verified_at: Date | null;
   department_id: Types.ObjectId | null;
   email_verified_at: Date | null;
   is_verified: boolean;
@@ -30,6 +34,22 @@ const UserSchema = new Schema<IUser>({
   password_hash: {
     type: String,
     required: true,
+  },
+  avatar_url: {
+    type: String,
+    default: null,
+  },
+  phone: {
+    type: String,
+    default: null,
+  },
+  phone_verified: {
+    type: Boolean,
+    default: false,
+  },
+  phone_verified_at: {
+    type: Date,
+    default: null,
   },
   department_id: {
     type: Schema.Types.ObjectId,

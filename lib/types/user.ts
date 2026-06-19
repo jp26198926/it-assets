@@ -3,6 +3,10 @@ export interface User {
   first_name: string;
   last_name: string;
   email: string;
+  avatar_url: string | null;
+  phone: string | null;
+  phone_verified: boolean;
+  phone_verified_at: Date | null;
   department_id: string | null;
   department_name?: string;
   role_id: string;
@@ -33,6 +37,13 @@ export interface UpdateUserInput {
   email?: string;
   department_id?: string;
   role_id?: string;
+}
+
+export interface ProfileUpdateInput {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  avatar_url?: string | null;
 }
 
 export interface UserFilters {

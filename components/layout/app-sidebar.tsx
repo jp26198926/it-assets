@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Server, ChevronRight } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { Server, ChevronRight, User, LogOut, KeyRound, ChevronDown } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -26,9 +26,21 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { getSidebarPages } from "@/lib/actions/page-actions";
+import { getCurrentUser, logout } from "@/lib/actions/auth-actions";
 import { getIcon } from "@/lib/icon-map";
+import { UserChangePasswordModal } from "@/components/modals/user-change-password-modal";
+import { ProfileModal } from "@/components/modals/profile-modal";
+import { toast } from "sonner";
 import type { Page } from "@/lib/types/page";
+import type { AuthUser } from "@/lib/types/auth";
 
 interface MenuItem {
   title: string;
@@ -65,13 +77,46 @@ function buildMenuTree(pages: Page[]): MenuItem[] {
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     getSidebarPages().then((pages) => {
       setMenuItems(buildMenuTree(pages));
     });
   }, []);
+
+  const fetchUser = useCallback(async () => {
+    const currentUser = await getCurrentUser();
+    setUser(currentUser);
+  }, []);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
+  };
+
+  const handleChangePassword = async (password: string) => {
+    const { changeMyPassword } = await import("@/lib/actions/auth-actions");
+    const result = await changeMyPassword("", password);
+    if (result.success) {
+      toast.success("Password changed successfully");
+    } else {
+      toast.error(result.error || "Failed to change password");
+      throw new Error(result.error);
+    }
+  };
 
   return (
     <Sidebar className="bg-[#1a1f36] border-r-0">
@@ -187,21 +232,61 @@ export function AppSidebar() {
       <SidebarFooter className="pb-4 px-3">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="sm" tooltip="Admin User" className="h-12 text-[#c5cee0] hover:bg-[#252d4a] hover:text-white transition-all duration-200">
-              <div className="flex size-9 items-center justify-center bg-gradient-to-br from-[#3b82f6] to-[#2563eb] text-white text-xs font-bold shadow-lg shadow-[#3b82f6]/20">
-                AU
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold text-white">Admin User</span>
-                <span className="truncate text-xs text-[#6b7ba3]">
-                  Administrator
-                </span>
-              </div>
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="sm"
+                  tooltip={user ? `${user.firstName} ${user.lastName}` : "User"}
+                  className="h-12 text-[#c5cee0] hover:bg-[#252d4a] hover:text-white transition-all duration-200"
+                >
+                  <div className="flex size-9 items-center justify-center bg-gradient-to-br from-[#3b82f6] to-[#2563eb] text-white text-xs font-bold shadow-lg shadow-[#3b82f6]/20">
+                    {user ? getInitials(user.firstName, user.lastName) : "..."}
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold text-white">
+                      {user ? `${user.firstName} ${user.lastName}` : "Loading..."}
+                    </span>
+                    <span className="truncate text-xs text-[#6b7ba3]">
+                      {user?.role || ""}
+                    </span>
+                  </div>
+                  <ChevronDown className="size-4 text-[#6b7ba3] ml-auto" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuItem onClick={() => setProfileOpen(true)} className="cursor-pointer">
+                  <User className="size-4 mr-2" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setChangePasswordOpen(true)} className="cursor-pointer">
+                  <KeyRound className="size-4 mr-2" />
+                  Change Password
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600">
+                  <LogOut className="size-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
       <SidebarRail className="bg-[#252d4a] hover:bg-[#2d3757] border-r-0" />
+
+      <UserChangePasswordModal
+        open={changePasswordOpen}
+        onOpenChange={setChangePasswordOpen}
+        userName={user ? `${user.firstName} ${user.lastName}` : ""}
+        onSubmit={handleChangePassword}
+      />
+
+      <ProfileModal
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
+        user={user}
+        onUserUpdate={setUser}
+      />
     </Sidebar>
   );
 }

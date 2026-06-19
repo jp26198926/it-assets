@@ -3,7 +3,7 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 export interface IUserOtpLog extends Document {
   user_id: Types.ObjectId;
   otp_code: string;
-  purpose: "REGISTER" | "LOGIN" | "RESET_PASSWORD";
+  purpose: "REGISTER" | "LOGIN" | "RESET_PASSWORD" | "EMAIL_CHANGE" | "PHONE_CHANGE";
   sent_at: Date;
   expires_at: Date;
   verified_at: Date | null;
@@ -23,7 +23,7 @@ const UserOtpLogSchema = new Schema<IUserOtpLog>({
   },
   purpose: {
     type: String,
-    enum: ["REGISTER", "LOGIN", "RESET_PASSWORD"],
+    enum: ["REGISTER", "LOGIN", "RESET_PASSWORD", "EMAIL_CHANGE", "PHONE_CHANGE"],
     required: true,
   },
   sent_at: {

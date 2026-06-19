@@ -89,3 +89,36 @@ export async function sendTestSms(phoneNumber: string): Promise<{ success: boole
 
   return { success: true, message: "Test SMS sent successfully" };
 }
+
+export async function sendSms(phoneNumber: string, message: string): Promise<{ success: boolean; message: string }> {
+  const settings = await getSmsSettings();
+
+  if (!settings.api_key || !settings.device_id) {
+    return { success: false, message: "SMS settings are not fully configured" };
+  }
+
+  const response = await fetch(
+    `https://api.textbee.dev/api/v1/gateway/devices/${settings.device_id}/send-sms`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": settings.api_key,
+      },
+      body: JSON.stringify({
+        recipients: [phoneNumber],
+        message,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    return {
+      success: false,
+      message: errorData?.message || `Failed to send SMS (HTTP ${response.status})`,
+    };
+  }
+
+  return { success: true, message: "SMS sent successfully" };
+}
