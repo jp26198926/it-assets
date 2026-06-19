@@ -14,6 +14,37 @@ export async function getPageStatuses(): Promise<PageStatusType[]> {
   }));
 }
 
+export async function getSidebarPages(): Promise<Page[]> {
+  await connectDB();
+
+  const activeStatus = await PageStatusModel.findOne({ status: "Active" }).lean();
+  if (!activeStatus) return [];
+
+  const pages = await PageModel.find({ status_id: activeStatus._id, deleted_at: null })
+    .populate("status_id", "status")
+    .populate("parent_id", "name")
+    .sort({ created_at: 1 })
+    .lean();
+
+  return pages.map((p) => ({
+    id: p._id.toString(),
+    name: p.name,
+    description: p.description,
+    path: p.path,
+    icon: p.icon,
+    parent_id: p.parent_id ? (p.parent_id as unknown as { _id: { toString(): string } })._id.toString() : null,
+    parent_name: p.parent_id ? (p.parent_id as unknown as { name: string }).name : undefined,
+    section: p.section,
+    status_id: (p.status_id as unknown as { _id: { toString(): string } })._id.toString(),
+    status: (p.status_id as unknown as { status: string }).status,
+    created_at: p.created_at,
+    created_by: p.created_by ? (p.created_by as unknown as { toString(): string }).toString() : null,
+    updated_at: p.updated_at,
+    updated_by: p.updated_by ? (p.updated_by as unknown as { toString(): string }).toString() : null,
+    deleted_at: p.deleted_at,
+  }));
+}
+
 export async function getPages(filters?: PageFilters): Promise<Page[]> {
   await connectDB();
 

@@ -1,23 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  Server,
-  Shield,
-  Users,
-  MapPin,
-  FileText,
-  Settings,
-  ChevronRight,
-  HardDrive,
-  Laptop,
-  BarChart3,
-  TrendingDown,
-  Package,
-  FileStack,
-} from "lucide-react";
+import { Server, ChevronRight } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -40,6 +26,9 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+import { getSidebarPages } from "@/lib/actions/page-actions";
+import { getIcon } from "@/lib/icon-map";
+import type { Page } from "@/lib/types/page";
 
 interface MenuItem {
   title: string;
@@ -48,55 +37,41 @@ interface MenuItem {
   items?: { title: string; url: string; icon: React.ComponentType<{ className?: string }> }[];
 }
 
-const menuItems: MenuItem[] = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Assets",
-    url: "/assets",
-    icon: Package,
-    items: [
-      { title: "Hardware Assets", url: "/assets?filter=hardware", icon: HardDrive },
-      { title: "Software Assets", url: "/assets?filter=software", icon: Laptop },
-      { title: "Licenses", url: "/assets?filter=licenses", icon: Shield },
-    ],
-  },
-  {
-    title: "Pages",
-    url: "/pages",
-    icon: FileStack,
-  },
-  {
-    title: "Users & Assignments",
-    url: "/dashboard/users",
-    icon: Users,
-  },
-  {
-    title: "Locations",
-    url: "/dashboard/locations",
-    icon: MapPin,
-  },
-  {
-    title: "Reports",
-    url: "/dashboard/reports",
-    icon: BarChart3,
-    items: [
-      { title: "Asset Summary", url: "/dashboard/reports/summary", icon: FileText },
-      { title: "Depreciation Report", url: "/dashboard/reports/depreciation", icon: TrendingDown },
-    ],
-  },
-  {
-    title: "Settings",
-    url: "/dashboard/settings",
-    icon: Settings,
-  },
-];
+function buildMenuTree(pages: Page[]): MenuItem[] {
+  const parentMap = new Map<string, MenuItem>();
+  const topLevel: MenuItem[] = [];
+
+  for (const page of pages) {
+    const icon = getIcon(page.icon);
+    if (!page.parent_id) {
+      const item: MenuItem = { title: page.name, url: page.path, icon };
+      parentMap.set(page.id, item);
+      topLevel.push(item);
+    }
+  }
+
+  for (const page of pages) {
+    if (page.parent_id) {
+      const parent = parentMap.get(page.parent_id);
+      if (parent) {
+        if (!parent.items) parent.items = [];
+        parent.items.push({ title: page.name, url: page.path, icon: getIcon(page.icon) });
+      }
+    }
+  }
+
+  return topLevel;
+}
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+
+  useEffect(() => {
+    getSidebarPages().then((pages) => {
+      setMenuItems(buildMenuTree(pages));
+    });
+  }, []);
 
   return (
     <Sidebar className="bg-[#1a1f36] border-r-0">
