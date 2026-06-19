@@ -104,7 +104,7 @@ export default function DashboardPage() {
             <CardHeader className="border-b border-[#f0f4f8] px-6 py-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold text-[#1a1f36]">Recent Activity</CardTitle>
-                <Link href="/dashboard/assets" className="text-sm font-medium text-[#3b82f6] hover:text-[#2563eb] transition-colors">
+                <Link href="/assets" className="text-sm font-medium text-[#3b82f6] hover:text-[#2563eb] transition-colors">
                   View All
                 </Link>
               </div>
@@ -157,7 +157,7 @@ export default function DashboardPage() {
             <CardContent className="p-4">
               <div className="space-y-3">
                 <Link
-                  href="/dashboard/assets"
+                  href="/assets"
                   className="flex items-center gap-4 p-3 transition-all duration-200 hover:bg-[#f8fafc] group"
                 >
                   <div className="flex size-10 items-center justify-center bg-[#e8f0fe] text-[#3b82f6] group-hover:bg-[#3b82f6] group-hover:text-white transition-colors duration-200">
@@ -169,7 +169,7 @@ export default function DashboardPage() {
                   </div>
                 </Link>
                 <Link
-                  href="/dashboard/assets"
+                  href="/assets"
                   className="flex items-center gap-4 p-3 transition-all duration-200 hover:bg-[#f8fafc] group"
                 >
                   <div className="flex size-10 items-center justify-center bg-[#d1fae5] text-[#059669] group-hover:bg-[#059669] group-hover:text-white transition-colors duration-200">

@@ -55,12 +55,12 @@ const menuItems: MenuItem[] = [
   },
   {
     title: "Assets",
-    url: "/dashboard/assets",
+    url: "/assets",
     icon: Package,
     items: [
-      { title: "Hardware Assets", url: "/dashboard/assets?filter=hardware", icon: HardDrive },
-      { title: "Software Assets", url: "/dashboard/assets?filter=software", icon: Laptop },
-      { title: "Licenses", url: "/dashboard/assets?filter=licenses", icon: Shield },
+      { title: "Hardware Assets", url: "/assets?filter=hardware", icon: HardDrive },
+      { title: "Software Assets", url: "/assets?filter=software", icon: Laptop },
+      { title: "Licenses", url: "/assets?filter=licenses", icon: Shield },
     ],
   },
   {
