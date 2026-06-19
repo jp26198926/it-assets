@@ -3,7 +3,6 @@ import { DepartmentStatus } from "./models/department-status";
 import { RoleStatus } from "./models/role-status";
 import { PageStatus } from "./models/page-status";
 import { PermissionStatus } from "./models/permission-status";
-import { RolePermissionStatus } from "./models/role-permission-status";
 import { UserStatus } from "./models/user-status";
 import { Role } from "./models/role";
 
@@ -13,7 +12,6 @@ async function seedStatuses() {
     { model: RoleStatus, name: "RoleStatus", data: [{ status: "Deleted" }, { status: "Active" }] },
     { model: PageStatus, name: "PageStatus", data: [{ status: "Deleted" }, { status: "Active" }] },
     { model: PermissionStatus, name: "PermissionStatus", data: [{ status: "Deleted" }, { status: "Active" }] },
-    { model: RolePermissionStatus, name: "RolePermissionStatus", data: [{ status: "Deleted" }, { status: "Active" }] },
     { model: UserStatus, name: "UserStatus", data: [{ status: "Deleted" }, { status: "Inactive" }, { status: "Active" }] },
   ];
 

@@ -1,11 +1,33 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 import { BaseAuditSchemaDefinition, BaseAuditFields } from "../base-schema";
 
+export interface IRolePermissionEntry {
+  page_id: Types.ObjectId;
+  permission_id: Types.ObjectId;
+}
+
 export interface IRole extends Document, BaseAuditFields {
   name: string;
   description: string | null;
   status_id: Types.ObjectId;
+  permissions: IRolePermissionEntry[];
 }
+
+const RolePermissionEntrySchema = new Schema<IRolePermissionEntry>(
+  {
+    page_id: {
+      type: Schema.Types.ObjectId,
+      ref: "Page",
+      required: true,
+    },
+    permission_id: {
+      type: Schema.Types.ObjectId,
+      ref: "Permission",
+      required: true,
+    },
+  },
+  { _id: false }
+);
 
 const RoleSchema = new Schema<IRole>({
   name: {
@@ -21,6 +43,10 @@ const RoleSchema = new Schema<IRole>({
     type: Schema.Types.ObjectId,
     ref: "RoleStatus",
     required: true,
+  },
+  permissions: {
+    type: [RolePermissionEntrySchema],
+    default: [],
   },
   ...BaseAuditSchemaDefinition,
 });
