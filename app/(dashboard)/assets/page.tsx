@@ -7,6 +7,7 @@ import { AssetFormModal } from "@/components/modals/asset-form-modal";
 import { AssetViewModal } from "@/components/modals/asset-view-modal";
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { PageGuard } from "@/components/auth/page-guard";
 import { mockAssets } from "@/lib/mock-data";
 import type { ITAsset } from "@/lib/types";
 import { toast } from "sonner";
@@ -81,47 +82,49 @@ export default function AssetsPage() {
   const columns = createColumns(handleView, handleEdit, handleDelete, handleRestore);
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <ScrollReveal>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">IT Assets</h1>
-          <p className="text-sm sm:text-base text-[#64748b] mt-1">
-            Manage and track all IT hardware and software assets
-          </p>
-        </div>
-      </ScrollReveal>
+    <PageGuard pagePath="/assets">
+      <div className="space-y-4 sm:space-y-6">
+        <ScrollReveal>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">IT Assets</h1>
+            <p className="text-sm sm:text-base text-[#64748b] mt-1">
+              Manage and track all IT hardware and software assets
+            </p>
+          </div>
+        </ScrollReveal>
 
-      <ScrollReveal delay={0.1}>
-        <DataTable
-          columns={columns}
-          data={assets}
-          onView={handleView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onRestore={handleRestore}
-          onAdd={handleAdd}
+        <ScrollReveal delay={0.1}>
+          <DataTable
+            columns={columns}
+            data={assets}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onRestore={handleRestore}
+            onAdd={handleAdd}
+          />
+        </ScrollReveal>
+
+        <AssetFormModal
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          asset={editAsset}
+          onSubmit={handleFormSubmit}
         />
-      </ScrollReveal>
 
-      <AssetFormModal
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        asset={editAsset}
-        onSubmit={handleFormSubmit}
-      />
+        <AssetViewModal
+          open={!!viewAsset}
+          onOpenChange={(open) => !open && setViewAsset(null)}
+          asset={viewAsset}
+        />
 
-      <AssetViewModal
-        open={!!viewAsset}
-        onOpenChange={(open) => !open && setViewAsset(null)}
-        asset={viewAsset}
-      />
-
-      <DeleteConfirmModal
-        open={!!deleteAsset}
-        onOpenChange={(open) => !open && setDeleteAsset(null)}
-        assetName={deleteAsset?.name || ""}
-        onConfirm={handleDeleteConfirm}
-      />
-    </div>
+        <DeleteConfirmModal
+          open={!!deleteAsset}
+          onOpenChange={(open) => !open && setDeleteAsset(null)}
+          assetName={deleteAsset?.name || ""}
+          onConfirm={handleDeleteConfirm}
+        />
+      </div>
+    </PageGuard>
   );
 }

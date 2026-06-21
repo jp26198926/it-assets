@@ -8,6 +8,7 @@ import { RoleViewModal } from "@/components/modals/role-view-modal";
 import { RolePermissionModal } from "@/components/modals/role-permission-modal";
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { PageGuard } from "@/components/auth/page-guard";
 import { getRoles, createRole, updateRole, deleteRole, restoreRole } from "@/lib/actions/role-actions";
 import type { Role, CreateRoleInput, RoleFilters } from "@/lib/types/role";
 import { toast } from "sonner";
@@ -133,55 +134,57 @@ export default function RolesPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <ScrollReveal>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Roles</h1>
-          <p className="text-sm sm:text-base text-[#64748b] mt-1">
-            Manage and organize application roles
-          </p>
-        </div>
-      </ScrollReveal>
+    <PageGuard pagePath="/roles">
+      <div className="space-y-4 sm:space-y-6">
+        <ScrollReveal>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Roles</h1>
+            <p className="text-sm sm:text-base text-[#64748b] mt-1">
+              Manage and organize application roles
+            </p>
+          </div>
+        </ScrollReveal>
 
-      <ScrollReveal delay={0.1}>
-        <RoleDataTable
-          columns={columns}
-          data={roles}
-          onView={handleView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onRestore={handleRestore}
-          onAdd={handleAdd}
-          onServerSearch={handleServerSearch}
-          onServerSearchClear={handleServerSearchClear}
+        <ScrollReveal delay={0.1}>
+          <RoleDataTable
+            columns={columns}
+            data={roles}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onRestore={handleRestore}
+            onAdd={handleAdd}
+            onServerSearch={handleServerSearch}
+            onServerSearchClear={handleServerSearchClear}
+          />
+        </ScrollReveal>
+
+        <RoleFormModal
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          role={editRole}
+          onSubmit={handleFormSubmit}
         />
-      </ScrollReveal>
 
-      <RoleFormModal
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        role={editRole}
-        onSubmit={handleFormSubmit}
-      />
+        <RoleViewModal
+          open={!!viewRole}
+          onOpenChange={(open) => !open && setViewRole(null)}
+          role={viewRole}
+        />
 
-      <RoleViewModal
-        open={!!viewRole}
-        onOpenChange={(open) => !open && setViewRole(null)}
-        role={viewRole}
-      />
+        <DeleteConfirmModal
+          open={!!deleteRoleItem}
+          onOpenChange={(open) => !open && setDeleteRoleItem(null)}
+          assetName={deleteRoleItem?.name || ""}
+          onConfirm={handleDeleteConfirm}
+        />
 
-      <DeleteConfirmModal
-        open={!!deleteRoleItem}
-        onOpenChange={(open) => !open && setDeleteRoleItem(null)}
-        assetName={deleteRoleItem?.name || ""}
-        onConfirm={handleDeleteConfirm}
-      />
-
-      <RolePermissionModal
-        open={!!permissionRole}
-        onOpenChange={(open) => !open && setPermissionRole(null)}
-        role={permissionRole}
-      />
-    </div>
+        <RolePermissionModal
+          open={!!permissionRole}
+          onOpenChange={(open) => !open && setPermissionRole(null)}
+          role={permissionRole}
+        />
+      </div>
+    </PageGuard>
   );
 }

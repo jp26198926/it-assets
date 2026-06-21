@@ -1,10 +1,13 @@
 import { NextRequest } from "next/server";
-import { apiSuccess, apiError } from "@/lib/services/api-helpers";
+import { apiSuccess, apiError, withPageAuth } from "@/lib/services/api-helpers";
 import * as roleService from "@/lib/services/role-service";
 import type { RoleFilters } from "@/lib/types/role";
 
 export async function GET(request: NextRequest) {
   try {
+    const { error } = await withPageAuth("/roles", "Access");
+    if (error) return error;
+
     const { searchParams } = new URL(request.url);
     const filters: RoleFilters = {};
 
@@ -23,6 +26,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await withPageAuth("/roles", "Add");
+    if (error) return error;
+
     const body = await request.json();
 
     if (!body.name || typeof body.name !== "string") {

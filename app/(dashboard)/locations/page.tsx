@@ -7,6 +7,7 @@ import { LocationFormModal } from "@/components/modals/location-form-modal";
 import { LocationViewModal } from "@/components/modals/location-view-modal";
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { PageGuard } from "@/components/auth/page-guard";
 import { getLocations, createLocation, updateLocation, deleteLocation, restoreLocation } from "@/lib/actions/location-actions";
 import type { Location, CreateLocationInput, LocationFilters } from "@/lib/types/location";
 import { toast } from "sonner";
@@ -127,49 +128,51 @@ export default function LocationsPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <ScrollReveal>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Locations</h1>
-          <p className="text-sm sm:text-base text-[#64748b] mt-1">
-            Manage and organize company locations
-          </p>
-        </div>
-      </ScrollReveal>
+    <PageGuard pagePath="/locations">
+      <div className="space-y-4 sm:space-y-6">
+        <ScrollReveal>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Locations</h1>
+            <p className="text-sm sm:text-base text-[#64748b] mt-1">
+              Manage and organize company locations
+            </p>
+          </div>
+        </ScrollReveal>
 
-      <ScrollReveal delay={0.1}>
-        <LocationDataTable
-          columns={columns}
-          data={locations}
-          onView={handleView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onRestore={handleRestore}
-          onAdd={handleAdd}
-          onServerSearch={handleServerSearch}
-          onServerSearchClear={handleServerSearchClear}
+        <ScrollReveal delay={0.1}>
+          <LocationDataTable
+            columns={columns}
+            data={locations}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onRestore={handleRestore}
+            onAdd={handleAdd}
+            onServerSearch={handleServerSearch}
+            onServerSearchClear={handleServerSearchClear}
+          />
+        </ScrollReveal>
+
+        <LocationFormModal
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          location={editLocation}
+          onSubmit={handleFormSubmit}
         />
-      </ScrollReveal>
 
-      <LocationFormModal
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        location={editLocation}
-        onSubmit={handleFormSubmit}
-      />
+        <LocationViewModal
+          open={!!viewLocation}
+          onOpenChange={(open) => !open && setViewLocation(null)}
+          location={viewLocation}
+        />
 
-      <LocationViewModal
-        open={!!viewLocation}
-        onOpenChange={(open) => !open && setViewLocation(null)}
-        location={viewLocation}
-      />
-
-      <DeleteConfirmModal
-        open={!!deleteLocationItem}
-        onOpenChange={(open) => !open && setDeleteLocationItem(null)}
-        assetName={deleteLocationItem?.name || ""}
-        onConfirm={handleDeleteConfirm}
-      />
-    </div>
+        <DeleteConfirmModal
+          open={!!deleteLocationItem}
+          onOpenChange={(open) => !open && setDeleteLocationItem(null)}
+          assetName={deleteLocationItem?.name || ""}
+          onConfirm={handleDeleteConfirm}
+        />
+      </div>
+    </PageGuard>
   );
 }

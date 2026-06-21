@@ -7,6 +7,7 @@ import { PermissionFormModal } from "@/components/modals/permission-form-modal";
 import { PermissionViewModal } from "@/components/modals/permission-view-modal";
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { PageGuard } from "@/components/auth/page-guard";
 import { getPermissions, createPermission, updatePermission, deletePermission, restorePermission } from "@/lib/actions/permission-actions";
 import type { Permission, CreatePermissionInput, PermissionFilters } from "@/lib/types/permission";
 import { toast } from "sonner";
@@ -127,49 +128,51 @@ export default function PermissionsPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <ScrollReveal>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Permissions</h1>
-          <p className="text-sm sm:text-base text-[#64748b] mt-1">
-            Manage and organize application permissions
-          </p>
-        </div>
-      </ScrollReveal>
+    <PageGuard pagePath="/permissions">
+      <div className="space-y-4 sm:space-y-6">
+        <ScrollReveal>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Permissions</h1>
+            <p className="text-sm sm:text-base text-[#64748b] mt-1">
+              Manage and organize application permissions
+            </p>
+          </div>
+        </ScrollReveal>
 
-      <ScrollReveal delay={0.1}>
-        <PermissionDataTable
-          columns={columns}
-          data={permissions}
-          onView={handleView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onRestore={handleRestore}
-          onAdd={handleAdd}
-          onServerSearch={handleServerSearch}
-          onServerSearchClear={handleServerSearchClear}
+        <ScrollReveal delay={0.1}>
+          <PermissionDataTable
+            columns={columns}
+            data={permissions}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onRestore={handleRestore}
+            onAdd={handleAdd}
+            onServerSearch={handleServerSearch}
+            onServerSearchClear={handleServerSearchClear}
+          />
+        </ScrollReveal>
+
+        <PermissionFormModal
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          permission={editPermission}
+          onSubmit={handleFormSubmit}
         />
-      </ScrollReveal>
 
-      <PermissionFormModal
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        permission={editPermission}
-        onSubmit={handleFormSubmit}
-      />
+        <PermissionViewModal
+          open={!!viewPermission}
+          onOpenChange={(open) => !open && setViewPermission(null)}
+          permission={viewPermission}
+        />
 
-      <PermissionViewModal
-        open={!!viewPermission}
-        onOpenChange={(open) => !open && setViewPermission(null)}
-        permission={viewPermission}
-      />
-
-      <DeleteConfirmModal
-        open={!!deletePermissionItem}
-        onOpenChange={(open) => !open && setDeletePermissionItem(null)}
-        assetName={deletePermissionItem?.name || ""}
-        onConfirm={handleDeleteConfirm}
-      />
-    </div>
+        <DeleteConfirmModal
+          open={!!deletePermissionItem}
+          onOpenChange={(open) => !open && setDeletePermissionItem(null)}
+          assetName={deletePermissionItem?.name || ""}
+          onConfirm={handleDeleteConfirm}
+        />
+      </div>
+    </PageGuard>
   );
 }

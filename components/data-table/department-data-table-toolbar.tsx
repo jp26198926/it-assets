@@ -8,6 +8,7 @@ import { DataTableViewOptions } from "./data-table-view-options";
 import { DepartmentAdvancedSearchDialog } from "./department-advanced-search-dialog";
 import { DepartmentAdvancedFilterDialog } from "./department-advanced-filter-dialog";
 import { DepartmentExportButtons } from "./department-export-buttons";
+import { useAuthorization } from "@/hooks/use-authorization";
 import type { Department, DepartmentFilters, DepartmentAdvancedFilter } from "@/lib/types/department";
 
 interface DepartmentDataTableToolbarProps<TData> {
@@ -33,17 +34,22 @@ export function DepartmentDataTableToolbar<TData>({
   onAdvancedFiltersChange,
   allData,
 }: DepartmentDataTableToolbarProps<TData>) {
+  const { hasPermission } = useAuthorization();
   const filteredCount = table.getFilteredRowModel().rows.length;
   const totalCount = allData.length;
+  const canAdd = hasPermission("/departments", "Add");
+  const canExport = hasPermission("/departments", "Export");
 
   return (
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Button size="sm" className="h-9 bg-[#3b82f6] hover:bg-[#2563eb] text-white" onClick={onAdd}>
-            <Plus className="mr-1 h-4 w-4" />
-            Add Department
-          </Button>
+          {canAdd && (
+            <Button size="sm" className="h-9 bg-[#3b82f6] hover:bg-[#2563eb] text-white" onClick={onAdd}>
+              <Plus className="mr-1 h-4 w-4" />
+              Add Department
+            </Button>
+          )}
           <span className="text-sm text-[#64748b]">
             {filteredCount} of {totalCount} row(s)
           </span>
@@ -93,7 +99,7 @@ export function DepartmentDataTableToolbar<TData>({
             </Button>
           )}
           <DataTableViewOptions table={table} />
-          <DepartmentExportButtons table={table} />
+          {canExport && <DepartmentExportButtons table={table} />}
         </div>
       </div>
     </div>

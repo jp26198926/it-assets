@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Server, ChevronRight, User, LogOut, KeyRound, ChevronDown } from "lucide-react";
@@ -34,8 +34,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getSidebarPages } from "@/lib/actions/page-actions";
-import { getCurrentUser, logout } from "@/lib/actions/auth-actions";
+import { logout } from "@/lib/actions/auth-actions";
 import { getIcon } from "@/lib/icon-map";
+import { useAuthorization } from "@/hooks/use-authorization";
 import { UserChangePasswordModal } from "@/components/modals/user-change-password-modal";
 import { ProfileModal } from "@/components/modals/profile-modal";
 import { toast } from "sonner";
@@ -49,7 +50,7 @@ interface MenuItem {
   items?: { title: string; url: string; icon: React.ComponentType<{ className?: string }> }[];
 }
 
-function buildMenuTree(pages: Page[]): MenuItem[] {
+function buildMenuTree(pages: Page[], hasPermission: (path: string, perm: string) => boolean): MenuItem[] {
   const parentMap = new Map<string, MenuItem>();
   const topLevel: MenuItem[] = [];
 
@@ -66,37 +67,46 @@ function buildMenuTree(pages: Page[]): MenuItem[] {
     if (page.parent_id) {
       const parent = parentMap.get(page.parent_id);
       if (parent) {
-        if (!parent.items) parent.items = [];
-        parent.items.push({ title: page.name, url: page.path, icon: getIcon(page.icon) });
+        if (hasPermission(page.path, "View")) {
+          if (!parent.items) parent.items = [];
+          parent.items.push({ title: page.name, url: page.path, icon: getIcon(page.icon) });
+        }
       }
     }
   }
 
-  return topLevel;
+  return topLevel.filter((item) => {
+    const hasView = hasPermission(item.url, "View");
+    const hasChildView = item.items && item.items.length > 0;
+    if (hasView) return true;
+    if (hasChildView) return true;
+    return false;
+  });
 }
 
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const { user: authUser, hasPermission, isLoading } = useAuthorization();
+  const [allPages, setAllPages] = useState<Page[]>([]);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     getSidebarPages().then((pages) => {
-      setMenuItems(buildMenuTree(pages));
+      setAllPages(pages);
     });
   }, []);
 
-  const fetchUser = useCallback(async () => {
-    const currentUser = await getCurrentUser();
-    setUser(currentUser);
-  }, []);
-
   useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
+    if (authUser) setUser(authUser);
+  }, [authUser]);
+
+  const menuItems = useMemo(
+    () => buildMenuTree(allPages, hasPermission),
+    [allPages, hasPermission]
+  );
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -144,7 +154,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1 px-3">
-              {menuItems.map((item) => {
+              {!isLoading && menuItems.map((item) => {
                 const Icon = item.icon;
                 const isActive =
                   pathname === item.url ||

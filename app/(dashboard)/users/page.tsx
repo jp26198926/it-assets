@@ -8,6 +8,7 @@ import { UserViewModal } from "@/components/modals/user-view-modal";
 import { UserChangePasswordModal } from "@/components/modals/user-change-password-modal";
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { PageGuard } from "@/components/auth/page-guard";
 import { getUsers, createUser, updateUser, deleteUser, restoreUser, changePassword } from "@/lib/actions/user-actions";
 import type { User, CreateUserInput, UserFilters } from "@/lib/types/user";
 import { toast } from "sonner";
@@ -151,58 +152,60 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <ScrollReveal>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Users</h1>
-          <p className="text-sm sm:text-base text-[#64748b] mt-1">
-            Manage system users and their access
-          </p>
-        </div>
-      </ScrollReveal>
+    <PageGuard pagePath="/users">
+      <div className="space-y-4 sm:space-y-6">
+        <ScrollReveal>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Users</h1>
+            <p className="text-sm sm:text-base text-[#64748b] mt-1">
+              Manage system users and their access
+            </p>
+          </div>
+        </ScrollReveal>
 
-      <ScrollReveal delay={0.1}>
-        <UserDataTable
-          columns={columns}
-          data={users}
-          onView={handleView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onRestore={handleRestore}
-          onChangePassword={handleChangePassword}
-          onAdd={handleAdd}
-          onServerSearch={handleServerSearch}
-          onServerSearchClear={handleServerSearchClear}
+        <ScrollReveal delay={0.1}>
+          <UserDataTable
+            columns={columns}
+            data={users}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onRestore={handleRestore}
+            onChangePassword={handleChangePassword}
+            onAdd={handleAdd}
+            onServerSearch={handleServerSearch}
+            onServerSearchClear={handleServerSearchClear}
+          />
+        </ScrollReveal>
+
+        <UserFormModal
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          user={editUser}
+          onSubmit={handleFormSubmit}
         />
-      </ScrollReveal>
 
-      <UserFormModal
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        user={editUser}
-        onSubmit={handleFormSubmit}
-      />
+        <UserViewModal
+          open={!!viewUser}
+          onOpenChange={(open) => !open && setViewUser(null)}
+          user={viewUser}
+        />
 
-      <UserViewModal
-        open={!!viewUser}
-        onOpenChange={(open) => !open && setViewUser(null)}
-        user={viewUser}
-      />
+        <UserChangePasswordModal
+          open={!!changePasswordUser}
+          onOpenChange={(open) => !open && setChangePasswordUser(null)}
+          userName={changePasswordUser ? `${changePasswordUser.first_name} ${changePasswordUser.last_name}` : ""}
+          onSubmit={handleChangePasswordSubmit}
+        />
 
-      <UserChangePasswordModal
-        open={!!changePasswordUser}
-        onOpenChange={(open) => !open && setChangePasswordUser(null)}
-        userName={changePasswordUser ? `${changePasswordUser.first_name} ${changePasswordUser.last_name}` : ""}
-        onSubmit={handleChangePasswordSubmit}
-      />
-
-      <DeleteConfirmModal
-        open={!!deleteUserItem}
-        onOpenChange={(open) => !open && setDeleteUserItem(null)}
-        assetName={deleteUserItem ? `${deleteUserItem.first_name} ${deleteUserItem.last_name}` : ""}
-        title="Delete User"
-        onConfirm={handleDeleteConfirm}
-      />
-    </div>
+        <DeleteConfirmModal
+          open={!!deleteUserItem}
+          onOpenChange={(open) => !open && setDeleteUserItem(null)}
+          assetName={deleteUserItem ? `${deleteUserItem.first_name} ${deleteUserItem.last_name}` : ""}
+          title="Delete User"
+          onConfirm={handleDeleteConfirm}
+        />
+      </div>
+    </PageGuard>
   );
 }

@@ -1,10 +1,13 @@
 import { NextRequest } from "next/server";
-import { apiSuccess, apiError } from "@/lib/services/api-helpers";
+import { apiSuccess, apiError, withPageAuth } from "@/lib/services/api-helpers";
 import * as departmentService from "@/lib/services/department-service";
 import type { DepartmentFilters } from "@/lib/types/department";
 
 export async function GET(request: NextRequest) {
   try {
+    const { error } = await withPageAuth("/departments", "Access");
+    if (error) return error;
+
     const { searchParams } = new URL(request.url);
     const filters: DepartmentFilters = {};
 
@@ -24,6 +27,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await withPageAuth("/departments", "Add");
+    if (error) return error;
+
     const body = await request.json();
 
     if (!body.code || typeof body.code !== "string") {

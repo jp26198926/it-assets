@@ -7,6 +7,7 @@ import { DepartmentFormModal } from "@/components/modals/department-form-modal";
 import { DepartmentViewModal } from "@/components/modals/department-view-modal";
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { PageGuard } from "@/components/auth/page-guard";
 import { getDepartments, createDepartment, updateDepartment, deleteDepartment, restoreDepartment } from "@/lib/actions/department-actions";
 import type { Department, CreateDepartmentInput, DepartmentFilters } from "@/lib/types/department";
 import { toast } from "sonner";
@@ -127,49 +128,51 @@ export default function DepartmentsPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <ScrollReveal>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Departments</h1>
-          <p className="text-sm sm:text-base text-[#64748b] mt-1">
-            Manage and organize company departments
-          </p>
-        </div>
-      </ScrollReveal>
+    <PageGuard pagePath="/departments">
+      <div className="space-y-4 sm:space-y-6">
+        <ScrollReveal>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Departments</h1>
+            <p className="text-sm sm:text-base text-[#64748b] mt-1">
+              Manage and organize company departments
+            </p>
+          </div>
+        </ScrollReveal>
 
-      <ScrollReveal delay={0.1}>
-        <DepartmentDataTable
-          columns={columns}
-          data={departments}
-          onView={handleView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onRestore={handleRestore}
-          onAdd={handleAdd}
-          onServerSearch={handleServerSearch}
-          onServerSearchClear={handleServerSearchClear}
+        <ScrollReveal delay={0.1}>
+          <DepartmentDataTable
+            columns={columns}
+            data={departments}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onRestore={handleRestore}
+            onAdd={handleAdd}
+            onServerSearch={handleServerSearch}
+            onServerSearchClear={handleServerSearchClear}
+          />
+        </ScrollReveal>
+
+        <DepartmentFormModal
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          department={editDepartment}
+          onSubmit={handleFormSubmit}
         />
-      </ScrollReveal>
 
-      <DepartmentFormModal
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        department={editDepartment}
-        onSubmit={handleFormSubmit}
-      />
+        <DepartmentViewModal
+          open={!!viewDepartment}
+          onOpenChange={(open) => !open && setViewDepartment(null)}
+          department={viewDepartment}
+        />
 
-      <DepartmentViewModal
-        open={!!viewDepartment}
-        onOpenChange={(open) => !open && setViewDepartment(null)}
-        department={viewDepartment}
-      />
-
-      <DeleteConfirmModal
-        open={!!deleteDepartmentItem}
-        onOpenChange={(open) => !open && setDeleteDepartmentItem(null)}
-        assetName={deleteDepartmentItem?.name || ""}
-        onConfirm={handleDeleteConfirm}
-      />
-    </div>
+        <DeleteConfirmModal
+          open={!!deleteDepartmentItem}
+          onOpenChange={(open) => !open && setDeleteDepartmentItem(null)}
+          assetName={deleteDepartmentItem?.name || ""}
+          onConfirm={handleDeleteConfirm}
+        />
+      </div>
+    </PageGuard>
   );
 }

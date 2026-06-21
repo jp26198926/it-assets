@@ -8,6 +8,7 @@ import { DataTableViewOptions } from "./data-table-view-options";
 import { LocationAdvancedSearchDialog } from "./location-advanced-search-dialog";
 import { LocationAdvancedFilterDialog } from "./location-advanced-filter-dialog";
 import { LocationExportButtons } from "./location-export-buttons";
+import { useAuthorization } from "@/hooks/use-authorization";
 import type { Location, LocationFilters, LocationAdvancedFilter } from "@/lib/types/location";
 
 interface LocationDataTableToolbarProps<TData> {
@@ -33,17 +34,22 @@ export function LocationDataTableToolbar<TData>({
   onAdvancedFiltersChange,
   allData,
 }: LocationDataTableToolbarProps<TData>) {
+  const { hasPermission } = useAuthorization();
   const filteredCount = table.getFilteredRowModel().rows.length;
   const totalCount = allData.length;
+  const canAdd = hasPermission("/locations", "Add");
+  const canExport = hasPermission("/locations", "Export");
 
   return (
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Button size="sm" className="h-9 bg-[#3b82f6] hover:bg-[#2563eb] text-white" onClick={onAdd}>
-            <Plus className="mr-1 h-4 w-4" />
-            Add Location
-          </Button>
+          {canAdd && (
+            <Button size="sm" className="h-9 bg-[#3b82f6] hover:bg-[#2563eb] text-white" onClick={onAdd}>
+              <Plus className="mr-1 h-4 w-4" />
+              Add Location
+            </Button>
+          )}
           <span className="text-sm text-[#64748b]">
             {filteredCount} of {totalCount} row(s)
           </span>
@@ -93,7 +99,7 @@ export function LocationDataTableToolbar<TData>({
             </Button>
           )}
           <DataTableViewOptions table={table} />
-          <LocationExportButtons table={table} />
+          {canExport && <LocationExportButtons table={table} />}
         </div>
       </div>
     </div>

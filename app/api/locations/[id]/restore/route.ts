@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { apiSuccess, apiError } from "@/lib/services/api-helpers";
+import { apiSuccess, apiError, withPageAuth } from "@/lib/services/api-helpers";
 import * as locationService from "@/lib/services/location-service";
 
 export async function POST(
@@ -7,6 +7,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error } = await withPageAuth("/locations", "Restore");
+    if (error) return error;
+
     const { id } = await params;
     await locationService.restoreLocation(id);
     return apiSuccess({ message: "Location restored" });

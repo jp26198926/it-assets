@@ -17,14 +17,15 @@ export async function authenticateUser(
 
   if (userCount === 0) {
     if (email === process.env.USERNAME && password === process.env.PASSWORD) {
-      const payload: JwtPayload = {
-        userId: "fallback",
-        email: process.env.USERNAME!,
-        firstName: "Admin",
-        lastName: "System",
-        role: "Admin",
-        phone: null,
-      };
+    const payload: JwtPayload = {
+      userId: "fallback",
+      email: process.env.USERNAME!,
+      firstName: "Admin",
+      lastName: "System",
+      role: "Admin",
+      roleId: "",
+      phone: null,
+    };
       const token = await jwtService.signToken(payload);
       return { success: true, token, user: payload as AuthUser };
     }
@@ -48,13 +49,14 @@ export async function authenticateUser(
     return { success: false, error: "Invalid email or password" };
   }
 
-  const role = user.role_id as unknown as { name: string };
+  const role = user.role_id as unknown as { _id: { toString(): string }; name: string };
   const payload: JwtPayload = {
     userId: (user._id as { toString(): string }).toString(),
     email: user.email,
     firstName: user.first_name,
     lastName: user.last_name,
     role: role.name,
+    roleId: role._id.toString(),
     phone: (user.phone as string) ?? null,
   };
 
@@ -113,6 +115,7 @@ export async function getCurrentUser(
       firstName: payload.firstName,
       lastName: payload.lastName,
       role: payload.role,
+      roleId: "",
       phone: null,
       avatar_url: null,
     };
@@ -127,6 +130,7 @@ export async function getCurrentUser(
     firstName: user.first_name,
     lastName: user.last_name,
     role: user.role_name || "Viewer",
+    roleId: user.role_id,
     phone: user.phone ?? null,
     avatar_url: user.avatar_url ?? null,
   };

@@ -7,6 +7,7 @@ import { PageFormModal } from "@/components/modals/page-form-modal";
 import { PageViewModal } from "@/components/modals/page-view-modal";
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { PageGuard } from "@/components/auth/page-guard";
 import { getPages, createPage, updatePage, deletePage, restorePage } from "@/lib/actions/page-actions";
 import type { Page, CreatePageInput, PageFilters } from "@/lib/types/page";
 import { toast } from "sonner";
@@ -127,50 +128,52 @@ export default function PagesPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <ScrollReveal>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Pages</h1>
-          <p className="text-sm sm:text-base text-[#64748b] mt-1">
-            Manage and organize application pages and navigation
-          </p>
-        </div>
-      </ScrollReveal>
+    <PageGuard pagePath="/pages">
+      <div className="space-y-4 sm:space-y-6">
+        <ScrollReveal>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Pages</h1>
+            <p className="text-sm sm:text-base text-[#64748b] mt-1">
+              Manage and organize application pages and navigation
+            </p>
+          </div>
+        </ScrollReveal>
 
-      <ScrollReveal delay={0.1}>
-        <PageDataTable
-          columns={columns}
-          data={pages}
-          onView={handleView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onRestore={handleRestore}
-          onAdd={handleAdd}
-          onServerSearch={handleServerSearch}
-          onServerSearchClear={handleServerSearchClear}
+        <ScrollReveal delay={0.1}>
+          <PageDataTable
+            columns={columns}
+            data={pages}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onRestore={handleRestore}
+            onAdd={handleAdd}
+            onServerSearch={handleServerSearch}
+            onServerSearchClear={handleServerSearchClear}
+          />
+        </ScrollReveal>
+
+        <PageFormModal
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          page={editPage}
+          pages={pages}
+          onSubmit={handleFormSubmit}
         />
-      </ScrollReveal>
 
-      <PageFormModal
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        page={editPage}
-        pages={pages}
-        onSubmit={handleFormSubmit}
-      />
+        <PageViewModal
+          open={!!viewPage}
+          onOpenChange={(open) => !open && setViewPage(null)}
+          page={viewPage}
+        />
 
-      <PageViewModal
-        open={!!viewPage}
-        onOpenChange={(open) => !open && setViewPage(null)}
-        page={viewPage}
-      />
-
-      <DeleteConfirmModal
-        open={!!deletePageItem}
-        onOpenChange={(open) => !open && setDeletePageItem(null)}
-        assetName={deletePageItem?.name || ""}
-        onConfirm={handleDeleteConfirm}
-      />
-    </div>
+        <DeleteConfirmModal
+          open={!!deletePageItem}
+          onOpenChange={(open) => !open && setDeletePageItem(null)}
+          assetName={deletePageItem?.name || ""}
+          onConfirm={handleDeleteConfirm}
+        />
+      </div>
+    </PageGuard>
   );
 }

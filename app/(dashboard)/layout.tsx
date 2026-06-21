@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Header } from "@/components/layout/header";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthorizationProvider } from "@/components/providers/authorization-provider";
 
 export default function DashboardLayout({
   children,
@@ -12,15 +13,17 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <TooltipProvider>
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="overflow-x-hidden">
-          <Header />
-          <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">{children}</main>
-        </SidebarInset>
-      </SidebarProvider>
-      <Toaster />
-    </TooltipProvider>
+    <AuthorizationProvider>
+      <TooltipProvider>
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset className="overflow-x-hidden">
+            <Header />
+            <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">{children}</main>
+          </SidebarInset>
+        </SidebarProvider>
+        <Toaster />
+      </TooltipProvider>
+    </AuthorizationProvider>
   );
 }

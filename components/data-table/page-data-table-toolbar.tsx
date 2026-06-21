@@ -8,6 +8,7 @@ import { DataTableViewOptions } from "./data-table-view-options";
 import { PageAdvancedSearchDialog } from "./page-advanced-search-dialog";
 import { PageAdvancedFilterDialog } from "./page-advanced-filter-dialog";
 import { PageExportButtons } from "./page-export-buttons";
+import { useAuthorization } from "@/hooks/use-authorization";
 import type { Page, PageFilters, PageAdvancedFilter } from "@/lib/types/page";
 
 interface PageDataTableToolbarProps<TData> {
@@ -33,18 +34,23 @@ export function PageDataTableToolbar<TData>({
   onAdvancedFiltersChange,
   allData,
 }: PageDataTableToolbarProps<TData>) {
+  const { hasPermission } = useAuthorization();
   const filteredCount = table.getFilteredRowModel().rows.length;
   const totalCount = allData.length;
+  const canAdd = hasPermission("/pages", "Add");
+  const canExport = hasPermission("/pages", "Export");
 
   return (
     <div className="space-y-3">
       {/* Top Row: Add button + row count */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Button size="sm" className="h-9 bg-[#3b82f6] hover:bg-[#2563eb] text-white" onClick={onAdd}>
-            <Plus className="mr-1 h-4 w-4" />
-            Add Page
-          </Button>
+          {canAdd && (
+            <Button size="sm" className="h-9 bg-[#3b82f6] hover:bg-[#2563eb] text-white" onClick={onAdd}>
+              <Plus className="mr-1 h-4 w-4" />
+              Add Page
+            </Button>
+          )}
           <span className="text-sm text-[#64748b]">
             {filteredCount} of {totalCount} row(s)
           </span>
@@ -95,7 +101,7 @@ export function PageDataTableToolbar<TData>({
             </Button>
           )}
           <DataTableViewOptions table={table} />
-          <PageExportButtons table={table} />
+          {canExport && <PageExportButtons table={table} />}
         </div>
       </div>
     </div>

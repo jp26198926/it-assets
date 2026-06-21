@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Eye, Edit, Trash2, RotateCcw } from "lucide-react";
+import { useAuthorization } from "@/hooks/use-authorization";
 import type { Page } from "@/lib/types/page";
 import { DataTableColumnHeader } from "./data-table-column-header";
 import {
@@ -130,6 +131,11 @@ interface ActionsProps {
 }
 
 function Actions({ page, onView, onEdit, onDelete, onRestore }: ActionsProps) {
+  const { hasPermission } = useAuthorization();
+  const canEdit = hasPermission("/pages", "Edit");
+  const canDelete = hasPermission("/pages", "Delete");
+  const canRestore = hasPermission("/pages", "Restore");
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -143,27 +149,33 @@ function Actions({ page, onView, onEdit, onDelete, onRestore }: ActionsProps) {
           <Eye className="h-4 w-4 text-[#64748b]" />
           View Details
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onEdit(page)} className="cursor-pointer gap-2 text-[#1a1f36]">
-          <Edit className="h-4 w-4 text-[#64748b]" />
-          Edit Page
-        </DropdownMenuItem>
+        {canEdit && (
+          <DropdownMenuItem onClick={() => onEdit(page)} className="cursor-pointer gap-2 text-[#1a1f36]">
+            <Edit className="h-4 w-4 text-[#64748b]" />
+            Edit Page
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         {!page.deleted_at ? (
-          <DropdownMenuItem
-            onClick={() => onDelete(page)}
-            className="cursor-pointer gap-2 text-[#dc2626]"
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete
-          </DropdownMenuItem>
+          canDelete && (
+            <DropdownMenuItem
+              onClick={() => onDelete(page)}
+              className="cursor-pointer gap-2 text-[#dc2626]"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          )
         ) : (
-          <DropdownMenuItem
-            onClick={() => onRestore(page)}
-            className="cursor-pointer gap-2 text-[#059669]"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Restore
-          </DropdownMenuItem>
+          canRestore && (
+            <DropdownMenuItem
+              onClick={() => onRestore(page)}
+              className="cursor-pointer gap-2 text-[#059669]"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Restore
+            </DropdownMenuItem>
+          )
         )}
       </DropdownMenuContent>
     </DropdownMenu>

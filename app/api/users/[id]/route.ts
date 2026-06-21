@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { apiSuccess, apiError } from "@/lib/services/api-helpers";
+import { apiSuccess, apiError, withPageAuth } from "@/lib/services/api-helpers";
 import * as userService from "@/lib/services/user-service";
 
 export async function GET(
@@ -7,6 +7,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error } = await withPageAuth("/users", "Access");
+    if (error) return error;
+
     const { id } = await params;
     const user = await userService.getUserById(id);
     if (!user) return apiError("User not found", 404);
@@ -21,6 +24,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error } = await withPageAuth("/users", "Edit");
+    if (error) return error;
+
     const { id } = await params;
     const body = await request.json();
 
@@ -43,6 +49,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error } = await withPageAuth("/users", "Delete");
+    if (error) return error;
+
     const { id } = await params;
     let reason: string | undefined;
 

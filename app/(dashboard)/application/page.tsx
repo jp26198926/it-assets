@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { PageGuard } from "@/components/auth/page-guard";
 import { getAppSettings, updateAppSettings } from "@/lib/actions/application-actions";
 import type { Application, UpdateApplicationInput } from "@/lib/types/application";
 import { toast } from "sonner";
@@ -99,19 +100,20 @@ export default function ApplicationPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-[#f0f4f8] -mx-6 px-6 py-4 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] lg:text-3xl">
-            Application Settings
-          </h1>
-          <p className="text-sm sm:text-base text-[#64748b] mt-1">
-            Configure your application settings and preferences
-          </p>
+    <PageGuard pagePath="/application">
+      <div className="space-y-6">
+        <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-[#f0f4f8] -mx-6 px-6 py-4 mb-6">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] lg:text-3xl">
+              Application Settings
+            </h1>
+            <p className="text-sm sm:text-base text-[#64748b] mt-1">
+              Configure your application settings and preferences
+            </p>
+          </div>
         </div>
-      </div>
 
-      <form id="application-form" onSubmit={handleSubmit}>
+        <form id="application-form" onSubmit={handleSubmit}>
         <div className="grid gap-6 lg:grid-cols-2">
           {/* App Info */}
           <ScrollReveal>
@@ -313,6 +315,7 @@ export default function ApplicationPage() {
           )}
         </Button>
       </div>
-    </div>
+      </div>
+    </PageGuard>
   );
 }

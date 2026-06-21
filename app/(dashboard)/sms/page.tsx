@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { PageGuard } from "@/components/auth/page-guard";
 import { getSmsSettings, updateSmsSettings, sendTestSms } from "@/lib/actions/sms-actions";
 import type { Sms, UpdateSmsInput } from "@/lib/types/sms";
 import { toast } from "sonner";
@@ -112,19 +113,20 @@ export default function SmsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-[#f0f4f8] -mx-6 px-6 py-4 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] lg:text-3xl">
-            SMS Settings
-          </h1>
-          <p className="text-sm sm:text-base text-[#64748b] mt-1">
-            Configure SMS gateway settings and test message delivery
-          </p>
+    <PageGuard pagePath="/sms">
+      <div className="space-y-6">
+        <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-[#f0f4f8] -mx-6 px-6 py-4 mb-6">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] lg:text-3xl">
+              SMS Settings
+            </h1>
+            <p className="text-sm sm:text-base text-[#64748b] mt-1">
+              Configure SMS gateway settings and test message delivery
+            </p>
+          </div>
         </div>
-      </div>
 
-      <form id="sms-form" onSubmit={handleSubmit}>
+        <form id="sms-form" onSubmit={handleSubmit}>
         <div className="grid gap-6 lg:grid-cols-2">
           {/* TextBee Configuration */}
           <ScrollReveal className="lg:col-span-2">
@@ -263,6 +265,7 @@ export default function SmsPage() {
           )}
         </Button>
       </div>
-    </div>
+      </div>
+    </PageGuard>
   );
 }

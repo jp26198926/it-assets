@@ -1,10 +1,13 @@
 import { NextRequest } from "next/server";
-import { apiSuccess, apiError } from "@/lib/services/api-helpers";
+import { apiSuccess, apiError, withPageAuth } from "@/lib/services/api-helpers";
 import * as pageService from "@/lib/services/page-service";
 import type { PageFilters } from "@/lib/types/page";
 
 export async function GET(request: NextRequest) {
   try {
+    const { error } = await withPageAuth("/pages", "Access");
+    if (error) return error;
+
     const { searchParams } = new URL(request.url);
     const filters: PageFilters = {};
 
@@ -26,6 +29,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await withPageAuth("/pages", "Add");
+    if (error) return error;
+
     const body = await request.json();
 
     if (!body.name || typeof body.name !== "string") {

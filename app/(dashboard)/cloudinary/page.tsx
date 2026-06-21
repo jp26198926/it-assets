@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { PageGuard } from "@/components/auth/page-guard";
 import { getCloudinarySettings, updateCloudinarySettings, testCloudinaryUpload } from "@/lib/actions/cloudinary-actions";
 import type { Cloudinary, UpdateCloudinaryInput } from "@/lib/types/cloudinary";
 import { toast } from "sonner";
@@ -126,15 +127,17 @@ export default function CloudinaryPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-[#f0f4f8] -mx-6 px-6 py-4 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] lg:text-3xl">
-            Cloudinary Settings
-          </h1>
-          <p className="text-sm sm:text-base text-[#64748b] mt-1">
-            Configure Cloudinary file storage settings
-          </p>
+    <PageGuard pagePath="/cloudinary">
+      <div className="space-y-6">
+        <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-[#f0f4f8] -mx-6 px-6 py-4 mb-6">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] lg:text-3xl">
+              Cloudinary Settings
+            </h1>
+            <p className="text-sm sm:text-base text-[#64748b] mt-1">
+              Configure Cloudinary integration and test file uploads
+            </p>
+          </div>
         </div>
       </div>
 
@@ -319,6 +322,6 @@ export default function CloudinaryPage() {
           )}
         </Button>
       </div>
-    </div>
+    </PageGuard>
   );
 }

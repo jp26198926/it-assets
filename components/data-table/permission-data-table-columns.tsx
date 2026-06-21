@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Eye, Edit, Trash2, RotateCcw } from "lucide-react";
+import { useAuthorization } from "@/hooks/use-authorization";
 import type { Permission } from "@/lib/types/permission";
 import { DataTableColumnHeader } from "./data-table-column-header";
 
@@ -28,6 +29,11 @@ interface ActionsProps {
 }
 
 function Actions({ permission, onView, onEdit, onDelete, onRestore }: ActionsProps) {
+  const { hasPermission } = useAuthorization();
+  const canEdit = hasPermission("/permissions", "Edit");
+  const canDelete = hasPermission("/permissions", "Delete");
+  const canRestore = hasPermission("/permissions", "Restore");
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -41,27 +47,33 @@ function Actions({ permission, onView, onEdit, onDelete, onRestore }: ActionsPro
           <Eye className="h-4 w-4 text-[#64748b]" />
           View Details
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onEdit(permission)} className="cursor-pointer gap-2 text-[#1a1f36]">
-          <Edit className="h-4 w-4 text-[#64748b]" />
-          Edit Permission
-        </DropdownMenuItem>
+        {canEdit && (
+          <DropdownMenuItem onClick={() => onEdit(permission)} className="cursor-pointer gap-2 text-[#1a1f36]">
+            <Edit className="h-4 w-4 text-[#64748b]" />
+            Edit Permission
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         {!permission.deleted_at ? (
-          <DropdownMenuItem
-            onClick={() => onDelete(permission)}
-            className="cursor-pointer gap-2 text-[#dc2626]"
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete
-          </DropdownMenuItem>
+          canDelete && (
+            <DropdownMenuItem
+              onClick={() => onDelete(permission)}
+              className="cursor-pointer gap-2 text-[#dc2626]"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          )
         ) : (
-          <DropdownMenuItem
-            onClick={() => onRestore(permission)}
-            className="cursor-pointer gap-2 text-[#059669]"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Restore
-          </DropdownMenuItem>
+          canRestore && (
+            <DropdownMenuItem
+              onClick={() => onRestore(permission)}
+              className="cursor-pointer gap-2 text-[#059669]"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Restore
+            </DropdownMenuItem>
+          )
         )}
       </DropdownMenuContent>
     </DropdownMenu>

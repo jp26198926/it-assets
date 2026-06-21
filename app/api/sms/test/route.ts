@@ -1,9 +1,12 @@
 import { NextRequest } from "next/server";
 import * as smsService from "@/lib/services/sms-service";
-import { apiSuccess, apiError } from "@/lib/services/api-helpers";
+import { apiSuccess, apiError, withPageAuth } from "@/lib/services/api-helpers";
 
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await withPageAuth("/sms", "Access");
+    if (error) return error;
+
     const body = await request.json();
     const { phoneNumber } = body;
 

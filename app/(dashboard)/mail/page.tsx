@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { PageGuard } from "@/components/auth/page-guard";
 import { getMailSettings, updateMailSettings, sendTestEmail } from "@/lib/actions/mail-actions";
 import type { Mail, UpdateMailInput } from "@/lib/types/mail";
 import { toast } from "sonner";
@@ -119,15 +120,17 @@ export default function MailPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-[#f0f4f8] -mx-6 px-6 py-4 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] lg:text-3xl">
-            Mail Settings
-          </h1>
-          <p className="text-sm sm:text-base text-[#64748b] mt-1">
-            Configure SMTP email settings and test email delivery
-          </p>
+    <PageGuard pagePath="/mail">
+      <div className="space-y-6">
+        <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-[#f0f4f8] -mx-6 px-6 py-4 mb-6">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] lg:text-3xl">
+              Mail Settings
+            </h1>
+            <p className="text-sm sm:text-base text-[#64748b] mt-1">
+              Configure SMTP email settings and test message delivery
+            </p>
+          </div>
         </div>
       </div>
 
@@ -317,6 +320,6 @@ export default function MailPage() {
           )}
         </Button>
       </div>
-    </div>
+    </PageGuard>
   );
 }

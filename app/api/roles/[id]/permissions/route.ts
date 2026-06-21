@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { apiSuccess, apiError } from "@/lib/services/api-helpers";
+import { apiSuccess, apiError, withPageAuth } from "@/lib/services/api-helpers";
 import * as rolePermissionService from "@/lib/services/role-permission-service";
 
 export async function GET(
@@ -7,6 +7,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error } = await withPageAuth("/roles", "Access");
+    if (error) return error;
+
     const { id } = await params;
     const records = await rolePermissionService.getRolePermissions(id);
     return apiSuccess(records);
@@ -20,6 +23,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error } = await withPageAuth("/roles", "Edit");
+    if (error) return error;
+
     const { id } = await params;
     const body = await request.json();
     if (!body.page_id || !body.permission_id) {
@@ -42,6 +48,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error } = await withPageAuth("/roles", "Edit");
+    if (error) return error;
+
     const { id } = await params;
     const body = await request.json();
     if (!body.page_id || !body.permission_id) {

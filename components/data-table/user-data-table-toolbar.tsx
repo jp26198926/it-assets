@@ -8,6 +8,7 @@ import { DataTableViewOptions } from "./data-table-view-options";
 import { UserAdvancedSearchDialog } from "./user-advanced-search-dialog";
 import { UserAdvancedFilterDialog } from "./user-advanced-filter-dialog";
 import { UserExportButtons } from "./user-export-buttons";
+import { useAuthorization } from "@/hooks/use-authorization";
 import type { User, UserFilters, UserAdvancedFilter } from "@/lib/types/user";
 
 interface UserDataTableToolbarProps<TData> {
@@ -34,17 +35,22 @@ export function UserDataTableToolbar<TData>({
   onAdvancedFiltersChange,
   allData,
 }: UserDataTableToolbarProps<TData>) {
+  const { hasPermission } = useAuthorization();
   const filteredCount = table.getFilteredRowModel().rows.length;
   const totalCount = allData.length;
+  const canAdd = hasPermission("/users", "Add");
+  const canExport = hasPermission("/users", "Export");
 
   return (
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Button size="sm" className="h-9 bg-[#3b82f6] hover:bg-[#2563eb] text-white" onClick={onAdd}>
-            <Plus className="mr-1 h-4 w-4" />
-            Add User
-          </Button>
+          {canAdd && (
+            <Button size="sm" className="h-9 bg-[#3b82f6] hover:bg-[#2563eb] text-white" onClick={onAdd}>
+              <Plus className="mr-1 h-4 w-4" />
+              Add User
+            </Button>
+          )}
           <span className="text-sm text-[#64748b]">
             {filteredCount} of {totalCount} row(s)
           </span>
@@ -94,7 +100,7 @@ export function UserDataTableToolbar<TData>({
             </Button>
           )}
           <DataTableViewOptions table={table} />
-          <UserExportButtons table={table} />
+          {canExport && <UserExportButtons table={table} />}
         </div>
       </div>
     </div>

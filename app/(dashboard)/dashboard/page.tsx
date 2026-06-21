@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { PageGuard } from "@/components/auth/page-guard";
 import { mockAssets } from "@/lib/mock-data";
 import { Eye, ShoppingCart, Package, Users, ArrowUp, ArrowDown } from "lucide-react";
 import { motion } from "framer-motion";
@@ -48,14 +49,15 @@ const stats = [
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <ScrollReveal>
-        <div className="flex items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] lg:text-3xl">Dashboard</h1>
-            <p className="text-sm sm:text-base text-[#64748b] mt-1">
-              Overview of your IT asset inventory
-            </p>
+    <PageGuard pagePath="/dashboard">
+      <div className="space-y-6 sm:space-y-8">
+        <ScrollReveal>
+          <div className="flex items-start sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] lg:text-3xl">Dashboard</h1>
+              <p className="text-sm sm:text-base text-[#64748b] mt-1">
+                Overview of your IT asset inventory
+              </p>
           </div>
         </div>
       </ScrollReveal>
@@ -209,6 +211,7 @@ export default function DashboardPage() {
           </Card>
         </ScrollReveal>
       </div>
-    </div>
+      </div>
+    </PageGuard>
   );
 }

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { apiSuccess, apiError } from "@/lib/services/api-helpers";
+import { apiSuccess, apiError, withPageAuth } from "@/lib/services/api-helpers";
 import * as permissionService from "@/lib/services/permission-service";
 
 export async function POST(
@@ -7,6 +7,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error } = await withPageAuth("/permissions", "Restore");
+    if (error) return error;
+
     const { id } = await params;
     await permissionService.restorePermission(id);
     return apiSuccess({ message: "Permission restored" });

@@ -4,6 +4,7 @@ export interface JwtPayload {
   firstName: string;
   lastName: string;
   role: string;
+  roleId: string;
   phone?: string | null;
 }
 
@@ -43,6 +44,7 @@ export interface AuthUser {
   firstName: string;
   lastName: string;
   role: string;
+  roleId: string;
   phone: string | null;
   avatar_url: string | null;
 }

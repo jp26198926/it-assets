@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Eye, Edit, Trash2, RotateCcw, KeyRound } from "lucide-react";
+import { useAuthorization } from "@/hooks/use-authorization";
 import type { User } from "@/lib/types/user";
 import { DataTableColumnHeader } from "./data-table-column-header";
 
@@ -29,6 +30,11 @@ interface ActionsProps {
 }
 
 function Actions({ user, onView, onEdit, onDelete, onRestore, onChangePassword }: ActionsProps) {
+  const { hasPermission } = useAuthorization();
+  const canEdit = hasPermission("/users", "Edit");
+  const canDelete = hasPermission("/users", "Delete");
+  const canRestore = hasPermission("/users", "Restore");
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -42,31 +48,39 @@ function Actions({ user, onView, onEdit, onDelete, onRestore, onChangePassword }
           <Eye className="h-4 w-4 text-[#64748b]" />
           View Details
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onEdit(user)} className="cursor-pointer gap-2 text-[#1a1f36]">
-          <Edit className="h-4 w-4 text-[#64748b]" />
-          Edit User
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onChangePassword(user)} className="cursor-pointer gap-2 text-[#1a1f36]">
-          <KeyRound className="h-4 w-4 text-[#64748b]" />
-          Change Password
-        </DropdownMenuItem>
+        {canEdit && (
+          <>
+            <DropdownMenuItem onClick={() => onEdit(user)} className="cursor-pointer gap-2 text-[#1a1f36]">
+              <Edit className="h-4 w-4 text-[#64748b]" />
+              Edit User
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onChangePassword(user)} className="cursor-pointer gap-2 text-[#1a1f36]">
+              <KeyRound className="h-4 w-4 text-[#64748b]" />
+              Change Password
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         {!user.deleted_at ? (
-          <DropdownMenuItem
-            onClick={() => onDelete(user)}
-            className="cursor-pointer gap-2 text-[#dc2626]"
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete
-          </DropdownMenuItem>
+          canDelete && (
+            <DropdownMenuItem
+              onClick={() => onDelete(user)}
+              className="cursor-pointer gap-2 text-[#dc2626]"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          )
         ) : (
-          <DropdownMenuItem
-            onClick={() => onRestore(user)}
-            className="cursor-pointer gap-2 text-[#059669]"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Restore
-          </DropdownMenuItem>
+          canRestore && (
+            <DropdownMenuItem
+              onClick={() => onRestore(user)}
+              className="cursor-pointer gap-2 text-[#059669]"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Restore
+            </DropdownMenuItem>
+          )
         )}
       </DropdownMenuContent>
     </DropdownMenu>

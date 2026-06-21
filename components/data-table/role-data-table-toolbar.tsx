@@ -8,6 +8,7 @@ import { DataTableViewOptions } from "./data-table-view-options";
 import { RoleAdvancedSearchDialog } from "./role-advanced-search-dialog";
 import { RoleAdvancedFilterDialog } from "./role-advanced-filter-dialog";
 import { RoleExportButtons } from "./role-export-buttons";
+import { useAuthorization } from "@/hooks/use-authorization";
 import type { Role, RoleFilters, RoleAdvancedFilter } from "@/lib/types/role";
 
 interface RoleDataTableToolbarProps<TData> {
@@ -33,17 +34,22 @@ export function RoleDataTableToolbar<TData>({
   onAdvancedFiltersChange,
   allData,
 }: RoleDataTableToolbarProps<TData>) {
+  const { hasPermission } = useAuthorization();
   const filteredCount = table.getFilteredRowModel().rows.length;
   const totalCount = allData.length;
+  const canAdd = hasPermission("/roles", "Add");
+  const canExport = hasPermission("/roles", "Export");
 
   return (
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Button size="sm" className="h-9 bg-[#3b82f6] hover:bg-[#2563eb] text-white" onClick={onAdd}>
-            <Plus className="mr-1 h-4 w-4" />
-            Add Role
-          </Button>
+          {canAdd && (
+            <Button size="sm" className="h-9 bg-[#3b82f6] hover:bg-[#2563eb] text-white" onClick={onAdd}>
+              <Plus className="mr-1 h-4 w-4" />
+              Add Role
+            </Button>
+          )}
           <span className="text-sm text-[#64748b]">
             {filteredCount} of {totalCount} row(s)
           </span>
@@ -93,7 +99,7 @@ export function RoleDataTableToolbar<TData>({
             </Button>
           )}
           <DataTableViewOptions table={table} />
-          <RoleExportButtons table={table} />
+          {canExport && <RoleExportButtons table={table} />}
         </div>
       </div>
     </div>

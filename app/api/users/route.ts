@@ -1,10 +1,13 @@
 import { NextRequest } from "next/server";
-import { apiSuccess, apiError } from "@/lib/services/api-helpers";
+import { apiSuccess, apiError, withPageAuth } from "@/lib/services/api-helpers";
 import * as userService from "@/lib/services/user-service";
 import type { UserFilters } from "@/lib/types/user";
 
 export async function GET(request: NextRequest) {
   try {
+    const { error } = await withPageAuth("/users", "Access");
+    if (error) return error;
+
     const { searchParams } = new URL(request.url);
     const filters: UserFilters = {};
 
@@ -24,6 +27,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const { error } = await withPageAuth("/users", "Add");
+    if (error) return error;
+
     const body = await request.json();
 
     if (!body.first_name || typeof body.first_name !== "string") {

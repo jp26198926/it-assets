@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { apiSuccess, apiError } from "@/lib/services/api-helpers";
+import { apiSuccess, apiError, withPageAuth } from "@/lib/services/api-helpers";
 import * as roleService from "@/lib/services/role-service";
 
 export async function GET(
@@ -7,6 +7,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error } = await withPageAuth("/roles", "Access");
+    if (error) return error;
+
     const { id } = await params;
     const role = await roleService.getRoleById(id);
     if (!role) return apiError("Role not found", 404);
@@ -21,6 +24,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error } = await withPageAuth("/roles", "Edit");
+    if (error) return error;
+
     const { id } = await params;
     const body = await request.json();
 
@@ -40,6 +46,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { error } = await withPageAuth("/roles", "Delete");
+    if (error) return error;
+
     const { id } = await params;
     let reason: string | undefined;
 

@@ -154,6 +154,7 @@ export async function updateMyProfile(data: ProfileUpdateInput): Promise<{ succe
       firstName: updatedUser.first_name,
       lastName: updatedUser.last_name,
       role: updatedUser.role_name || "Viewer",
+      roleId: updatedUser.role_id,
       phone: updatedUser.phone ?? null,
       avatar_url: updatedUser.avatar_url ?? null,
     },
