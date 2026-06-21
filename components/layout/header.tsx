@@ -137,8 +137,14 @@ export function Header() {
                 </p>
                 <p className="text-xs text-[#64748b]">{user?.role || ""}</p>
               </div>
-              <div className="flex size-8 sm:size-9 items-center justify-center bg-gradient-to-br from-[#3b82f6] to-[#2563eb] text-white text-xs font-bold shadow-md shadow-[#3b82f6]/20">
-                {user ? getInitials(user.firstName, user.lastName) : "..."}
+              <div className="flex size-8 sm:size-9 items-center justify-center bg-gradient-to-br from-[#3b82f6] to-[#2563eb] text-white text-xs font-bold shadow-md shadow-[#3b82f6]/20 overflow-hidden">
+                {user?.avatar_url ? (
+                  <img src={user.avatar_url} alt="Avatar" className="size-full object-cover" />
+                ) : user ? (
+                  getInitials(user.firstName, user.lastName)
+                ) : (
+                  "..."
+                )}
               </div>
               <ChevronDown className="size-4 text-[#64748b] hidden sm:block" />
             </button>

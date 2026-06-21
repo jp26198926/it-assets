@@ -116,6 +116,7 @@ export async function getCurrentUser(
       lastName: payload.lastName,
       role: payload.role,
       phone: null,
+      avatar_url: null,
     };
   }
 
@@ -129,5 +130,6 @@ export async function getCurrentUser(
     lastName: user.last_name,
     role: user.role_name || "Viewer",
     phone: user.phone ?? null,
+    avatar_url: user.avatar_url ?? null,
   };
 }

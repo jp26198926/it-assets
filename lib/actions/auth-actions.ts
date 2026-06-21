@@ -121,6 +121,29 @@ export async function updateMyProfile(data: ProfileUpdateInput): Promise<{ succe
     return { success: false, error: "User not found" };
   }
 
+  if ((data.email && data.email_otp) || (data.phone && data.phone_otp)) {
+    const emailOtpResult = data.email && data.email_otp
+      ? await otpService.verifyOtp(fullUser.id, data.email_otp, "EMAIL_CHANGE")
+      : null;
+    const phoneOtpResult = data.phone && data.phone_otp
+      ? await otpService.verifyOtp(fullUser.id, data.phone_otp, "PHONE_CHANGE")
+      : null;
+
+    if (emailOtpResult && !emailOtpResult.success) {
+      return { success: false, error: emailOtpResult.message };
+    }
+    if (phoneOtpResult && !phoneOtpResult.success) {
+      return { success: false, error: phoneOtpResult.message };
+    }
+
+    if (emailOtpResult && data.email) {
+      await userService.updateUserEmail(fullUser.id, data.email);
+    }
+    if (phoneOtpResult && data.phone) {
+      await userService.updateUserPhone(fullUser.id, data.phone);
+    }
+  }
+
   const updatedUser = await userService.updateProfile(fullUser.id, data);
 
   return {
@@ -132,6 +155,7 @@ export async function updateMyProfile(data: ProfileUpdateInput): Promise<{ succe
       lastName: updatedUser.last_name,
       role: updatedUser.role_name || "Viewer",
       phone: updatedUser.phone ?? null,
+      avatar_url: updatedUser.avatar_url ?? null,
     },
   };
 }

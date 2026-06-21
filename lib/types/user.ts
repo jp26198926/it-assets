@@ -42,7 +42,10 @@ export interface UpdateUserInput {
 export interface ProfileUpdateInput {
   first_name?: string;
   last_name?: string;
+  email?: string;
+  email_otp?: string;
   phone?: string;
+  phone_otp?: string;
   avatar_url?: string | null;
 }
 

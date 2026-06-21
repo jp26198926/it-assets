@@ -44,4 +44,5 @@ export interface AuthUser {
   lastName: string;
   role: string;
   phone: string | null;
+  avatar_url: string | null;
 }

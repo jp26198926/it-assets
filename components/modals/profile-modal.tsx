@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,13 +13,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Camera, Loader2, X } from "lucide-react";
+import { Camera, ImagePlus, Loader2, Upload, X } from "lucide-react";
 import {
   updateMyProfile,
   requestEmailChange,
-  verifyEmailChange,
   requestPhoneChange,
-  verifyPhoneChange,
   uploadProfilePhoto,
 } from "@/lib/actions/auth-actions";
 import { toast } from "sonner";
@@ -38,6 +37,8 @@ export function ProfileModal({
   onUserUpdate,
 }: ProfileModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const photoMenuRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -45,22 +46,23 @@ export function ProfileModal({
   const [currentEmail, setCurrentEmail] = useState("");
   const [currentPhone, setCurrentPhone] = useState("");
 
+  const [showChangeEmail, setShowChangeEmail] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [emailOtp, setEmailOtp] = useState("");
   const [showEmailOtp, setShowEmailOtp] = useState(false);
-  const [emailVerified, setEmailVerified] = useState(false);
 
+  const [showChangePhone, setShowChangePhone] = useState(false);
   const [newPhone, setNewPhone] = useState("");
   const [phoneOtp, setPhoneOtp] = useState("");
   const [showPhoneOtp, setShowPhoneOtp] = useState(false);
-  const [phoneVerified, setPhoneVerified] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [showPhotoMenu, setShowPhotoMenu] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [sendingEmailOtp, setSendingEmailOtp] = useState(false);
   const [sendingPhoneOtp, setSendingPhoneOtp] = useState(false);
-  const [verifyingEmail, setVerifyingEmail] = useState(false);
-  const [verifyingPhone, setVerifyingPhone] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -70,28 +72,54 @@ export function ProfileModal({
       setLastName(user.lastName);
       setCurrentEmail(user.email);
       setCurrentPhone(user.phone || "");
-      setAvatarUrl(null);
+      setAvatarUrl(user.avatar_url);
+      setShowChangeEmail(false);
       setNewEmail("");
       setEmailOtp("");
       setShowEmailOtp(false);
-      setEmailVerified(false);
+      setShowChangePhone(false);
       setNewPhone("");
       setPhoneOtp("");
       setShowPhoneOtp(false);
-      setPhoneVerified(false);
       setErrors({});
+      setShowPhotoMenu(false);
+      setShowCamera(false);
+      if (cameraStream) {
+        cameraStream.getTracks().forEach((track) => track.stop());
+        setCameraStream(null);
+      }
     }
   }, [user, open]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (photoMenuRef.current && !photoMenuRef.current.contains(e.target as Node)) {
+        setShowPhotoMenu(false);
+      }
+    };
+    if (showPhotoMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showPhotoMenu]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!firstName) newErrors.firstName = "First name is required";
     if (!lastName) newErrors.lastName = "Last name is required";
-    if (newEmail && newEmail !== currentEmail && !emailVerified) {
-      newErrors.newEmail = "Please verify your new email first";
+    if (showChangeEmail && newEmail) {
+      if (newEmail === currentEmail) {
+        newErrors.newEmail = "New email must be different from current email";
+      } else if (!emailOtp || emailOtp.length !== 6) {
+        newErrors.emailOtp = "Please enter the 6-digit verification code";
+      }
     }
-    if (newPhone && newPhone !== currentPhone && !phoneVerified) {
-      newErrors.newPhone = "Please verify your new phone number first";
+    if (showChangePhone && newPhone) {
+      if (newPhone === currentPhone) {
+        newErrors.newPhone = "New phone must be different from current phone";
+      } else if (!phoneOtp || phoneOtp.length !== 6) {
+        newErrors.phoneOtp = "Please enter the 6-digit verification code";
+      }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -139,6 +167,82 @@ export function ProfileModal({
     }
   };
 
+  const handleOpenCamera = async () => {
+    setShowPhotoMenu(false);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+      });
+      setCameraStream(stream);
+      setShowCamera(true);
+      onOpenChange(false);
+    } catch {
+      toast.error("Unable to access camera. Please check your permissions.");
+    }
+  };
+
+  const handleCloseCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((track) => track.stop());
+      setCameraStream(null);
+    }
+    setShowCamera(false);
+    onOpenChange(true);
+  };
+
+  const handleCapturePhoto = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.drawImage(video, 0, 0);
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+
+      setUploadingPhoto(true);
+      handleCloseCamera();
+
+      try {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          const base64 = event.target?.result as string;
+          const result = await uploadProfilePhoto(base64, "camera-photo.jpg");
+          if (result.success && result.url) {
+            setAvatarUrl(result.url);
+            toast.success("Photo captured successfully");
+          } else {
+            toast.error(result.error || "Failed to upload photo");
+          }
+          setUploadingPhoto(false);
+        };
+        reader.readAsDataURL(blob);
+      } catch {
+        toast.error("Failed to upload photo");
+        setUploadingPhoto(false);
+      }
+    }, "image/jpeg", 0.9);
+  };
+
+  useEffect(() => {
+    if (showCamera && cameraStream && videoRef.current) {
+      videoRef.current.srcObject = cameraStream;
+    }
+  }, [showCamera, cameraStream]);
+
+  useEffect(() => {
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [cameraStream]);
+
   const handleSendEmailOtp = async () => {
     if (!newEmail) {
       setErrors({ newEmail: "Please enter a new email" });
@@ -159,9 +263,10 @@ export function ProfileModal({
       const result = await requestEmailChange(newEmail);
       if (result.success) {
         setShowEmailOtp(true);
-        setEmailVerified(false);
         setEmailOtp("");
-        toast.success(result.message || "Verification code sent to your new email");
+        toast.success(
+          result.message || "Verification code sent to your new email",
+        );
       } else {
         toast.error(result.error || "Failed to send verification code");
       }
@@ -169,33 +274,6 @@ export function ProfileModal({
       toast.error("An error occurred");
     } finally {
       setSendingEmailOtp(false);
-    }
-  };
-
-  const handleVerifyEmail = async () => {
-    if (!emailOtp || emailOtp.length !== 6) {
-      setErrors({ emailOtp: "Please enter the 6-digit code" });
-      return;
-    }
-
-    setVerifyingEmail(true);
-    setErrors({});
-    try {
-      const result = await verifyEmailChange(emailOtp, newEmail);
-      if (result.success) {
-        setEmailVerified(true);
-        setShowEmailOtp(false);
-        setCurrentEmail(newEmail);
-        setNewEmail("");
-        setEmailOtp("");
-        toast.success("Email verified successfully");
-      } else {
-        toast.error(result.error || "Failed to verify email");
-      }
-    } catch {
-      toast.error("An error occurred");
-    } finally {
-      setVerifyingEmail(false);
     }
   };
 
@@ -219,7 +297,6 @@ export function ProfileModal({
       const result = await requestPhoneChange(newPhone);
       if (result.success) {
         setShowPhoneOtp(true);
-        setPhoneVerified(false);
         setPhoneOtp("");
         toast.success(result.message || "Verification code sent to your phone");
       } else {
@@ -232,33 +309,6 @@ export function ProfileModal({
     }
   };
 
-  const handleVerifyPhone = async () => {
-    if (!phoneOtp || phoneOtp.length !== 6) {
-      setErrors({ phoneOtp: "Please enter the 6-digit code" });
-      return;
-    }
-
-    setVerifyingPhone(true);
-    setErrors({});
-    try {
-      const result = await verifyPhoneChange(phoneOtp, newPhone);
-      if (result.success) {
-        setPhoneVerified(true);
-        setShowPhoneOtp(false);
-        setCurrentPhone(newPhone);
-        setNewPhone("");
-        setPhoneOtp("");
-        toast.success("Phone number verified successfully");
-      } else {
-        toast.error(result.error || "Failed to verify phone");
-      }
-    } catch {
-      toast.error("An error occurred");
-    } finally {
-      setVerifyingPhone(false);
-    }
-  };
-
   const handleSave = async () => {
     if (!validate()) return;
 
@@ -268,6 +318,10 @@ export function ProfileModal({
         first_name: firstName,
         last_name: lastName,
         avatar_url: avatarUrl,
+        email: showChangeEmail && newEmail ? newEmail : undefined,
+        email_otp: showChangeEmail && emailOtp ? emailOtp : undefined,
+        phone: showChangePhone && newPhone ? newPhone : undefined,
+        phone_otp: showChangePhone && phoneOtp ? phoneOtp : undefined,
       });
 
       if (result.success && result.user) {
@@ -289,6 +343,7 @@ export function ProfileModal({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="w-fit max-h-[85vh] overflow-y-auto max-w-[90vw] sm:max-w-[500px]"
@@ -329,14 +384,39 @@ export function ProfileModal({
                   )}
                 </div>
               )}
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadingPhoto}
-                className="absolute bottom-0 right-0 size-8 bg-[#3b82f6] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#2563eb] transition-colors disabled:opacity-50"
-              >
-                <Camera className="size-4" />
-              </button>
+              <div className="relative" ref={photoMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowPhotoMenu(!showPhotoMenu)}
+                  disabled={uploadingPhoto}
+                  className="absolute bottom-0 right-0 size-8 bg-[#3b82f6] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#2563eb] transition-colors disabled:opacity-50"
+                >
+                  <Camera className="size-4" />
+                </button>
+                {showPhotoMenu && (
+                  <div className="absolute bottom-10 right-0 bg-white border border-[#e2e8f0] rounded-lg shadow-lg py-1 z-50 w-44">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        fileInputRef.current?.click();
+                        setShowPhotoMenu(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#1a1f36] hover:bg-[#f0f4f8] transition-colors"
+                    >
+                      <Upload className="size-4" />
+                      Upload Photo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleOpenCamera}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#1a1f36] hover:bg-[#f0f4f8] transition-colors"
+                    >
+                      <ImagePlus className="size-4" />
+                      Take Photo
+                    </button>
+                  </div>
+                )}
+              </div>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -345,7 +425,9 @@ export function ProfileModal({
                 className="hidden"
               />
             </div>
-            <p className="text-xs text-[#64748b]">Click camera icon to upload photo</p>
+            <p className="text-xs text-[#64748b]">
+              Click camera icon to change photo
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -377,55 +459,65 @@ export function ProfileModal({
 
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>
-            <Input
-              id="email"
-              type="email"
-              value={currentEmail}
-              disabled
-              className="bg-[#f0f4f8]"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="newEmail">Change Email</Label>
             <div className="flex gap-2">
               <Input
-                id="newEmail"
+                id="email"
                 type="email"
-                value={newEmail}
-                onChange={(e) => {
-                  setNewEmail(e.target.value);
-                  setEmailVerified(false);
-                  setShowEmailOtp(false);
-                  setErrors({});
-                }}
-                placeholder="Enter new email"
-                disabled={emailVerified}
-                className={`flex-1 ${errors.newEmail ? "border-red-500" : ""} ${emailVerified ? "bg-[#f0f4f8] line-through decoration-[#64748b]" : ""}`}
+                value={currentEmail}
+                disabled
+                className="bg-[#f0f4f8]"
               />
-              {!emailVerified && (
+              {!showChangeEmail && (
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={handleSendEmailOtp}
-                  disabled={sendingEmailOtp || !newEmail}
+                  onClick={() => setShowChangeEmail(true)}
                   className="shrink-0"
                 >
-                  {sendingEmailOtp ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    "Send Code"
-                  )}
+                  Change
                 </Button>
               )}
             </div>
-            {errors.newEmail && (
-              <p className="text-xs text-red-500">{errors.newEmail}</p>
-            )}
-            {emailVerified && (
-              <p className="text-xs text-green-600">Email verified</p>
-            )}
           </div>
+
+          {showChangeEmail && (
+            <div className="space-y-2">
+              <Label htmlFor="newEmail">New Email</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="newEmail"
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => {
+                    setNewEmail(e.target.value);
+                    setShowEmailOtp(false);
+                    setEmailOtp("");
+                    setErrors({});
+                  }}
+                  placeholder="Enter new email"
+                  className={`flex-1 ${errors.newEmail ? "border-red-500" : ""}`}
+                />
+                {!showEmailOtp && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleSendEmailOtp}
+                    disabled={sendingEmailOtp || !newEmail}
+                    className="shrink-0"
+                  >
+                    {sendingEmailOtp ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      "Send Code"
+                    )}
+                  </Button>
+                )}
+              </div>
+              {errors.newEmail && (
+                <p className="text-xs text-red-500">{errors.newEmail}</p>
+              )}
+            </div>
+          )}
 
           {showEmailOtp && (
             <div className="space-y-2">
@@ -433,33 +525,19 @@ export function ProfileModal({
               <p className="text-xs text-[#64748b]">
                 Enter the 6-digit code sent to <strong>{newEmail}</strong>
               </p>
-              <div className="flex gap-2">
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  value={emailOtp}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, "").slice(0, 6);
-                    setEmailOtp(val);
-                    setErrors({});
-                  }}
-                  placeholder="000000"
-                  className={`flex-1 text-center text-lg tracking-widest ${errors.emailOtp ? "border-red-500" : ""}`}
-                />
-                <Button
-                  type="button"
-                  onClick={handleVerifyEmail}
-                  disabled={verifyingEmail || emailOtp.length !== 6}
-                  className="shrink-0"
-                >
-                  {verifyingEmail ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    "Verify"
-                  )}
-                </Button>
-              </div>
+              <Input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                value={emailOtp}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+                  setEmailOtp(val);
+                  setErrors({});
+                }}
+                placeholder="000000"
+                className={`text-center text-lg tracking-widest ${errors.emailOtp ? "border-red-500" : ""}`}
+              />
               {errors.emailOtp && (
                 <p className="text-xs text-red-500">{errors.emailOtp}</p>
               )}
@@ -468,56 +546,66 @@ export function ProfileModal({
 
           <div className="space-y-2">
             <Label htmlFor="currentPhone">Phone Number</Label>
-            <Input
-              id="currentPhone"
-              type="tel"
-              value={currentPhone}
-              disabled
-              className="bg-[#f0f4f8]"
-              placeholder="No phone number"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="newPhone">Change Phone Number</Label>
             <div className="flex gap-2">
               <Input
-                id="newPhone"
+                id="currentPhone"
                 type="tel"
-                value={newPhone}
-                onChange={(e) => {
-                  setNewPhone(e.target.value);
-                  setPhoneVerified(false);
-                  setShowPhoneOtp(false);
-                  setErrors({});
-                }}
-                placeholder="Enter new phone number"
-                disabled={phoneVerified}
-                className={`flex-1 ${errors.newPhone ? "border-red-500" : ""} ${phoneVerified ? "bg-[#f0f4f8] line-through decoration-[#64748b]" : ""}`}
+                value={currentPhone}
+                disabled
+                className="bg-[#f0f4f8]"
+                placeholder="No phone number"
               />
-              {!phoneVerified && (
+              {!showChangePhone && (
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={handleSendPhoneOtp}
-                  disabled={sendingPhoneOtp || !newPhone}
+                  onClick={() => setShowChangePhone(true)}
                   className="shrink-0"
                 >
-                  {sendingPhoneOtp ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    "Send Code"
-                  )}
+                  Change
                 </Button>
               )}
             </div>
-            {errors.newPhone && (
-              <p className="text-xs text-red-500">{errors.newPhone}</p>
-            )}
-            {phoneVerified && (
-              <p className="text-xs text-green-600">Phone number verified</p>
-            )}
           </div>
+
+          {showChangePhone && (
+            <div className="space-y-2">
+              <Label htmlFor="newPhone">New Phone Number</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="newPhone"
+                  type="tel"
+                  value={newPhone}
+                  onChange={(e) => {
+                    setNewPhone(e.target.value);
+                    setShowPhoneOtp(false);
+                    setPhoneOtp("");
+                    setErrors({});
+                  }}
+                  placeholder="Enter new phone number"
+                  className={`flex-1 ${errors.newPhone ? "border-red-500" : ""}`}
+                />
+                {!showPhoneOtp && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleSendPhoneOtp}
+                    disabled={sendingPhoneOtp || !newPhone}
+                    className="shrink-0"
+                  >
+                    {sendingPhoneOtp ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      "Send Code"
+                    )}
+                  </Button>
+                )}
+              </div>
+              {errors.newPhone && (
+                <p className="text-xs text-red-500">{errors.newPhone}</p>
+              )}
+            </div>
+          )}
 
           {showPhoneOtp && (
             <div className="space-y-2">
@@ -525,33 +613,19 @@ export function ProfileModal({
               <p className="text-xs text-[#64748b]">
                 Enter the 6-digit code sent to <strong>{newPhone}</strong>
               </p>
-              <div className="flex gap-2">
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  value={phoneOtp}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, "").slice(0, 6);
-                    setPhoneOtp(val);
-                    setErrors({});
-                  }}
-                  placeholder="000000"
-                  className={`flex-1 text-center text-lg tracking-widest ${errors.phoneOtp ? "border-red-500" : ""}`}
-                />
-                <Button
-                  type="button"
-                  onClick={handleVerifyPhone}
-                  disabled={verifyingPhone || phoneOtp.length !== 6}
-                  className="shrink-0"
-                >
-                  {verifyingPhone ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    "Verify"
-                  )}
-                </Button>
-              </div>
+              <Input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                value={phoneOtp}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+                  setPhoneOtp(val);
+                  setErrors({});
+                }}
+                placeholder="000000"
+                className={`text-center text-lg tracking-widest ${errors.phoneOtp ? "border-red-500" : ""}`}
+              />
               {errors.phoneOtp && (
                 <p className="text-xs text-red-500">{errors.phoneOtp}</p>
               )}
@@ -564,7 +638,7 @@ export function ProfileModal({
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={loading || verifyingEmail || verifyingPhone}
+            disabled={loading}
           >
             Cancel
           </Button>
@@ -586,5 +660,34 @@ export function ProfileModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    {showCamera && createPortal(
+      <div className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center">
+        <button
+          type="button"
+          onClick={handleCloseCamera}
+          className="absolute top-4 right-4 size-10 bg-white/20 text-white rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+        >
+          <X className="size-5" />
+        </button>
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="max-w-full max-h-[70vh] rounded-lg mirror"
+          style={{ transform: "scaleX(-1)" }}
+        />
+        <button
+          type="button"
+          onClick={handleCapturePhoto}
+          className="mt-6 size-16 bg-white rounded-full border-4 border-white/50 flex items-center justify-center hover:scale-105 transition-transform"
+        >
+          <div className="size-12 bg-white rounded-full border-2 border-gray-300" />
+        </button>
+      </div>,
+      document.body
+    )}
+    </>
   );
 }
