@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -20,47 +19,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ITAsset, AssetStatus, AssetType } from "@/lib/types";
+import { getAssetSelectOptions, generateBarcode } from "@/lib/actions/asset-actions";
+import type { Asset, CreateAssetInput } from "@/lib/types/asset";
 
 interface AssetFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  asset?: ITAsset | null;
-  onSubmit: (data: Omit<ITAsset, "id" | "isDeleted">) => void;
+  asset?: Asset | null;
+  onSubmit: (data: CreateAssetInput) => Promise<void>;
 }
 
-const assetTypes: AssetType[] = [
-  "Laptop",
-  "Desktop",
-  "Monitor",
-  "Server",
-  "Printer",
-  "Network Device",
-];
+const statuses = ["Available", "Assigned", "Repair", "Lost", "Disposed"] as const;
 
-const statuses: AssetStatus[] = [
-  "Active",
-  "In Use",
-  "Maintenance",
-  "Retired",
-  "Available",
-];
-
-const defaultFormData = {
-  assetTag: "",
-  name: "",
-  type: "Laptop" as AssetType,
-  brand: "",
-  model: "",
-  serialNumber: "",
-  status: "Active" as AssetStatus,
-  assignedTo: "",
-  location: "",
-  department: "",
-  purchaseDate: "",
-  warrantyExpiry: "",
-  purchaseCost: 0,
-  notes: "",
+const defaultFormData: CreateAssetInput = {
+  item_id: undefined,
+  barcode: "",
+  serial_number: "",
+  purchase_date: "",
+  purchase_price: undefined,
+  warranty_expiry: "",
+  location_id: undefined,
+  assigned_to_employee: undefined,
+  assigned_to_department: undefined,
+  status: "Available",
 };
 
 export function AssetFormModal({
@@ -69,28 +50,54 @@ export function AssetFormModal({
   asset,
   onSubmit,
 }: AssetFormModalProps) {
-  const [formData, setFormData] = useState(defaultFormData);
+  const [formData, setFormData] = useState<CreateAssetInput>(defaultFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [items, setItems] = useState<{ id: string; name: string }[]>([]);
+  const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
+  const [employees, setEmployees] = useState<{ id: string; name: string }[]>([]);
+  const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
+  const [optionsLoading, setOptionsLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setOptionsLoading(true);
+      getAssetSelectOptions()
+        .then((options) => {
+          setItems(options.items);
+          setLocations(options.locations);
+          setEmployees(options.employees);
+          setDepartments(options.departments);
+        })
+        .catch(() => {})
+        .finally(() => setOptionsLoading(false));
+    }
+  }, [open]);
 
   useEffect(() => {
     if (asset) {
       setFormData({
-        assetTag: asset.assetTag,
-        name: asset.name,
-        type: asset.type,
-        brand: asset.brand,
-        model: asset.model,
-        serialNumber: asset.serialNumber,
+        item_id: asset.item_id || undefined,
+        barcode: asset.barcode,
+        serial_number: asset.serial_number || "",
+        purchase_date: asset.purchase_date
+          ? new Date(asset.purchase_date).toISOString().split("T")[0]
+          : "",
+        purchase_price: asset.purchase_price ?? undefined,
+        warranty_expiry: asset.warranty_expiry
+          ? new Date(asset.warranty_expiry).toISOString().split("T")[0]
+          : "",
+        location_id: asset.location_id || undefined,
+        assigned_to_employee: asset.assigned_to_employee || undefined,
+        assigned_to_department: asset.assigned_to_department || undefined,
         status: asset.status,
-        assignedTo: asset.assignedTo || "",
-        location: asset.location,
-        department: asset.department,
-        purchaseDate: asset.purchaseDate,
-        warrantyExpiry: asset.warrantyExpiry,
-        purchaseCost: asset.purchaseCost,
-        notes: asset.notes,
       });
     } else {
+      generateBarcode()
+        .then((barcode) => {
+          setFormData((prev) => ({ ...prev, barcode }));
+        })
+        .catch(() => {});
       setFormData(defaultFormData);
     }
     setErrors({});
@@ -98,94 +105,233 @@ export function AssetFormModal({
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.name) newErrors.name = "Name is required";
-    if (!formData.brand) newErrors.brand = "Brand is required";
-    if (!formData.model) newErrors.model = "Model is required";
-    if (!formData.serialNumber)
-      newErrors.serialNumber = "Serial number is required";
-    if (!formData.location) newErrors.location = "Location is required";
+    if (!formData.barcode) newErrors.barcode = "Barcode is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
-      onSubmit({
-        ...formData,
-        assignedTo: formData.assignedTo || null,
-      });
-      onOpenChange(false);
+      setLoading(true);
+      try {
+        await onSubmit({
+          ...formData,
+          item_id: formData.item_id || undefined,
+          serial_number: formData.serial_number || undefined,
+          purchase_date: formData.purchase_date || undefined,
+          purchase_price: formData.purchase_price || undefined,
+          warranty_expiry: formData.warranty_expiry || undefined,
+          location_id: formData.location_id || undefined,
+          assigned_to_employee: formData.assigned_to_employee || undefined,
+          assigned_to_department: formData.assigned_to_department || undefined,
+        });
+        onOpenChange(false);
+      } catch {
+        setErrors({ submit: "Failed to save asset" });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent
+        className="max-w-4xl max-h-[85vh] overflow-y-auto"
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>{asset ? "Edit Asset" : "Add New Asset"}</DialogTitle>
           <DialogDescription>
             {asset
               ? "Update the asset information below."
-              : "Fill in the details to add a new IT asset."}
+              : "Fill in the details to add a new asset."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="assetTag">Asset Tag</Label>
+              <Label htmlFor="barcode">Barcode *</Label>
               <Input
-                id="assetTag"
-                value={formData.assetTag}
+                id="barcode"
+                value={formData.barcode}
                 onChange={(e) =>
-                  setFormData({ ...formData, assetTag: e.target.value })
+                  setFormData({ ...formData, barcode: e.target.value })
                 }
-                placeholder="Auto-generated"
+                placeholder="IT2600001"
+                className={errors.barcode ? "border-red-500" : ""}
               />
+              {errors.barcode && (
+                <p className="text-xs text-red-500">{errors.barcode}</p>
+              )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
+              <Label htmlFor="serial_number">Serial Number</Label>
               <Input
-                id="name"
-                value={formData.name}
+                id="serial_number"
+                value={formData.serial_number || ""}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  setFormData({ ...formData, serial_number: e.target.value })
                 }
-                placeholder="e.g., Dell Latitude 5540"
-                className={errors.name ? "border-red-500" : ""}
+                placeholder="e.g., SN-12345678"
               />
-              {errors.name && (
-                <p className="text-xs text-red-500">{errors.name}</p>
-              )}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="type">Type</Label>
+              <Label htmlFor="item_id">Item</Label>
               <Select
-                value={formData.type}
+                value={formData.item_id || "none"}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, type: value as AssetType })
+                  setFormData({
+                    ...formData,
+                    item_id: value === "none" ? undefined : value,
+                  })
                 }
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={optionsLoading ? "Loading..." : "Select item"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {assetTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
+                  <SelectItem value="none">No Item</SelectItem>
+                  {items.map((item) => (
+                    <SelectItem key={item.id} value={item.id}>
+                      {item.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="location_id">Location</Label>
+              <Select
+                value={formData.location_id || "none"}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    location_id: value === "none" ? undefined : value,
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={optionsLoading ? "Loading..." : "Select location"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Location</SelectItem>
+                  {locations.map((loc) => (
+                    <SelectItem key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {asset && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="assigned_to_employee">Assigned To (Employee)</Label>
+                <Select
+                  value={formData.assigned_to_employee || "none"}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      assigned_to_employee: value === "none" ? undefined : value,
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={optionsLoading ? "Loading..." : "Select employee"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Unassigned</SelectItem>
+                    {employees.map((emp) => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="assigned_to_department">Assigned To (Department)</Label>
+                <Select
+                  value={formData.assigned_to_department || "none"}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      assigned_to_department: value === "none" ? undefined : value,
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={optionsLoading ? "Loading..." : "Select department"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No Department</SelectItem>
+                    {departments.map((dept) => (
+                      <SelectItem key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="purchase_date">Purchase Date</Label>
+              <Input
+                id="purchase_date"
+                type="date"
+                value={formData.purchase_date || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, purchase_date: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="warranty_expiry">Warranty Expiry</Label>
+              <Input
+                id="warranty_expiry"
+                type="date"
+                value={formData.warranty_expiry || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, warranty_expiry: e.target.value })
+                }
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="purchase_price">Purchase Price</Label>
+              <Input
+                id="purchase_price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.purchase_price ?? ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    purchase_price: e.target.value ? Number(e.target.value) : undefined,
+                  })
+                }
+                placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select
-                value={formData.status}
+                value={formData.status || "Available"}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, status: value as AssetStatus })
+                  setFormData({
+                    ...formData,
+                    status: value as CreateAssetInput["status"],
+                  })
                 }
               >
                 <SelectTrigger>
@@ -201,154 +347,20 @@ export function AssetFormModal({
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="brand">Brand *</Label>
-              <Input
-                id="brand"
-                value={formData.brand}
-                onChange={(e) =>
-                  setFormData({ ...formData, brand: e.target.value })
-                }
-                placeholder="e.g., Dell, HP"
-                className={errors.brand ? "border-red-500" : ""}
-              />
-              {errors.brand && (
-                <p className="text-xs text-red-500">{errors.brand}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="model">Model *</Label>
-              <Input
-                id="model"
-                value={formData.model}
-                onChange={(e) =>
-                  setFormData({ ...formData, model: e.target.value })
-                }
-                placeholder="e.g., Latitude 5540"
-                className={errors.model ? "border-red-500" : ""}
-              />
-              {errors.model && (
-                <p className="text-xs text-red-500">{errors.model}</p>
-              )}
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="serialNumber">Serial Number *</Label>
-            <Input
-              id="serialNumber"
-              value={formData.serialNumber}
-              onChange={(e) =>
-                setFormData({ ...formData, serialNumber: e.target.value })
-              }
-              placeholder="e.g., DL-5540-8A3F2B"
-              className={errors.serialNumber ? "border-red-500" : ""}
-            />
-            {errors.serialNumber && (
-              <p className="text-xs text-red-500">{errors.serialNumber}</p>
-            )}
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="assignedTo">Assigned To</Label>
-              <Input
-                id="assignedTo"
-                value={formData.assignedTo}
-                onChange={(e) =>
-                  setFormData({ ...formData, assignedTo: e.target.value })
-                }
-                placeholder="Person name (optional)"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="location">Location *</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) =>
-                  setFormData({ ...formData, location: e.target.value })
-                }
-                placeholder="e.g., Main Office - Floor 1"
-                className={errors.location ? "border-red-500" : ""}
-              />
-              {errors.location && (
-                <p className="text-xs text-red-500">{errors.location}</p>
-              )}
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="department">Department</Label>
-            <Input
-              id="department"
-              value={formData.department}
-              onChange={(e) =>
-                setFormData({ ...formData, department: e.target.value })
-              }
-              placeholder="e.g., IT, Engineering"
-            />
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="purchaseDate">Purchase Date</Label>
-              <Input
-                id="purchaseDate"
-                type="date"
-                value={formData.purchaseDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, purchaseDate: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="warrantyExpiry">Warranty Expiry</Label>
-              <Input
-                id="warrantyExpiry"
-                type="date"
-                value={formData.warrantyExpiry}
-                onChange={(e) =>
-                  setFormData({ ...formData, warrantyExpiry: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="purchaseCost">Cost ($)</Label>
-              <Input
-                id="purchaseCost"
-                type="number"
-                value={formData.purchaseCost}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    purchaseCost: Number(e.target.value),
-                  })
-                }
-                min="0"
-                step="0.01"
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) =>
-                setFormData({ ...formData, notes: e.target.value })
-              }
-              placeholder="Additional notes..."
-              rows={3}
-            />
-          </div>
+          {errors.submit && (
+            <p className="text-sm text-red-500">{errors.submit}</p>
+          )}
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              disabled={loading}
             >
               Cancel
             </Button>
-            <Button type="submit">
-              {asset ? "Save Changes" : "Add Asset"}
+            <Button type="submit" disabled={loading}>
+              {loading ? "Saving..." : asset ? "Save Changes" : "Add Asset"}
             </Button>
           </DialogFooter>
         </form>
