@@ -21,6 +21,7 @@ const statusConfig: Record<string, { color: string; dot: string }> = {
   Repair: { color: "bg-[#fef3c7] text-[#d97706]", dot: "bg-[#d97706]" },
   Lost: { color: "bg-[#fee2e2] text-[#dc2626]", dot: "bg-[#dc2626]" },
   Disposed: { color: "bg-[#f3e8ff] text-[#9333ea]", dot: "bg-[#9333ea]" },
+  Deleted: { color: "bg-[#fee2e2] text-[#dc2626]", dot: "bg-[#dc2626]" },
 };
 
 interface ActionsProps {
@@ -155,6 +156,21 @@ export function createAssetColumns(
           <span className="text-[#64748b]">{name}</span>
         ) : (
           <span className="text-[#94a3b8] italic">Unassigned</span>
+        );
+      },
+    },
+    {
+      accessorKey: "assigned_to_department_name",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Assigned To (Dept)" />
+      ),
+      cell: ({ row }) => {
+        const original = row.original as Asset;
+        const name = original.assigned_to_department_name;
+        return name ? (
+          <span className="text-[#64748b]">{name}</span>
+        ) : (
+          <span className="text-[#94a3b8] italic">N/A</span>
         );
       },
     },

@@ -11,7 +11,7 @@ export interface IAsset extends Omit<Document, "model">, BaseAuditFields {
   location_id: mongoose.Types.ObjectId | null;
   assigned_to_employee: mongoose.Types.ObjectId | null;
   assigned_to_department: mongoose.Types.ObjectId | null;
-  status: "Available" | "Assigned" | "Repair" | "Lost" | "Disposed";
+  status: "Available" | "Assigned" | "Repair" | "Lost" | "Disposed" | "Deleted";
 }
 
 const AssetSchema = new Schema<IAsset>({
@@ -59,7 +59,7 @@ const AssetSchema = new Schema<IAsset>({
   status: {
     type: String,
     required: true,
-    enum: ["Available", "Assigned", "Repair", "Lost", "Disposed"],
+    enum: ["Available", "Assigned", "Repair", "Lost", "Disposed", "Deleted"],
     default: "Available",
   },
   ...BaseAuditSchemaDefinition,

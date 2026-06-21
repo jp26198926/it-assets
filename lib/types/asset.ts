@@ -13,7 +13,7 @@ export interface Asset {
   assigned_to_employee_name?: string;
   assigned_to_department: string | null;
   assigned_to_department_name?: string;
-  status: "Available" | "Assigned" | "Repair" | "Lost" | "Disposed";
+  status: "Available" | "Assigned" | "Repair" | "Lost" | "Disposed" | "Deleted";
   created_at: Date;
   created_by: string | null;
   updated_at: Date | null;
@@ -33,7 +33,7 @@ export interface CreateAssetInput {
   location_id?: string;
   assigned_to_employee?: string;
   assigned_to_department?: string;
-  status?: "Available" | "Assigned" | "Repair" | "Lost" | "Disposed";
+  status?: "Available" | "Assigned" | "Repair" | "Lost" | "Disposed" | "Deleted";
 }
 
 export interface UpdateAssetInput extends Partial<CreateAssetInput> {}

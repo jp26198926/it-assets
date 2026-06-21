@@ -78,7 +78,7 @@ function toAsset(d: Record<string, unknown>): Asset {
     assigned_to_employee_name,
     assigned_to_department,
     assigned_to_department_name,
-    status: d.status as "Available" | "Assigned" | "Repair" | "Lost" | "Disposed",
+    status: d.status as "Available" | "Assigned" | "Repair" | "Lost" | "Disposed" | "Deleted",
     created_at: d.created_at as Date,
     created_by: d.created_by ? (d.created_by as { toString(): string }).toString() : null,
     updated_at: (d.updated_at as Date) ?? null,
@@ -274,6 +274,7 @@ export async function deleteAsset(id: string, reason?: string): Promise<void> {
   await AssetModel.findByIdAndUpdate(id, {
     deleted_at: new Date(),
     deleted_reason: reason || null,
+    status: "Deleted",
     updated_at: new Date(),
   });
 }
@@ -284,6 +285,7 @@ export async function restoreAsset(id: string): Promise<void> {
   await AssetModel.findByIdAndUpdate(id, {
     deleted_at: null,
     deleted_reason: null,
+    status: "Available",
     updated_at: new Date(),
   });
 }
