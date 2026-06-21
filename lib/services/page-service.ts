@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db/connection";
 import { Page as PageModel } from "@/lib/db/models/page";
+import { invalidateCache } from "@/lib/services/authorization-service";
 import type { CreatePageInput, UpdatePageInput, PageFilters, Page } from "@/lib/types/page";
 
 function toPage(p: Record<string, unknown>): Page {
@@ -112,6 +113,7 @@ export async function createPage(data: CreatePageInput): Promise<Page> {
 
   if (!populated) throw new Error("Failed to create page");
 
+  invalidateCache();
   return toPage(populated as unknown as Record<string, unknown>);
 }
 
@@ -134,6 +136,7 @@ export async function updatePage(id: string, data: UpdatePageInput): Promise<Pag
 
   if (!page) throw new Error("Page not found");
 
+  invalidateCache();
   return toPage(page as unknown as Record<string, unknown>);
 }
 
@@ -146,6 +149,8 @@ export async function deletePage(id: string, reason?: string): Promise<void> {
     status: "Deleted",
     updated_at: new Date(),
   });
+
+  invalidateCache();
 }
 
 export async function restorePage(id: string): Promise<void> {
@@ -157,4 +162,6 @@ export async function restorePage(id: string): Promise<void> {
     status: "Active",
     updated_at: new Date(),
   });
+
+  invalidateCache();
 }
