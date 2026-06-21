@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AuthToaster } from "@/components/auth-toaster";
 
 export const metadata: Metadata = {
   title: "IT Asset Management System",
@@ -14,6 +15,7 @@ export default function AuthLayout({
       <div className="w-full max-w-md px-4">
         {children}
       </div>
+      <AuthToaster />
     </div>
   );
 }
