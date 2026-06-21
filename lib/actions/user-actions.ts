@@ -1,11 +1,7 @@
 "use server";
 
 import * as userService from "@/lib/services/user-service";
-import type { CreateUserInput, UpdateUserInput, UserFilters, User, UserStatus as UserStatusType, UserSelectItem } from "@/lib/types/user";
-
-export async function getUserStatuses(): Promise<UserStatusType[]> {
-  return userService.getUserStatuses();
-}
+import type { CreateUserInput, UpdateUserInput, UserFilters, User, UserSelectItem } from "@/lib/types/user";
 
 export async function getUserSelectOptions(): Promise<{ roles: UserSelectItem[]; departments: UserSelectItem[] }> {
   return userService.getUserSelectOptions();

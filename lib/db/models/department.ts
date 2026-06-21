@@ -1,11 +1,11 @@
-import mongoose, { Schema, Document, Types } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 import { BaseAuditSchemaDefinition, BaseAuditFields } from "../base-schema";
 
 export interface IDepartment extends Document, BaseAuditFields {
   code: string;
   name: string;
   description: string | null;
-  status_id: Types.ObjectId;
+  status: "Active" | "Deleted";
 }
 
 const DepartmentSchema = new Schema<IDepartment>({
@@ -23,17 +23,18 @@ const DepartmentSchema = new Schema<IDepartment>({
     type: String,
     default: null,
   },
-  status_id: {
-    type: Schema.Types.ObjectId,
-    ref: "DepartmentStatus",
+  status: {
+    type: String,
     required: true,
+    enum: ["Active", "Deleted"],
+    default: "Active",
   },
   ...BaseAuditSchemaDefinition,
 });
 
 DepartmentSchema.index({ code: 1 }, { unique: true });
 DepartmentSchema.index({ name: 1 }, { unique: true });
-DepartmentSchema.index({ status_id: 1 });
+DepartmentSchema.index({ status: 1 });
 
 export const Department =
   mongoose.models.Department ||

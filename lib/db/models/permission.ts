@@ -1,10 +1,10 @@
-import mongoose, { Schema, Document, Types } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 import { BaseAuditSchemaDefinition, BaseAuditFields } from "../base-schema";
 
 export interface IPermission extends Document, BaseAuditFields {
   name: string;
   description: string | null;
-  status_id: Types.ObjectId;
+  status: "Active" | "Deleted";
 }
 
 const PermissionSchema = new Schema<IPermission>({
@@ -17,16 +17,17 @@ const PermissionSchema = new Schema<IPermission>({
     type: String,
     default: null,
   },
-  status_id: {
-    type: Schema.Types.ObjectId,
-    ref: "PermissionStatus",
+  status: {
+    type: String,
     required: true,
+    enum: ["Active", "Deleted"],
+    default: "Active",
   },
   ...BaseAuditSchemaDefinition,
 });
 
 PermissionSchema.index({ name: 1 }, { unique: true });
-PermissionSchema.index({ status_id: 1 });
+PermissionSchema.index({ status: 1 });
 
 export const Permission =
   mongoose.models.Permission ||

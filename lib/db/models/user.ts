@@ -14,7 +14,7 @@ export interface IUser extends Document, BaseAuditFields {
   email_verified_at: Date | null;
   is_verified: boolean;
   role_id: Types.ObjectId;
-  status_id: Types.ObjectId;
+  status: "Active" | "Deleted" | "Inactive";
 }
 
 const UserSchema = new Schema<IUser>({
@@ -69,10 +69,11 @@ const UserSchema = new Schema<IUser>({
     ref: "Role",
     required: true,
   },
-  status_id: {
-    type: Schema.Types.ObjectId,
-    ref: "UserStatus",
+  status: {
+    type: String,
     required: true,
+    enum: ["Active", "Deleted", "Inactive"],
+    default: "Active",
   },
   ...BaseAuditSchemaDefinition,
 });
@@ -80,7 +81,7 @@ const UserSchema = new Schema<IUser>({
 UserSchema.index({ email: 1 }, { unique: true });
 UserSchema.index({ department_id: 1 });
 UserSchema.index({ role_id: 1 });
-UserSchema.index({ status_id: 1 });
+UserSchema.index({ status: 1 });
 
 export const User =
   mongoose.models.User ||

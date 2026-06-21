@@ -2,7 +2,6 @@ import { connectDB } from "@/lib/db/connection";
 import { UserOtpLog as OtpLogModel } from "@/lib/db/models/user-otp-log";
 import { Application as AppModel } from "@/lib/db/models/application";
 import { User as UserModel } from "@/lib/db/models/user";
-import { UserStatus as UserStatusModel } from "@/lib/db/models/user-status";
 import { getMailSettings } from "./mail-service";
 import { sendSms } from "./sms-service";
 import nodemailer from "nodemailer";
@@ -208,17 +207,12 @@ export async function verifyOtp(
   });
 
   if (purpose === "REGISTER") {
-    const inactiveStatus = await UserStatusModel.findOne({ status: "Inactive" }).lean();
-    const activeStatus = await UserStatusModel.findOne({ status: "Active" }).lean();
-
-    if (inactiveStatus && activeStatus) {
-      await UserModel.findByIdAndUpdate(userId, {
-        status_id: activeStatus._id,
-        is_verified: true,
-        email_verified_at: new Date(),
-        updated_at: new Date(),
-      });
-    }
+    await UserModel.findByIdAndUpdate(userId, {
+      status: "Active",
+      is_verified: true,
+      email_verified_at: new Date(),
+      updated_at: new Date(),
+    });
   }
 
   return { success: true, message: "OTP verified successfully" };

@@ -11,8 +11,7 @@ export interface User {
   department_name?: string;
   role_id: string;
   role_name?: string;
-  status_id: string;
-  status?: string;
+  status: "Active" | "Deleted" | "Inactive";
   is_verified: boolean;
   email_verified_at: Date | null;
   created_at: Date;
@@ -61,11 +60,6 @@ export interface UserAdvancedFilter {
   field: keyof User;
   operator: "equals" | "contains" | "greaterThan" | "lessThan" | "startsWith";
   value: string;
-}
-
-export interface UserStatus {
-  id: string;
-  status: string;
 }
 
 export interface UserSelectItem {

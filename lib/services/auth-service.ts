@@ -32,7 +32,6 @@ export async function authenticateUser(
   }
 
   const user = await UserModel.findOne({ email })
-    .populate("status_id", "status")
     .populate("role_id", "name")
     .lean();
 
@@ -40,8 +39,7 @@ export async function authenticateUser(
     return { success: false, error: "Invalid email or password" };
   }
 
-  const status = user.status_id as unknown as { status: string };
-  if (status.status !== "Active") {
+  if (user.status !== "Active") {
     return { success: false, error: "Your account is not active. Please verify your email first." };
   }
 

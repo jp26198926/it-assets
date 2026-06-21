@@ -1,11 +1,7 @@
 "use server";
 
 import * as roleService from "@/lib/services/role-service";
-import type { CreateRoleInput, UpdateRoleInput, RoleFilters, Role, RoleStatus as RoleStatusType } from "@/lib/types/role";
-
-export async function getRoleStatuses(): Promise<RoleStatusType[]> {
-  return roleService.getRoleStatuses();
-}
+import type { CreateRoleInput, UpdateRoleInput, RoleFilters, Role } from "@/lib/types/role";
 
 export async function getRoles(filters?: RoleFilters): Promise<Role[]> {
   return roleService.getRoles(filters);

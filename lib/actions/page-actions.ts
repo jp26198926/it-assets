@@ -1,11 +1,7 @@
 "use server";
 
 import * as pageService from "@/lib/services/page-service";
-import type { CreatePageInput, UpdatePageInput, PageFilters, Page, PageStatus as PageStatusType } from "@/lib/types/page";
-
-export async function getPageStatuses(): Promise<PageStatusType[]> {
-  return pageService.getPageStatuses();
-}
+import type { CreatePageInput, UpdatePageInput, PageFilters, Page } from "@/lib/types/page";
 
 export async function getSidebarPages(): Promise<Page[]> {
   return pageService.getSidebarPages();

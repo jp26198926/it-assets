@@ -1,11 +1,7 @@
 "use server";
 
 import * as departmentService from "@/lib/services/department-service";
-import type { CreateDepartmentInput, UpdateDepartmentInput, DepartmentFilters, Department, DepartmentStatus as DepartmentStatusType } from "@/lib/types/department";
-
-export async function getDepartmentStatuses(): Promise<DepartmentStatusType[]> {
-  return departmentService.getDepartmentStatuses();
-}
+import type { CreateDepartmentInput, UpdateDepartmentInput, DepartmentFilters, Department } from "@/lib/types/department";
 
 export async function getDepartments(filters?: DepartmentFilters): Promise<Department[]> {
   return departmentService.getDepartments(filters);

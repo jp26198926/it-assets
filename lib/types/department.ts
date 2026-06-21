@@ -3,8 +3,7 @@ export interface Department {
   code: string;
   name: string;
   description: string | null;
-  status_id: string;
-  status?: string;
+  status: "Active" | "Deleted";
   created_at: Date;
   created_by: string | null;
   updated_at: Date | null;
@@ -32,9 +31,4 @@ export interface DepartmentAdvancedFilter {
   field: keyof Department;
   operator: "equals" | "contains" | "greaterThan" | "lessThan" | "startsWith";
   value: string;
-}
-
-export interface DepartmentStatus {
-  id: string;
-  status: string;
 }

@@ -8,8 +8,7 @@ export interface Page {
   parent_name?: string;
   section: string | null;
   order: number;
-  status_id: string;
-  status?: string;
+  status: "Active" | "Deleted";
   created_at: Date;
   created_by: string | null;
   updated_at: Date | null;
@@ -43,9 +42,4 @@ export interface PageAdvancedFilter {
   field: keyof Page;
   operator: "equals" | "contains" | "greaterThan" | "lessThan" | "startsWith";
   value: string;
-}
-
-export interface PageStatus {
-  id: string;
-  status: string;
 }

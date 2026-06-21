@@ -7,7 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:seed": "npx tsx --env-file=.env.local lib/db/seed.ts"
+    "db:seed": "npx tsx --env-file=.env.local lib/db/seed.ts",
+    "db:migrate-pages": "npx tsx --env-file=.env.local scripts/migrate-page-status.ts",
+    "db:migrate-permissions": "npx tsx --env-file=.env.local scripts/migrate-permission-status.ts",
+    "db:migrate-roles": "npx tsx --env-file=.env.local scripts/migrate-role-status.ts",
+    "db:migrate-departments": "npx tsx --env-file=.env.local scripts/migrate-department-status.ts",
+    "db:migrate-users": "npx tsx --env-file=.env.local scripts/migrate-user-status.ts"
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",

@@ -1,13 +1,11 @@
 import { connectDB } from "@/lib/db/connection";
 import { User as UserModel } from "@/lib/db/models/user";
-import { UserStatus as UserStatusModel } from "@/lib/db/models/user-status";
 import { Role as RoleModel } from "@/lib/db/models/role";
 import { Department as DepartmentModel } from "@/lib/db/models/department";
 import bcrypt from "bcryptjs";
-import type { CreateUserInput, UpdateUserInput, ProfileUpdateInput, UserFilters, User, UserStatus as UserStatusType, UserSelectItem } from "@/lib/types/user";
+import type { CreateUserInput, UpdateUserInput, ProfileUpdateInput, UserFilters, User, UserSelectItem } from "@/lib/types/user";
 
 function toUser(u: Record<string, unknown>): User {
-  const statusId = u.status_id as unknown as { _id: { toString(): string }; status: string };
   const roleId = u.role_id as unknown as { _id: { toString(): string }; name: string } | string;
   const deptId = u.department_id as unknown as { _id: { toString(): string }; name: string } | string | null;
 
@@ -42,8 +40,7 @@ function toUser(u: Record<string, unknown>): User {
     department_name,
     role_id,
     role_name,
-    status_id: statusId._id.toString(),
-    status: statusId.status,
+    status: u.status as "Active" | "Deleted" | "Inactive",
     is_verified: u.is_verified as boolean,
     email_verified_at: (u.email_verified_at as Date) ?? null,
     created_at: u.created_at as Date,
@@ -52,15 +49,6 @@ function toUser(u: Record<string, unknown>): User {
     updated_by: u.updated_by ? (u.updated_by as { toString(): string }).toString() : null,
     deleted_at: (u.deleted_at as Date) ?? null,
   };
-}
-
-export async function getUserStatuses(): Promise<UserStatusType[]> {
-  await connectDB();
-  const statuses = await UserStatusModel.find().lean();
-  return statuses.map((s) => ({
-    id: s._id.toString(),
-    status: s.status,
-  }));
 }
 
 export async function getUserSelectOptions(): Promise<{ roles: UserSelectItem[]; departments: UserSelectItem[] }> {
@@ -103,14 +91,10 @@ export async function getUsers(filters?: UserFilters): Promise<User[]> {
   }
 
   if (filters?.status) {
-    const statusDoc = await UserStatusModel.findOne({ status: filters.status }).lean();
-    if (statusDoc) {
-      query.status_id = statusDoc._id;
-    }
+    query.status = filters.status;
   }
 
   const users = await UserModel.find(query)
-    .populate("status_id", "status")
     .populate("role_id", "name")
     .populate("department_id", "name")
     .sort({ created_at: -1 })
@@ -123,7 +107,6 @@ export async function getUserById(id: string): Promise<User | null> {
   await connectDB();
 
   const user = await UserModel.findById(id)
-    .populate("status_id", "status")
     .populate("role_id", "name")
     .populate("department_id", "name")
     .lean();
@@ -136,9 +119,6 @@ export async function getUserById(id: string): Promise<User | null> {
 export async function createUser(data: CreateUserInput): Promise<User> {
   await connectDB();
 
-  const activeStatus = await UserStatusModel.findOne({ status: "Active" }).lean();
-  if (!activeStatus) throw new Error("Active status not found");
-
   const passwordHash = await bcrypt.hash(data.password, 10);
 
   const user = await UserModel.create({
@@ -148,18 +128,17 @@ export async function createUser(data: CreateUserInput): Promise<User> {
     password_hash: passwordHash,
     department_id: data.department_id || null,
     role_id: data.role_id,
-    status_id: activeStatus._id,
+    status: "Active",
   });
 
-  const populated = await UserModel.findById(user._id)
-    .populate("status_id", "status")
+  const created = await UserModel.findById(user._id)
     .populate("role_id", "name")
     .populate("department_id", "name")
     .lean();
 
-  if (!populated) throw new Error("Failed to create user");
+  if (!created) throw new Error("Failed to create user");
 
-  return toUser(populated as unknown as Record<string, unknown>);
+  return toUser(created as unknown as Record<string, unknown>);
 }
 
 export async function updateUser(id: string, data: UpdateUserInput): Promise<User> {
@@ -174,7 +153,6 @@ export async function updateUser(id: string, data: UpdateUserInput): Promise<Use
   updateData.updated_at = new Date();
 
   const user = await UserModel.findByIdAndUpdate(id, updateData, { new: true })
-    .populate("status_id", "status")
     .populate("role_id", "name")
     .populate("department_id", "name")
     .lean();
@@ -187,11 +165,10 @@ export async function updateUser(id: string, data: UpdateUserInput): Promise<Use
 export async function deleteUser(id: string, reason?: string): Promise<void> {
   await connectDB();
 
-  const deletedStatus = await UserStatusModel.findOne({ status: "Deleted" }).lean();
   await UserModel.findByIdAndUpdate(id, {
     deleted_at: new Date(),
     deleted_reason: reason || null,
-    status_id: deletedStatus?._id,
+    status: "Deleted",
     updated_at: new Date(),
   });
 }
@@ -209,11 +186,10 @@ export async function changePassword(id: string, password: string): Promise<void
 export async function restoreUser(id: string): Promise<void> {
   await connectDB();
 
-  const activeStatus = await UserStatusModel.findOne({ status: "Active" }).lean();
   await UserModel.findByIdAndUpdate(id, {
     deleted_at: null,
     deleted_reason: null,
-    status_id: activeStatus?._id,
+    status: "Active",
     updated_at: new Date(),
   });
 }
@@ -222,7 +198,6 @@ export async function getUserByEmail(email: string): Promise<User | null> {
   await connectDB();
 
   const user = await UserModel.findOne({ email })
-    .populate("status_id", "status")
     .populate("role_id", "name")
     .populate("department_id", "name")
     .lean();
@@ -234,9 +209,6 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 
 export async function createInactiveUser(data: CreateUserInput): Promise<User> {
   await connectDB();
-
-  const inactiveStatus = await UserStatusModel.findOne({ status: "Inactive" }).lean();
-  if (!inactiveStatus) throw new Error("Inactive status not found");
 
   const viewerRole = await RoleModel.findOne({ name: "Viewer" }).lean();
   if (!viewerRole) throw new Error("Viewer role not found");
@@ -250,19 +222,18 @@ export async function createInactiveUser(data: CreateUserInput): Promise<User> {
     password_hash: passwordHash,
     department_id: data.department_id || null,
     role_id: viewerRole._id,
-    status_id: inactiveStatus._id,
+    status: "Inactive",
     is_verified: false,
   });
 
-  const populated = await UserModel.findById(user._id)
-    .populate("status_id", "status")
+  const created = await UserModel.findById(user._id)
     .populate("role_id", "name")
     .populate("department_id", "name")
     .lean();
 
-  if (!populated) throw new Error("Failed to create user");
+  if (!created) throw new Error("Failed to create user");
 
-  return toUser(populated as unknown as Record<string, unknown>);
+  return toUser(created as unknown as Record<string, unknown>);
 }
 
 export async function getUserCount(): Promise<number> {
@@ -281,7 +252,6 @@ export async function updateProfile(userId: string, data: ProfileUpdateInput): P
   updateData.updated_at = new Date();
 
   const user = await UserModel.findByIdAndUpdate(userId, updateData, { new: true })
-    .populate("status_id", "status")
     .populate("role_id", "name")
     .populate("department_id", "name")
     .lean();

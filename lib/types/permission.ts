@@ -2,8 +2,7 @@ export interface Permission {
   id: string;
   name: string;
   description: string | null;
-  status_id: string;
-  status?: string;
+  status: "Active" | "Deleted";
   created_at: Date;
   created_by: string | null;
   updated_at: Date | null;
@@ -29,9 +28,4 @@ export interface PermissionAdvancedFilter {
   field: keyof Permission;
   operator: "equals" | "contains" | "greaterThan" | "lessThan" | "startsWith";
   value: string;
-}
-
-export interface PermissionStatus {
-  id: string;
-  status: string;
 }

@@ -9,8 +9,7 @@ export interface Role {
   id: string;
   name: string;
   description: string | null;
-  status_id: string;
-  status?: string;
+  status: "Active" | "Deleted";
   permissions: RolePermissionEntry[];
   created_at: Date;
   created_by: string | null;
@@ -37,9 +36,4 @@ export interface RoleAdvancedFilter {
   field: keyof Role;
   operator: "equals" | "contains" | "greaterThan" | "lessThan" | "startsWith";
   value: string;
-}
-
-export interface RoleStatus {
-  id: string;
-  status: string;
 }

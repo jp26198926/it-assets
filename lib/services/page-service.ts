@@ -1,10 +1,8 @@
 import { connectDB } from "@/lib/db/connection";
 import { Page as PageModel } from "@/lib/db/models/page";
-import { PageStatus as PageStatusModel } from "@/lib/db/models/page-status";
-import type { CreatePageInput, UpdatePageInput, PageFilters, Page, PageStatus as PageStatusType } from "@/lib/types/page";
+import type { CreatePageInput, UpdatePageInput, PageFilters, Page } from "@/lib/types/page";
 
 function toPage(p: Record<string, unknown>): Page {
-  const statusId = p.status_id as unknown as { _id: { toString(): string }; status: string };
   const parentId = p.parent_id as unknown as { _id: { toString(): string }; name: string } | null;
   return {
     id: (p._id as { toString(): string }).toString(),
@@ -16,8 +14,7 @@ function toPage(p: Record<string, unknown>): Page {
     parent_name: parentId?.name,
     section: (p.section as string) ?? null,
     order: (p.order as number) ?? 0,
-    status_id: statusId._id.toString(),
-    status: statusId.status,
+    status: p.status as "Active" | "Deleted",
     created_at: p.created_at as Date,
     created_by: p.created_by ? (p.created_by as { toString(): string }).toString() : null,
     updated_at: (p.updated_at as Date) ?? null,
@@ -26,23 +23,10 @@ function toPage(p: Record<string, unknown>): Page {
   };
 }
 
-export async function getPageStatuses(): Promise<PageStatusType[]> {
-  await connectDB();
-  const statuses = await PageStatusModel.find().lean();
-  return statuses.map((s) => ({
-    id: s._id.toString(),
-    status: s.status,
-  }));
-}
-
 export async function getSidebarPages(): Promise<Page[]> {
   await connectDB();
 
-  const activeStatus = await PageStatusModel.findOne({ status: "Active" }).lean();
-  if (!activeStatus) return [];
-
-  const pages = await PageModel.find({ status_id: activeStatus._id, deleted_at: null })
-    .populate("status_id", "status")
+  const pages = await PageModel.find({ status: "Active", deleted_at: null })
     .populate("parent_id", "name")
     .sort({ order: 1, created_at: 1 })
     .lean();
@@ -77,10 +61,7 @@ export async function getPages(filters?: PageFilters): Promise<Page[]> {
   }
 
   if (filters?.status) {
-    const statusDoc = await PageStatusModel.findOne({ status: filters.status }).lean();
-    if (statusDoc) {
-      query.status_id = statusDoc._id;
-    }
+    query.status = filters.status;
   }
 
   if (filters?.section) {
@@ -92,7 +73,6 @@ export async function getPages(filters?: PageFilters): Promise<Page[]> {
   }
 
   const pages = await PageModel.find(query)
-    .populate("status_id", "status")
     .populate("parent_id", "name")
     .sort({ created_at: -1 })
     .lean();
@@ -104,7 +84,6 @@ export async function getPageById(id: string): Promise<Page | null> {
   await connectDB();
 
   const page = await PageModel.findById(id)
-    .populate("status_id", "status")
     .populate("parent_id", "name")
     .lean();
 
@@ -116,9 +95,6 @@ export async function getPageById(id: string): Promise<Page | null> {
 export async function createPage(data: CreatePageInput): Promise<Page> {
   await connectDB();
 
-  const activeStatus = await PageStatusModel.findOne({ status: "Active" }).lean();
-  if (!activeStatus) throw new Error("Active status not found");
-
   const page = await PageModel.create({
     name: data.name,
     description: data.description || null,
@@ -127,11 +103,10 @@ export async function createPage(data: CreatePageInput): Promise<Page> {
     parent_id: data.parent_id || null,
     section: data.section || null,
     order: data.order ?? 0,
-    status_id: activeStatus._id,
+    status: "Active",
   });
 
   const populated = await PageModel.findById(page._id)
-    .populate("status_id", "status")
     .populate("parent_id", "name")
     .lean();
 
@@ -154,7 +129,6 @@ export async function updatePage(id: string, data: UpdatePageInput): Promise<Pag
   updateData.updated_at = new Date();
 
   const page = await PageModel.findByIdAndUpdate(id, updateData, { new: true })
-    .populate("status_id", "status")
     .populate("parent_id", "name")
     .lean();
 
@@ -166,11 +140,10 @@ export async function updatePage(id: string, data: UpdatePageInput): Promise<Pag
 export async function deletePage(id: string, reason?: string): Promise<void> {
   await connectDB();
 
-  const deletedStatus = await PageStatusModel.findOne({ status: "Deleted" }).lean();
   await PageModel.findByIdAndUpdate(id, {
     deleted_at: new Date(),
     deleted_reason: reason || null,
-    status_id: deletedStatus?._id,
+    status: "Deleted",
     updated_at: new Date(),
   });
 }
@@ -178,11 +151,10 @@ export async function deletePage(id: string, reason?: string): Promise<void> {
 export async function restorePage(id: string): Promise<void> {
   await connectDB();
 
-  const activeStatus = await PageStatusModel.findOne({ status: "Active" }).lean();
   await PageModel.findByIdAndUpdate(id, {
     deleted_at: null,
     deleted_reason: null,
-    status_id: activeStatus?._id,
+    status: "Active",
     updated_at: new Date(),
   });
 }

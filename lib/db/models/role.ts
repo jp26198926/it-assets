@@ -9,7 +9,7 @@ export interface IRolePermissionEntry {
 export interface IRole extends Document, BaseAuditFields {
   name: string;
   description: string | null;
-  status_id: Types.ObjectId;
+  status: "Active" | "Deleted";
   permissions: IRolePermissionEntry[];
 }
 
@@ -39,10 +39,11 @@ const RoleSchema = new Schema<IRole>({
     type: String,
     default: null,
   },
-  status_id: {
-    type: Schema.Types.ObjectId,
-    ref: "RoleStatus",
+  status: {
+    type: String,
     required: true,
+    enum: ["Active", "Deleted"],
+    default: "Active",
   },
   permissions: {
     type: [RolePermissionEntrySchema],
@@ -52,7 +53,7 @@ const RoleSchema = new Schema<IRole>({
 });
 
 RoleSchema.index({ name: 1 }, { unique: true });
-RoleSchema.index({ status_id: 1 });
+RoleSchema.index({ status: 1 });
 
 export const Role =
   mongoose.models.Role ||

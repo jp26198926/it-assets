@@ -9,7 +9,7 @@ export interface IPage extends Document, BaseAuditFields {
   parent_id: Types.ObjectId | null;
   section: string | null;
   order: number;
-  status_id: Types.ObjectId;
+  status: "Active" | "Deleted";
 }
 
 const PageSchema = new Schema<IPage>({
@@ -43,17 +43,18 @@ const PageSchema = new Schema<IPage>({
     type: Number,
     default: 0,
   },
-  status_id: {
-    type: Schema.Types.ObjectId,
-    ref: "PageStatus",
+  status: {
+    type: String,
     required: true,
+    enum: ["Active", "Deleted"],
+    default: "Active",
   },
   ...BaseAuditSchemaDefinition,
 });
 
 PageSchema.index({ name: 1 }, { unique: true });
 PageSchema.index({ parent_id: 1 });
-PageSchema.index({ status_id: 1 });
+PageSchema.index({ status: 1 });
 PageSchema.index({ order: 1 });
 
 export const Page =

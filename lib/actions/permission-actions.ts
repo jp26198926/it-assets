@@ -1,11 +1,7 @@
 "use server";
 
 import * as permissionService from "@/lib/services/permission-service";
-import type { CreatePermissionInput, UpdatePermissionInput, PermissionFilters, Permission, PermissionStatus as PermissionStatusType } from "@/lib/types/permission";
-
-export async function getPermissionStatuses(): Promise<PermissionStatusType[]> {
-  return permissionService.getPermissionStatuses();
-}
+import type { CreatePermissionInput, UpdatePermissionInput, PermissionFilters, Permission } from "@/lib/types/permission";
 
 export async function getPermissions(filters?: PermissionFilters): Promise<Permission[]> {
   return permissionService.getPermissions(filters);
