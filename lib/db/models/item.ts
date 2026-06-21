@@ -3,6 +3,7 @@ import { BaseAuditSchemaDefinition, BaseAuditFields } from "../base-schema";
 
 export interface IItem extends Omit<Document, "model">, BaseAuditFields {
   name: string;
+  item_code: string | null;
   category_id: mongoose.Types.ObjectId | null;
   brand: string | null;
   model: string | null;
@@ -18,6 +19,12 @@ const ItemSchema = new Schema<IItem>({
     type: String,
     required: true,
     unique: true,
+  },
+  item_code: {
+    type: String,
+    default: null,
+    unique: true,
+    sparse: true,
   },
   category_id: {
     type: Schema.Types.ObjectId,
@@ -59,6 +66,7 @@ const ItemSchema = new Schema<IItem>({
 });
 
 ItemSchema.index({ name: 1 }, { unique: true });
+ItemSchema.index({ item_code: 1 }, { unique: true });
 ItemSchema.index({ category_id: 1 });
 ItemSchema.index({ uom_id: 1 });
 ItemSchema.index({ status: 1 });

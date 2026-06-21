@@ -130,6 +130,17 @@ export function ItemFormModal({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {item && (
+            <div className="space-y-2">
+              <Label htmlFor="item_code">Item Code</Label>
+              <Input
+                id="item_code"
+                value={item.item_code || ""}
+                disabled
+                className="font-mono bg-muted"
+              />
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="name">Name *</Label>
             <Input

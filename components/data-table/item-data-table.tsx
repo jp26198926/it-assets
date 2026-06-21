@@ -210,6 +210,7 @@ export function ItemDataTable<TData, TValue>({
                     <div>
                       <p className="font-medium text-[#1a1f36]">{item.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
+                        {item.item_code && <span className="font-mono text-xs text-[#3b82f6]">{item.item_code}</span>}
                         {item.category_name && (
                           <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold bg-[#dbeafe] text-[#2563eb]">
                             {item.category_name}

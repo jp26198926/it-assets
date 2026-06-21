@@ -68,6 +68,10 @@ export function ItemViewModal({
                 <p className="text-sm mt-1">{item.name}</p>
               </div>
               <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Item Code</p>
+                <p className="text-sm mt-1 font-mono">{item.item_code || "N/A"}</p>
+              </div>
+              <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Category</p>
                 <p className="text-sm mt-1">{item.category_name || "N/A"}</p>
               </div>

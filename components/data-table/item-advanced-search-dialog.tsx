@@ -27,12 +27,14 @@ export function ItemAdvancedSearchDialog({
 }: ItemAdvancedSearchDialogProps) {
   const [open, setOpen] = useState(false);
   const [searchName, setSearchName] = useState("");
+  const [searchItemCode, setSearchItemCode] = useState("");
   const [searchBrand, setSearchBrand] = useState("");
   const [searchModel, setSearchModel] = useState("");
 
   const handleSearch = () => {
     const filters: ItemFilters = {};
     if (searchName) filters.name = searchName;
+    if (searchItemCode) filters.item_code = searchItemCode;
     if (searchBrand) filters.brand = searchBrand;
     if (searchModel) filters.model = searchModel;
 
@@ -42,6 +44,7 @@ export function ItemAdvancedSearchDialog({
 
   const handleClear = () => {
     setSearchName("");
+    setSearchItemCode("");
     setSearchBrand("");
     setSearchModel("");
     onClear();
@@ -79,6 +82,17 @@ export function ItemAdvancedSearchDialog({
                 onChange={(e) => setSearchName(e.target.value)}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="search-item-code">Item Code</Label>
+              <Input
+                id="search-item-code"
+                placeholder="e.g., P000001"
+                value={searchItemCode}
+                onChange={(e) => setSearchItemCode(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="search-brand">Brand</Label>
               <Input

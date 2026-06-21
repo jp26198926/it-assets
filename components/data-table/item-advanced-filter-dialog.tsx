@@ -23,6 +23,7 @@ interface ItemAdvancedFilterDialogProps {
 
 const filterFields: { value: keyof Item; label: string }[] = [
   { value: "name", label: "Name" },
+  { value: "item_code", label: "Item Code" },
   { value: "brand", label: "Brand" },
   { value: "model", label: "Model" },
   { value: "description", label: "Description" },

@@ -32,6 +32,7 @@ export function ItemExportButtons({ table }: ItemExportButtonsProps) {
       doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 30);
 
       const rows = table.getFilteredRowModel().rows.map((row) => [
+        row.original.item_code || "N/A",
         row.original.name,
         row.original.category_name || "N/A",
         row.original.brand || "N/A",
@@ -44,7 +45,7 @@ export function ItemExportButtons({ table }: ItemExportButtonsProps) {
 
       autoTable(doc, {
         startY: 35,
-        head: [["Name", "Category", "Brand", "Model", "UOM", "Min Stock", "Status", "Created"]],
+        head: [["Item Code", "Name", "Category", "Brand", "Model", "UOM", "Min Stock", "Status", "Created"]],
         body: rows,
         headStyles: { fillColor: [59, 130, 246] },
       });
@@ -63,6 +64,7 @@ export function ItemExportButtons({ table }: ItemExportButtonsProps) {
       const XLSX = await import("xlsx");
 
       const rows = table.getFilteredRowModel().rows.map((row) => ({
+        "Item Code": row.original.item_code || "N/A",
         Name: row.original.name,
         Category: row.original.category_name || "N/A",
         Brand: row.original.brand || "N/A",
@@ -78,6 +80,7 @@ export function ItemExportButtons({ table }: ItemExportButtonsProps) {
       XLSX.utils.book_append_sheet(workbook, worksheet, "Items");
 
       worksheet["!cols"] = [
+        { wch: 15 },
         { wch: 25 },
         { wch: 15 },
         { wch: 20 },

@@ -1,6 +1,7 @@
 export interface Item {
   id: string;
   name: string;
+  item_code: string | null;
   category_id: string | null;
   category_name?: string;
   brand: string | null;
@@ -35,6 +36,7 @@ export interface UpdateItemInput extends Partial<CreateItemInput> {}
 export interface ItemFilters {
   search?: string;
   name?: string;
+  item_code?: string;
   category_id?: string;
   brand?: string;
   model?: string;

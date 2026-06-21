@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const filters: ItemFilters = {};
     if (searchParams.get("search")) filters.search = searchParams.get("search")!;
     if (searchParams.get("name")) filters.name = searchParams.get("name")!;
+    if (searchParams.get("item_code")) filters.item_code = searchParams.get("item_code")!;
     if (searchParams.get("category_id")) filters.category_id = searchParams.get("category_id")!;
     if (searchParams.get("brand")) filters.brand = searchParams.get("brand")!;
     if (searchParams.get("model")) filters.model = searchParams.get("model")!;

@@ -88,6 +88,20 @@ export function createItemColumns(
 ): ColumnDef<Item>[] {
   return [
     {
+      accessorKey: "item_code",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Item Code" />
+      ),
+      cell: ({ row }) => {
+        const code = row.getValue("item_code") as string | null;
+        return code ? (
+          <span className="font-mono text-sm text-[#1a1f36]">{code}</span>
+        ) : (
+          <span className="text-[#94a3b8] italic">N/A</span>
+        );
+      },
+    },
+    {
       accessorKey: "name",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Name" />

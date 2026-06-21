@@ -4,6 +4,23 @@ import { Category as CategoryModel } from "@/lib/db/models/category";
 import { UOM as UOMModel } from "@/lib/db/models/uom";
 import type { CreateItemInput, UpdateItemInput, ItemFilters, Item } from "@/lib/types/item";
 
+async function generateItemCode(): Promise<string> {
+  const lastItem = await ItemModel.findOne({ item_code: { $regex: "^P\\d{6}$" } })
+    .sort({ item_code: -1 })
+    .lean();
+
+  let nextNumber = 1;
+  if (lastItem) {
+    const lastCode = (lastItem as unknown as { item_code: string }).item_code;
+    if (lastCode) {
+      const num = parseInt(lastCode.substring(1), 10);
+      if (!isNaN(num)) nextNumber = num + 1;
+    }
+  }
+
+  return `P${String(nextNumber).padStart(6, "0")}`;
+}
+
 function toItem(d: Record<string, unknown>): Item {
   const catId = d.category_id as unknown as
     | { _id: { toString(): string }; name: string }
@@ -38,6 +55,7 @@ function toItem(d: Record<string, unknown>): Item {
   return {
     id: (d._id as { toString(): string }).toString(),
     name: d.name as string,
+    item_code: (d.item_code as string) ?? null,
     category_id,
     category_name,
     brand: (d.brand as string) ?? null,
@@ -87,6 +105,7 @@ export async function getItems(filters?: ItemFilters): Promise<Item[]> {
   if (filters?.search) {
     query.$or = [
       { name: { $regex: filters.search, $options: "i" } },
+      { item_code: { $regex: filters.search, $options: "i" } },
       { brand: { $regex: filters.search, $options: "i" } },
       { model: { $regex: filters.search, $options: "i" } },
       { description: { $regex: filters.search, $options: "i" } },
@@ -95,6 +114,10 @@ export async function getItems(filters?: ItemFilters): Promise<Item[]> {
 
   if (filters?.name) {
     query.name = { $regex: filters.name, $options: "i" };
+  }
+
+  if (filters?.item_code) {
+    query.item_code = { $regex: filters.item_code, $options: "i" };
   }
 
   if (filters?.category_id) {
@@ -142,8 +165,11 @@ export async function getItemById(id: string): Promise<Item | null> {
 export async function createItem(data: CreateItemInput): Promise<Item> {
   await connectDB();
 
+  const item_code = await generateItemCode();
+
   const item = await ItemModel.create({
     name: data.name,
+    item_code,
     category_id: data.category_id || null,
     brand: data.brand || null,
     model: data.model || null,
