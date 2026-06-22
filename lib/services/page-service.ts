@@ -5,6 +5,46 @@ import type { CreatePageInput, UpdatePageInput, PageFilters, Page } from "@/lib/
 
 function toPage(p: Record<string, unknown>): Page {
   const parentId = p.parent_id as unknown as { _id: { toString(): string }; name: string } | null;
+
+  const createdByVal = p.created_by as unknown as
+    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | string
+    | null;
+  let created_by: string | null = null;
+  let created_by_name: string | undefined;
+  if (createdByVal && typeof createdByVal === "object" && "_id" in createdByVal) {
+    created_by = createdByVal._id.toString();
+    created_by_name = `${createdByVal.first_name} ${createdByVal.last_name}`.trim();
+  } else if (typeof createdByVal === "string") {
+    created_by = createdByVal;
+  }
+
+  const updatedByVal = p.updated_by as unknown as
+    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | string
+    | null;
+  let updated_by: string | null = null;
+  let updated_by_name: string | undefined;
+  if (updatedByVal && typeof updatedByVal === "object" && "_id" in updatedByVal) {
+    updated_by = updatedByVal._id.toString();
+    updated_by_name = `${updatedByVal.first_name} ${updatedByVal.last_name}`.trim();
+  } else if (typeof updatedByVal === "string") {
+    updated_by = updatedByVal;
+  }
+
+  const deletedByVal = p.deleted_by as unknown as
+    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | string
+    | null;
+  let deleted_by: string | null = null;
+  let deleted_by_name: string | undefined;
+  if (deletedByVal && typeof deletedByVal === "object" && "_id" in deletedByVal) {
+    deleted_by = deletedByVal._id.toString();
+    deleted_by_name = `${deletedByVal.first_name} ${deletedByVal.last_name}`.trim();
+  } else if (typeof deletedByVal === "string") {
+    deleted_by = deletedByVal;
+  }
+
   return {
     id: (p._id as { toString(): string }).toString(),
     name: p.name as string,
@@ -17,10 +57,15 @@ function toPage(p: Record<string, unknown>): Page {
     order: (p.order as number) ?? 0,
     status: p.status as "Active" | "Deleted",
     created_at: p.created_at as Date,
-    created_by: p.created_by ? (p.created_by as { toString(): string }).toString() : null,
+    created_by,
+    created_by_name,
     updated_at: (p.updated_at as Date) ?? null,
-    updated_by: p.updated_by ? (p.updated_by as { toString(): string }).toString() : null,
+    updated_by,
+    updated_by_name,
     deleted_at: (p.deleted_at as Date) ?? null,
+    deleted_by,
+    deleted_by_name,
+    deleted_reason: (p.deleted_reason as string) ?? null,
   };
 }
 
@@ -29,6 +74,9 @@ export async function getSidebarPages(): Promise<Page[]> {
 
   const pages = await PageModel.find({ status: "Active", deleted_at: null })
     .populate("parent_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .sort({ order: 1, created_at: 1 })
     .lean();
 
@@ -75,6 +123,9 @@ export async function getPages(filters?: PageFilters): Promise<Page[]> {
 
   const pages = await PageModel.find(query)
     .populate("parent_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .sort({ created_at: -1 })
     .lean();
 
@@ -86,6 +137,9 @@ export async function getPageById(id: string): Promise<Page | null> {
 
   const page = await PageModel.findById(id)
     .populate("parent_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .lean();
 
   if (!page) return null;
@@ -109,6 +163,9 @@ export async function createPage(data: CreatePageInput): Promise<Page> {
 
   const populated = await PageModel.findById(page._id)
     .populate("parent_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .lean();
 
   if (!populated) throw new Error("Failed to create page");
@@ -132,6 +189,9 @@ export async function updatePage(id: string, data: UpdatePageInput): Promise<Pag
 
   const page = await PageModel.findByIdAndUpdate(id, updateData, { new: true })
     .populate("parent_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .lean();
 
   if (!page) throw new Error("Page not found");

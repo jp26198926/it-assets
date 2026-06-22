@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { error } = await withPageAuth("/items", "Add");
+    const { auth, error } = await withPageAuth("/items", "Add");
     if (error) return error;
 
     const body = await request.json();
@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
       uom_id: body.uom_id,
       minimum_stock: body.minimum_stock,
       image_url: body.image_url,
+      created_by: auth.user?.userId || null,
     });
     return apiSuccess(item, 201);
   } catch (error) {

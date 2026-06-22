@@ -27,6 +27,45 @@ function toUser(u: Record<string, unknown>): User {
     department_id = deptId;
   }
 
+  const createdByVal = u.created_by as unknown as
+    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | string
+    | null;
+  let created_by: string | null = null;
+  let created_by_name: string | undefined;
+  if (createdByVal && typeof createdByVal === "object" && "_id" in createdByVal) {
+    created_by = createdByVal._id.toString();
+    created_by_name = `${createdByVal.first_name} ${createdByVal.last_name}`.trim();
+  } else if (typeof createdByVal === "string") {
+    created_by = createdByVal;
+  }
+
+  const updatedByVal = u.updated_by as unknown as
+    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | string
+    | null;
+  let updated_by: string | null = null;
+  let updated_by_name: string | undefined;
+  if (updatedByVal && typeof updatedByVal === "object" && "_id" in updatedByVal) {
+    updated_by = updatedByVal._id.toString();
+    updated_by_name = `${updatedByVal.first_name} ${updatedByVal.last_name}`.trim();
+  } else if (typeof updatedByVal === "string") {
+    updated_by = updatedByVal;
+  }
+
+  const deletedByVal = u.deleted_by as unknown as
+    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | string
+    | null;
+  let deleted_by: string | null = null;
+  let deleted_by_name: string | undefined;
+  if (deletedByVal && typeof deletedByVal === "object" && "_id" in deletedByVal) {
+    deleted_by = deletedByVal._id.toString();
+    deleted_by_name = `${deletedByVal.first_name} ${deletedByVal.last_name}`.trim();
+  } else if (typeof deletedByVal === "string") {
+    deleted_by = deletedByVal;
+  }
+
   return {
     id: (u._id as { toString(): string }).toString(),
     first_name: u.first_name as string,
@@ -44,10 +83,15 @@ function toUser(u: Record<string, unknown>): User {
     is_verified: u.is_verified as boolean,
     email_verified_at: (u.email_verified_at as Date) ?? null,
     created_at: u.created_at as Date,
-    created_by: u.created_by ? (u.created_by as { toString(): string }).toString() : null,
+    created_by,
+    created_by_name,
     updated_at: (u.updated_at as Date) ?? null,
-    updated_by: u.updated_by ? (u.updated_by as { toString(): string }).toString() : null,
+    updated_by,
+    updated_by_name,
     deleted_at: (u.deleted_at as Date) ?? null,
+    deleted_by,
+    deleted_by_name,
+    deleted_reason: (u.deleted_reason as string) ?? null,
   };
 }
 
@@ -97,6 +141,9 @@ export async function getUsers(filters?: UserFilters): Promise<User[]> {
   const users = await UserModel.find(query)
     .populate("role_id", "name")
     .populate("department_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .sort({ created_at: -1 })
     .lean();
 
@@ -109,6 +156,9 @@ export async function getUserById(id: string): Promise<User | null> {
   const user = await UserModel.findById(id)
     .populate("role_id", "name")
     .populate("department_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .lean();
 
   if (!user) return null;
@@ -134,6 +184,9 @@ export async function createUser(data: CreateUserInput): Promise<User> {
   const created = await UserModel.findById(user._id)
     .populate("role_id", "name")
     .populate("department_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .lean();
 
   if (!created) throw new Error("Failed to create user");
@@ -155,6 +208,9 @@ export async function updateUser(id: string, data: UpdateUserInput): Promise<Use
   const user = await UserModel.findByIdAndUpdate(id, updateData, { new: true })
     .populate("role_id", "name")
     .populate("department_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .lean();
 
   if (!user) throw new Error("User not found");
@@ -200,6 +256,9 @@ export async function getUserByEmail(email: string): Promise<User | null> {
   const user = await UserModel.findOne({ email })
     .populate("role_id", "name")
     .populate("department_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .lean();
 
   if (!user) return null;
@@ -229,6 +288,9 @@ export async function createInactiveUser(data: CreateUserInput): Promise<User> {
   const created = await UserModel.findById(user._id)
     .populate("role_id", "name")
     .populate("department_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .lean();
 
   if (!created) throw new Error("Failed to create user");
@@ -254,6 +316,9 @@ export async function updateProfile(userId: string, data: ProfileUpdateInput): P
   const user = await UserModel.findByIdAndUpdate(userId, updateData, { new: true })
     .populate("role_id", "name")
     .populate("department_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .lean();
 
   if (!user) throw new Error("User not found");

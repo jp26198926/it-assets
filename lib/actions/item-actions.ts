@@ -1,6 +1,7 @@
 "use server";
 
 import * as itemService from "@/lib/services/item-service";
+import { getAuthFromRequest } from "@/lib/services/api-auth";
 import type { CreateItemInput, UpdateItemInput, ItemFilters, Item } from "@/lib/types/item";
 
 export async function getItems(filters?: ItemFilters): Promise<Item[]> {
@@ -12,11 +13,19 @@ export async function getItemById(id: string): Promise<Item | null> {
 }
 
 export async function createItem(data: CreateItemInput): Promise<Item> {
-  return itemService.createItem(data);
+  const user = await getAuthFromRequest();
+  return itemService.createItem({
+    ...data,
+    created_by: user?.userId || null,
+  });
 }
 
 export async function updateItem(id: string, data: UpdateItemInput): Promise<Item> {
-  return itemService.updateItem(id, data);
+  const user = await getAuthFromRequest();
+  return itemService.updateItem(id, {
+    ...data,
+    updated_by: user?.userId || null,
+  });
 }
 
 export async function deleteItem(id: string, reason?: string): Promise<void> {

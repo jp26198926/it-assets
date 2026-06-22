@@ -34,3 +34,44 @@ When an entity's child data is always accessed through the parent (e.g., role-pe
 
 ## Dev Server
 After modifying server actions or services, restart the dev server to pick up changes: `Ctrl+C` then `npm run dev`.
+
+## View Modal — Audit Fields Standard
+All view modals must display audit fields in a consistent layout. Place them in a second `grid grid-cols-2 gap-6` section below the main fields, separated by an `<hr />`.
+
+**Left column** (always visible):
+- Created At — `format(new Date(item.created_at), "MMMM dd, yyyy")`
+- Created By — `item.created_by_name || "N/A"`
+
+**Right column** (always visible):
+- Last Updated — show date or "Never" if null
+- Updated By — `item.updated_by_name || "N/A"`
+
+**Deleted fields** (conditional — only show when `item.deleted_at` is truthy):
+- Left column: Deleted At (with `text-rose-600`), Delete Reason (with `text-rose-600`, only if `deleted_reason` exists)
+- Right column: Deleted By (with `text-rose-600`)
+
+Example JSX structure:
+```tsx
+<div className="py-3"><hr /></div>
+<div className="grid grid-cols-2 gap-6">
+  <div className="space-y-4">
+    {/* Created At */}
+    {/* Created By */}
+    {item.deleted_at && (
+      <>
+        {/* Deleted At — text-rose-600 */}
+        {item.deleted_reason && {/* Delete Reason — text-rose-600 */})}
+      </>
+    )}
+  </div>
+  <div className="space-y-4">
+    {/* Last Updated (or "Never") */}
+    {/* Updated By */}
+    {item.deleted_at && (
+      <>
+        {/* Deleted By — text-rose-600 */}
+      </>
+    )}
+  </div>
+</div>
+```

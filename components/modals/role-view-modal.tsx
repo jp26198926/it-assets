@@ -65,6 +65,12 @@ export function RoleViewModal({
                 <p className="text-sm mt-1">{role.description || "N/A"}</p>
               </div>
             </div>
+            <div className="space-y-4" />
+          </div>
+
+          <div className="py-3"><hr /></div>
+
+          <div className="grid grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
@@ -73,6 +79,28 @@ export function RoleViewModal({
                 </p>
               </div>
               <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created By</p>
+                <p className="text-sm mt-1">{role.created_by_name || "N/A"}</p>
+              </div>
+              {role.deleted_at && (
+                <>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
+                    <p className="text-sm mt-1 tabular-nums text-rose-600">
+                      {format(new Date(role.deleted_at), "MMMM dd, yyyy")}
+                    </p>
+                  </div>
+                  {role.deleted_reason && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Delete Reason</p>
+                      <p className="text-sm mt-1 text-rose-600">{role.deleted_reason}</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <div className="space-y-4">
+              <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {role.updated_at
@@ -80,12 +108,14 @@ export function RoleViewModal({
                     : "Never"}
                 </p>
               </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Updated By</p>
+                <p className="text-sm mt-1">{role.updated_by_name || "N/A"}</p>
+              </div>
               {role.deleted_at && (
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
-                  <p className="text-sm mt-1 tabular-nums text-rose-600">
-                    {format(new Date(role.deleted_at), "MMMM dd, yyyy")}
-                  </p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted By</p>
+                  <p className="text-sm mt-1 text-rose-600">{role.deleted_by_name || "N/A"}</p>
                 </div>
               )}
             </div>

@@ -119,12 +119,41 @@ export function AssetViewModal({
                     : "N/A"}
                 </p>
               </div>
+            </div>
+          </div>
+
+          <div className="py-3"><hr /></div>
+
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {format(new Date(asset.created_at), "MMMM dd, yyyy")}
                 </p>
               </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created By</p>
+                <p className="text-sm mt-1">{asset.created_by_name || "N/A"}</p>
+              </div>
+              {asset.deleted_at && (
+                <>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
+                    <p className="text-sm mt-1 tabular-nums text-rose-600">
+                      {format(new Date(asset.deleted_at), "MMMM dd, yyyy")}
+                    </p>
+                  </div>
+                  {asset.deleted_reason && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Delete Reason</p>
+                      <p className="text-sm mt-1 text-rose-600">{asset.deleted_reason}</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <div className="space-y-4">
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                 <p className="text-sm mt-1 tabular-nums">
@@ -133,12 +162,14 @@ export function AssetViewModal({
                     : "Never"}
                 </p>
               </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Updated By</p>
+                <p className="text-sm mt-1">{asset.updated_by_name || "N/A"}</p>
+              </div>
               {asset.deleted_at && (
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
-                  <p className="text-sm mt-1 tabular-nums text-rose-600">
-                    {format(new Date(asset.deleted_at), "MMMM dd, yyyy")}
-                  </p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted By</p>
+                  <p className="text-sm mt-1 text-rose-600">{asset.deleted_by_name || "N/A"}</p>
                 </div>
               )}
             </div>

@@ -18,6 +18,45 @@ function toEmployee(e: Record<string, unknown>): Employee {
     department_id = deptId;
   }
 
+  const createdByVal = e.created_by as unknown as
+    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | string
+    | null;
+  let created_by: string | null = null;
+  let created_by_name: string | undefined;
+  if (createdByVal && typeof createdByVal === "object" && "_id" in createdByVal) {
+    created_by = createdByVal._id.toString();
+    created_by_name = `${createdByVal.first_name} ${createdByVal.last_name}`.trim();
+  } else if (typeof createdByVal === "string") {
+    created_by = createdByVal;
+  }
+
+  const updatedByVal = e.updated_by as unknown as
+    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | string
+    | null;
+  let updated_by: string | null = null;
+  let updated_by_name: string | undefined;
+  if (updatedByVal && typeof updatedByVal === "object" && "_id" in updatedByVal) {
+    updated_by = updatedByVal._id.toString();
+    updated_by_name = `${updatedByVal.first_name} ${updatedByVal.last_name}`.trim();
+  } else if (typeof updatedByVal === "string") {
+    updated_by = updatedByVal;
+  }
+
+  const deletedByVal = e.deleted_by as unknown as
+    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | string
+    | null;
+  let deleted_by: string | null = null;
+  let deleted_by_name: string | undefined;
+  if (deletedByVal && typeof deletedByVal === "object" && "_id" in deletedByVal) {
+    deleted_by = deletedByVal._id.toString();
+    deleted_by_name = `${deletedByVal.first_name} ${deletedByVal.last_name}`.trim();
+  } else if (typeof deletedByVal === "string") {
+    deleted_by = deletedByVal;
+  }
+
   return {
     id: (e._id as { toString(): string }).toString(),
     emp_no: (e.emp_no as string) ?? null,
@@ -30,10 +69,15 @@ function toEmployee(e: Record<string, unknown>): Employee {
     department_name,
     status: e.status as "Active" | "Deleted",
     created_at: e.created_at as Date,
-    created_by: e.created_by ? (e.created_by as { toString(): string }).toString() : null,
+    created_by,
+    created_by_name,
     updated_at: (e.updated_at as Date) ?? null,
-    updated_by: e.updated_by ? (e.updated_by as { toString(): string }).toString() : null,
+    updated_by,
+    updated_by_name,
     deleted_at: (e.deleted_at as Date) ?? null,
+    deleted_by,
+    deleted_by_name,
+    deleted_reason: (e.deleted_reason as string) ?? null,
   };
 }
 
@@ -96,6 +140,9 @@ export async function getEmployees(filters?: EmployeeFilters): Promise<Employee[
 
   const employees = await EmployeeModel.find(query)
     .populate("department_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .sort({ created_at: -1 })
     .lean();
 
@@ -107,6 +154,9 @@ export async function getEmployeeById(id: string): Promise<Employee | null> {
 
   const employee = await EmployeeModel.findById(id)
     .populate("department_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .lean();
 
   if (!employee) return null;
@@ -130,6 +180,9 @@ export async function createEmployee(data: CreateEmployeeInput): Promise<Employe
 
   const created = await EmployeeModel.findById(employee._id)
     .populate("department_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .lean();
 
   if (!created) throw new Error("Failed to create employee");
@@ -152,6 +205,9 @@ export async function updateEmployee(id: string, data: UpdateEmployeeInput): Pro
 
   const employee = await EmployeeModel.findByIdAndUpdate(id, updateData, { new: true })
     .populate("department_id", "name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .lean();
 
   if (!employee) throw new Error("Employee not found");

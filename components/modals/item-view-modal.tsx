@@ -17,10 +17,15 @@ interface ItemViewModalProps {
   item: Item | null;
 }
 
-const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
-  Active: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
-  Deleted: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500" },
-};
+const statusConfig: Record<string, { bg: string; text: string; dot: string }> =
+  {
+    Active: {
+      bg: "bg-emerald-50",
+      text: "text-emerald-700",
+      dot: "bg-emerald-500",
+    },
+    Deleted: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500" },
+  };
 
 export function ItemViewModal({
   open,
@@ -46,7 +51,9 @@ export function ItemViewModal({
             <div>
               <div>{item.name}</div>
               <div className="flex items-center gap-2 mt-1">
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${sConfig.bg} ${sConfig.text}`}>
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${sConfig.bg} ${sConfig.text}`}
+                >
                   <span className={`size-1.5 rounded-full ${sConfig.dot}`} />
                   {item.status}
                 </span>
@@ -60,37 +67,41 @@ export function ItemViewModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="rounded-xl bg-muted/30 p-4">
+        <div className="rounded-xl bg-muted/30 p-4 space-y-4">
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Name
+            </p>
+            <p className="text-sm mt-1">{item.name}</p>
+          </div>
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Name</p>
-                <p className="text-sm mt-1">{item.name}</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Item Code
+                </p>
+                <p className="text-sm mt-1 font-mono">
+                  {item.item_code || "N/A"}
+                </p>
               </div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Item Code</p>
-                <p className="text-sm mt-1 font-mono">{item.item_code || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Category</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Category
+                </p>
                 <p className="text-sm mt-1">{item.category_name || "N/A"}</p>
               </div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Brand</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Brand
+                </p>
                 <p className="text-sm mt-1">{item.brand || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Model</p>
-                <p className="text-sm mt-1">{item.model || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Description</p>
-                <p className="text-sm mt-1">{item.description || "N/A"}</p>
               </div>
             </div>
             <div className="space-y-4">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">UOM</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  UOM
+                </p>
                 <p className="text-sm mt-1">
                   {item.uom_name
                     ? item.uom_code
@@ -100,34 +111,114 @@ export function ItemViewModal({
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Minimum Stock</p>
-                <p className="text-sm mt-1 tabular-nums">{item.minimum_stock}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Image URL</p>
-                <p className="text-sm mt-1 break-all">{item.image_url || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Minimum Stock
+                </p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(item.created_at), "MMMM dd, yyyy")}
+                  {item.minimum_stock}
                 </p>
               </div>
+
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Model
+                </p>
+                <p className="text-sm mt-1">{item.model || "N/A"}</p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Image URL
+            </p>
+            <p className="text-sm mt-1 break-all">{item.image_url || "N/A"}</p>
+          </div>
+
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Description
+            </p>
+            <p className="text-sm mt-1">{item.description || "N/A"}</p>
+          </div>
+
+          <div className="py-3">
+            <hr />
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Created At
+                </p>
+                <p className="text-sm mt-1 tabular-nums">
+                  {format(new Date(item.created_at), "yyyy-MM-dd HH:mm:ss")}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Created By
+                </p>
+                <p className="text-sm mt-1">{item.created_by_name || "N/A"}</p>
+              </div>
+
+              {item.deleted_at && (
+                <>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Deleted At
+                    </p>
+                    <p className="text-sm mt-1 tabular-nums text-rose-600">
+                      {format(new Date(item.deleted_at), "yyyy-MM-dd HH:mm:ss")}
+                    </p>
+                  </div>
+
+                  {item.deleted_reason && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Delete Reason
+                      </p>
+                      <p className="text-sm mt-1 text-rose-600">
+                        {item.deleted_reason}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Last Updated
+                </p>
                 <p className="text-sm mt-1 tabular-nums">
                   {item.updated_at
-                    ? format(new Date(item.updated_at), "MMMM dd, yyyy")
+                    ? format(new Date(item.updated_at), "yyyy-MM-dd HH:mm:ss")
                     : "Never"}
                 </p>
               </div>
+
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Updated By
+                </p>
+                <p className="text-sm mt-1">{item.updated_by_name || "N/A"}</p>
+              </div>
+
               {item.deleted_at && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
-                  <p className="text-sm mt-1 tabular-nums text-rose-600">
-                    {format(new Date(item.deleted_at), "MMMM dd, yyyy")}
-                  </p>
-                </div>
+                <>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Deleted By
+                    </p>
+                    <p className="text-sm mt-1 text-rose-600">
+                      {item.deleted_by_name || "N/A"}
+                    </p>
+                  </div>
+                </>
               )}
             </div>
           </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -192,20 +191,6 @@ export function createItemColumns(
             <span className={`size-1.5 ${config.dot}`} />
             {status}
           </div>
-        );
-      },
-    },
-    {
-      accessorKey: "created_at",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Created" />
-      ),
-      cell: ({ row }) => {
-        const date = row.getValue("created_at") as Date;
-        return (
-          <span className="text-sm tabular-nums text-[#1a1f36]">
-            {format(new Date(date), "MMM dd, yyyy")}
-          </span>
         );
       },
     },

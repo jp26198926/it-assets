@@ -65,6 +65,12 @@ export function UOMViewModal({
                 <p className="text-sm mt-1">{uom.name}</p>
               </div>
             </div>
+            <div className="space-y-4" />
+          </div>
+
+          <div className="py-3"><hr /></div>
+
+          <div className="grid grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
@@ -73,6 +79,28 @@ export function UOMViewModal({
                 </p>
               </div>
               <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created By</p>
+                <p className="text-sm mt-1">{uom.created_by_name || "N/A"}</p>
+              </div>
+              {uom.deleted_at && (
+                <>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
+                    <p className="text-sm mt-1 tabular-nums text-rose-600">
+                      {format(new Date(uom.deleted_at), "MMMM dd, yyyy")}
+                    </p>
+                  </div>
+                  {uom.deleted_reason && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Delete Reason</p>
+                      <p className="text-sm mt-1 text-rose-600">{uom.deleted_reason}</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <div className="space-y-4">
+              <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {uom.updated_at
@@ -80,12 +108,14 @@ export function UOMViewModal({
                     : "Never"}
                 </p>
               </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Updated By</p>
+                <p className="text-sm mt-1">{uom.updated_by_name || "N/A"}</p>
+              </div>
               {uom.deleted_at && (
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
-                  <p className="text-sm mt-1 tabular-nums text-rose-600">
-                    {format(new Date(uom.deleted_at), "MMMM dd, yyyy")}
-                  </p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted By</p>
+                  <p className="text-sm mt-1 text-rose-600">{uom.deleted_by_name || "N/A"}</p>
                 </div>
               )}
             </div>

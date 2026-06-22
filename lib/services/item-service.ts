@@ -52,6 +52,48 @@ function toItem(d: Record<string, unknown>): Item {
     uom_id = uomVal;
   }
 
+  const createdByVal = d.created_by as unknown as
+    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | string
+    | null;
+
+  let created_by: string | null = null;
+  let created_by_name: string | undefined;
+  if (createdByVal && typeof createdByVal === "object" && "_id" in createdByVal) {
+    created_by = createdByVal._id.toString();
+    created_by_name = `${createdByVal.first_name} ${createdByVal.last_name}`.trim();
+  } else if (typeof createdByVal === "string") {
+    created_by = createdByVal;
+  }
+
+  const updatedByVal = d.updated_by as unknown as
+    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | string
+    | null;
+
+  let updated_by: string | null = null;
+  let updated_by_name: string | undefined;
+  if (updatedByVal && typeof updatedByVal === "object" && "_id" in updatedByVal) {
+    updated_by = updatedByVal._id.toString();
+    updated_by_name = `${updatedByVal.first_name} ${updatedByVal.last_name}`.trim();
+  } else if (typeof updatedByVal === "string") {
+    updated_by = updatedByVal;
+  }
+
+  const deletedByVal = d.deleted_by as unknown as
+    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | string
+    | null;
+
+  let deleted_by: string | null = null;
+  let deleted_by_name: string | undefined;
+  if (deletedByVal && typeof deletedByVal === "object" && "_id" in deletedByVal) {
+    deleted_by = deletedByVal._id.toString();
+    deleted_by_name = `${deletedByVal.first_name} ${deletedByVal.last_name}`.trim();
+  } else if (typeof deletedByVal === "string") {
+    deleted_by = deletedByVal;
+  }
+
   return {
     id: (d._id as { toString(): string }).toString(),
     name: d.name as string,
@@ -68,10 +110,15 @@ function toItem(d: Record<string, unknown>): Item {
     image_url: (d.image_url as string) ?? null,
     status: d.status as "Active" | "Deleted",
     created_at: d.created_at as Date,
-    created_by: d.created_by ? (d.created_by as { toString(): string }).toString() : null,
+    created_by,
+    created_by_name,
     updated_at: (d.updated_at as Date) ?? null,
-    updated_by: d.updated_by ? (d.updated_by as { toString(): string }).toString() : null,
+    updated_by,
+    updated_by_name,
     deleted_at: (d.deleted_at as Date) ?? null,
+    deleted_by,
+    deleted_by_name,
+    deleted_reason: (d.deleted_reason as string) ?? null,
   };
 }
 
@@ -143,6 +190,9 @@ export async function getItems(filters?: ItemFilters): Promise<Item[]> {
   const items = await ItemModel.find(query)
     .populate("category_id", "name")
     .populate("uom_id", "name code")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .sort({ created_at: -1 })
     .lean();
 
@@ -155,6 +205,9 @@ export async function getItemById(id: string): Promise<Item | null> {
   const item = await ItemModel.findById(id)
     .populate("category_id", "name")
     .populate("uom_id", "name code")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .lean();
 
   if (!item) return null;
@@ -178,11 +231,15 @@ export async function createItem(data: CreateItemInput): Promise<Item> {
     minimum_stock: data.minimum_stock ?? 0,
     image_url: data.image_url || null,
     status: "Active",
+    created_by: data.created_by || null,
   });
 
   const created = await ItemModel.findById(item._id)
     .populate("category_id", "name")
     .populate("uom_id", "name code")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .lean();
 
   if (!created) throw new Error("Failed to create item");
@@ -202,11 +259,15 @@ export async function updateItem(id: string, data: UpdateItemInput): Promise<Ite
   if (data.uom_id !== undefined) updateData.uom_id = data.uom_id || null;
   if (data.minimum_stock !== undefined) updateData.minimum_stock = data.minimum_stock;
   if (data.image_url !== undefined) updateData.image_url = data.image_url || null;
+  if (data.updated_by !== undefined) updateData.updated_by = data.updated_by || null;
   updateData.updated_at = new Date();
 
   const item = await ItemModel.findByIdAndUpdate(id, updateData, { new: true })
     .populate("category_id", "name")
     .populate("uom_id", "name code")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
     .lean();
 
   if (!item) throw new Error("Item not found");

@@ -24,7 +24,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await withPageAuth("/items", "Edit");
+    const { auth, error } = await withPageAuth("/items", "Edit");
     if (error) return error;
 
     const { id } = await params;
@@ -39,6 +39,7 @@ export async function PUT(
       uom_id: body.uom_id,
       minimum_stock: body.minimum_stock,
       image_url: body.image_url,
+      updated_by: auth.user?.userId || null,
     });
     return apiSuccess(item);
   } catch (error) {

@@ -86,12 +86,41 @@ export function EmployeeViewModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Department</p>
                 <p className="text-sm mt-1">{employee.department_name || "N/A"}</p>
               </div>
+            </div>
+          </div>
+
+          <div className="py-3"><hr /></div>
+
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {format(new Date(employee.created_at), "MMMM dd, yyyy")}
                 </p>
               </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created By</p>
+                <p className="text-sm mt-1">{employee.created_by_name || "N/A"}</p>
+              </div>
+              {employee.deleted_at && (
+                <>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
+                    <p className="text-sm mt-1 tabular-nums text-rose-600">
+                      {format(new Date(employee.deleted_at), "MMMM dd, yyyy")}
+                    </p>
+                  </div>
+                  {employee.deleted_reason && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Delete Reason</p>
+                      <p className="text-sm mt-1 text-rose-600">{employee.deleted_reason}</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <div className="space-y-4">
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                 <p className="text-sm mt-1 tabular-nums">
@@ -100,12 +129,14 @@ export function EmployeeViewModal({
                     : "Never"}
                 </p>
               </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Updated By</p>
+                <p className="text-sm mt-1">{employee.updated_by_name || "N/A"}</p>
+              </div>
               {employee.deleted_at && (
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
-                  <p className="text-sm mt-1 tabular-nums text-rose-600">
-                    {format(new Date(employee.deleted_at), "MMMM dd, yyyy")}
-                  </p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted By</p>
+                  <p className="text-sm mt-1 text-rose-600">{employee.deleted_by_name || "N/A"}</p>
                 </div>
               )}
             </div>

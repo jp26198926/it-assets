@@ -196,12 +196,41 @@ export function PageViewModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Parent Page</p>
                 <p className="text-sm mt-1">{page.parent_name || "None (Root Level)"}</p>
               </div>
+            </div>
+          </div>
+
+          <div className="py-3"><hr /></div>
+
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {format(new Date(page.created_at), "MMMM dd, yyyy")}
                 </p>
               </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created By</p>
+                <p className="text-sm mt-1">{page.created_by_name || "N/A"}</p>
+              </div>
+              {page.deleted_at && (
+                <>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
+                    <p className="text-sm mt-1 tabular-nums text-rose-600">
+                      {format(new Date(page.deleted_at), "MMMM dd, yyyy")}
+                    </p>
+                  </div>
+                  {page.deleted_reason && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Delete Reason</p>
+                      <p className="text-sm mt-1 text-rose-600">{page.deleted_reason}</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <div className="space-y-4">
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                 <p className="text-sm mt-1 tabular-nums">
@@ -210,12 +239,14 @@ export function PageViewModal({
                     : "Never"}
                 </p>
               </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Updated By</p>
+                <p className="text-sm mt-1">{page.updated_by_name || "N/A"}</p>
+              </div>
               {page.deleted_at && (
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
-                  <p className="text-sm mt-1 tabular-nums text-rose-600">
-                    {format(new Date(page.deleted_at), "MMMM dd, yyyy")}
-                  </p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted By</p>
+                  <p className="text-sm mt-1 text-rose-600">{page.deleted_by_name || "N/A"}</p>
                 </div>
               )}
             </div>
