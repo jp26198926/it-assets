@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,7 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getItemSelectOptions } from "@/lib/actions/item-actions";
+import {
+  getItemSelectOptions,
+  uploadItemImage,
+} from "@/lib/actions/item-actions";
+import { toast } from "sonner";
+import { Upload, Loader2 } from "lucide-react";
 import type { Item, CreateItemInput } from "@/lib/types/item";
 
 interface ItemFormModalProps {
@@ -49,9 +54,15 @@ export function ItemFormModal({
   const [formData, setFormData] = useState<CreateItemInput>(defaultFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-  const [uoms, setUoms] = useState<{ id: string; name: string; code: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
+    [],
+  );
+  const [uoms, setUoms] = useState<
+    { id: string; name: string; code: string }[]
+  >([]);
   const [optionsLoading, setOptionsLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -83,6 +94,44 @@ export function ItemFormModal({
     }
     setErrors({});
   }, [item, open]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const result = await uploadItemImage(base64, file.name);
+      if (result.success && result.url) {
+        setFormData({ ...formData, image_url: result.url });
+        toast.success("Image uploaded successfully");
+      } else {
+        toast.error(result.error || "Upload failed");
+      }
+    } catch {
+      toast.error("Failed to upload image");
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -123,22 +172,27 @@ export function ItemFormModal({
       >
         <DialogHeader>
           <DialogTitle>{item ? "Edit Item" : "Add New Item"}</DialogTitle>
-          <DialogDescription>
+          {/* <DialogDescription>
             {item
               ? "Update the item information below."
               : "Fill in the details to add a new item."}
-          </DialogDescription>
+          </DialogDescription> */}
         </DialogHeader>
+
+        <hr className="mt-3" />
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {item && (
             <div className="space-y-2">
-              <Label htmlFor="item_code">Item Code</Label>
-              <Input
+              <Label htmlFor="item_code">
+                Item Code: {item.item_code || ""}
+              </Label>
+              {/* <Input
                 id="item_code"
                 value={item.item_code || ""}
                 disabled
                 className="font-mono bg-muted"
-              />
+              /> */}
             </div>
           )}
           <div className="space-y-2">
@@ -168,8 +222,12 @@ export function ItemFormModal({
                   })
                 }
               >
-                <SelectTrigger>
-                  <SelectValue placeholder={optionsLoading ? "Loading..." : "Select category"} />
+                <SelectTrigger className="w-full">
+                  <SelectValue
+                    placeholder={
+                      optionsLoading ? "Loading..." : "Select category"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No Category</SelectItem>
@@ -192,8 +250,10 @@ export function ItemFormModal({
                   })
                 }
               >
-                <SelectTrigger>
-                  <SelectValue placeholder={optionsLoading ? "Loading..." : "Select UOM"} />
+                <SelectTrigger className="w-full">
+                  <SelectValue
+                    placeholder={optionsLoading ? "Loading..." : "Select UOM"}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No UOM</SelectItem>
@@ -239,13 +299,19 @@ export function ItemFormModal({
                 min="0"
                 value={formData.minimum_stock}
                 onChange={(e) =>
-                  setFormData({ ...formData, minimum_stock: Number(e.target.value) })
+                  setFormData({
+                    ...formData,
+                    minimum_stock: Number(e.target.value),
+                  })
                 }
                 placeholder="0"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="image_url">Image URL</Label>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="image_url">Image URL</Label>
+            <div className="flex gap-2">
               <Input
                 id="image_url"
                 value={formData.image_url || ""}
@@ -253,9 +319,30 @@ export function ItemFormModal({
                   setFormData({ ...formData, image_url: e.target.value })
                 }
                 placeholder="https://example.com/image.png"
+                className="flex-1"
               />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingImage}
+              >
+                {uploadingImage ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
+              </Button>
             </div>
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <textarea
