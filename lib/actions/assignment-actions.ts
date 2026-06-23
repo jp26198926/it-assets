@@ -2,7 +2,7 @@
 
 import * as assignmentService from "@/lib/services/assignment-service";
 import { getAuthFromRequest } from "@/lib/services/api-auth";
-import type { CreateAssignmentInput, UpdateAssignmentInput, AssignmentFilters, Assignment } from "@/lib/types/assignment";
+import type { CreateAssignmentInput, UpdateAssignmentInput, ReturnAssignmentInput, MarkAsLostInput, AssignmentFilters, Assignment } from "@/lib/types/assignment";
 
 export async function getAssignmentSelectOptions(): Promise<{
   assets: { id: string; barcode: string; itemName: string }[];
@@ -35,6 +35,16 @@ export async function updateAssignment(id: string, data: UpdateAssignmentInput):
     ...data,
     updated_by: user?.userId || null,
   });
+}
+
+export async function returnAssignment(id: string, data: ReturnAssignmentInput): Promise<Assignment> {
+  const user = await getAuthFromRequest();
+  return assignmentService.returnAssignment(id, data, user?.userId || null);
+}
+
+export async function markAsLost(id: string, data: MarkAsLostInput): Promise<Assignment> {
+  const user = await getAuthFromRequest();
+  return assignmentService.markAsLost(id, data, user?.userId || null);
 }
 
 export async function deleteAssignment(id: string, reason?: string): Promise<void> {

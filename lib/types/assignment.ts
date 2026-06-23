@@ -16,7 +16,9 @@ export interface Assignment {
   condition_on_issue: string;
   condition_on_return: string | null;
   remarks: string | null;
-  status: "Active" | "Returned";
+  status: "Active" | "Returned" | "Lost";
+  date_lost: Date | null;
+  lost_reason: string | null;
   created_at: Date;
   created_by: string | null;
   created_by_name?: string;
@@ -39,12 +41,23 @@ export interface CreateAssignmentInput {
   condition_on_issue: string;
   condition_on_return?: string;
   remarks?: string;
-  status?: "Active" | "Returned";
+  status?: "Active" | "Returned" | "Lost";
   created_by?: string | null;
 }
 
 export interface UpdateAssignmentInput extends Partial<CreateAssignmentInput> {
   updated_by?: string | null;
+}
+
+export interface ReturnAssignmentInput {
+  returned_date: string;
+  condition_on_return: string;
+  location_id?: string;
+}
+
+export interface MarkAsLostInput {
+  date_lost: string;
+  lost_reason: string;
 }
 
 export interface AssignmentFilters {

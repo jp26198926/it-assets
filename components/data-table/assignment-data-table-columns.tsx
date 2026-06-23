@@ -10,14 +10,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Eye, Edit, Trash2, RotateCcw } from "lucide-react";
+import { MoreHorizontal, Eye, Edit, RotateCcw, AlertTriangle, Printer } from "lucide-react";
 import { useAuthorization } from "@/hooks/use-authorization";
 import type { Assignment } from "@/lib/types/assignment";
+import { printAssignment } from "@/lib/utils/print-assignment";
 import { DataTableColumnHeader } from "./data-table-column-header";
 
 const statusConfig: Record<string, { color: string; dot: string }> = {
   Active: { color: "bg-[#d1fae5] text-[#059669]", dot: "bg-[#059669]" },
   Returned: { color: "bg-[#dbeafe] text-[#2563eb]", dot: "bg-[#2563eb]" },
+  Lost: { color: "bg-[#fef3c7] text-[#d97706]", dot: "bg-[#d97706]" },
   Deleted: { color: "bg-[#fee2e2] text-[#dc2626]", dot: "bg-[#dc2626]" },
 };
 
@@ -25,14 +27,16 @@ interface ActionsProps {
   assignment: Assignment;
   onView: (assignment: Assignment) => void;
   onEdit: (assignment: Assignment) => void;
-  onDelete: (assignment: Assignment) => void;
+  onReturn: (assignment: Assignment) => void;
+  onMarkAsLost: (assignment: Assignment) => void;
   onRestore: (assignment: Assignment) => void;
 }
 
-function Actions({ assignment, onView, onEdit, onDelete, onRestore }: ActionsProps) {
+function Actions({ assignment, onView, onEdit, onReturn, onMarkAsLost, onRestore }: ActionsProps) {
   const { hasPermission } = useAuthorization();
   const canEdit = hasPermission("/assignments", "Edit");
-  const canDelete = hasPermission("/assignments", "Delete");
+  const canReturn = hasPermission("/assignments", "Edit");
+  const canMarkAsLost = hasPermission("/assignments", "Edit");
   const canRestore = hasPermission("/assignments", "Restore");
 
   return (
@@ -48,22 +52,42 @@ function Actions({ assignment, onView, onEdit, onDelete, onRestore }: ActionsPro
           <Eye className="h-4 w-4 text-[#64748b]" />
           View Details
         </DropdownMenuItem>
-        {canEdit && (
+        {canEdit && assignment.status === "Active" && (
           <DropdownMenuItem onClick={() => onEdit(assignment)} className="cursor-pointer gap-2 text-[#1a1f36]">
             <Edit className="h-4 w-4 text-[#64748b]" />
             Edit Assignment
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => { void printAssignment(assignment); }}
+          className="cursor-pointer gap-2 text-[#1a1f36]"
+        >
+          <Printer className="h-4 w-4 text-[#64748b]" />
+          Print
+        </DropdownMenuItem>
         {!assignment.deleted_at ? (
-          canDelete && (
-            <DropdownMenuItem
-              onClick={() => onDelete(assignment)}
-              className="cursor-pointer gap-2 text-[#dc2626]"
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
+          assignment.status === "Active" && (
+            <>
+              {canReturn && (
+                <DropdownMenuItem
+                  onClick={() => onReturn(assignment)}
+                  className="cursor-pointer gap-2 text-[#2563eb]"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Return
+                </DropdownMenuItem>
+              )}
+              {canMarkAsLost && (
+                <DropdownMenuItem
+                  onClick={() => onMarkAsLost(assignment)}
+                  className="cursor-pointer gap-2 text-[#dc2626]"
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  Mark as Lost
+                </DropdownMenuItem>
+              )}
+            </>
           )
         ) : (
           canRestore && (
@@ -84,7 +108,8 @@ function Actions({ assignment, onView, onEdit, onDelete, onRestore }: ActionsPro
 export function createAssignmentColumns(
   onView: (assignment: Assignment) => void,
   onEdit: (assignment: Assignment) => void,
-  onDelete: (assignment: Assignment) => void,
+  onReturn: (assignment: Assignment) => void,
+  onMarkAsLost: (assignment: Assignment) => void,
   onRestore: (assignment: Assignment) => void
 ): ColumnDef<Assignment>[] {
   return [
@@ -194,7 +219,8 @@ export function createAssignmentColumns(
           assignment={row.original}
           onView={onView}
           onEdit={onEdit}
-          onDelete={onDelete}
+          onReturn={onReturn}
+          onMarkAsLost={onMarkAsLost}
           onRestore={onRestore}
         />
       ),

@@ -20,6 +20,7 @@ interface AssignmentViewModalProps {
 const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
   Active: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
   Returned: { bg: "bg-blue-50", text: "text-blue-700", dot: "bg-blue-500" },
+  Lost: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" },
   Deleted: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500" },
 };
 
@@ -35,7 +36,7 @@ export function AssignmentViewModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-2xl flex flex-col max-h-[85vh]"
+        className="max-w-4xl sm:max-w-4xl flex flex-col max-h-[85vh]"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
@@ -87,6 +88,16 @@ export function AssignmentViewModal({
                   {format(new Date(assignment.assigned_date), "MMMM dd, yyyy")}
                 </p>
               </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Condition on Issue</p>
+                <p className="text-sm mt-1">{assignment.condition_on_issue}</p>
+              </div>
+              {assignment.condition_on_return && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Condition on Return</p>
+                  <p className="text-sm mt-1">{assignment.condition_on_return}</p>
+                </div>
+              )}
               {assignment.returned_date && (
                 <div>
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Returned Date</p>
@@ -103,6 +114,22 @@ export function AssignmentViewModal({
                 <p className="text-sm mt-1">{assignment.remarks}</p>
               </div>
             )}
+              {assignment.date_lost && (
+                <>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Date Lost</p>
+                    <p className="text-sm mt-1 tabular-nums">
+                      {format(new Date(assignment.date_lost), "MMMM dd, yyyy")}
+                    </p>
+                  </div>
+                  {assignment.lost_reason && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Lost Reason</p>
+                      <p className="text-sm mt-1">{assignment.lost_reason}</p>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
 

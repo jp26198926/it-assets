@@ -11,7 +11,9 @@ export interface IAssignment extends Document, BaseAuditFields {
   condition_on_issue: string;
   condition_on_return: string | null;
   remarks: string | null;
-  status: "Active" | "Returned";
+  status: "Active" | "Returned" | "Lost";
+  date_lost: Date | null;
+  lost_reason: string | null;
 }
 
 const AssignmentSchema = new Schema<IAssignment>({
@@ -58,8 +60,16 @@ const AssignmentSchema = new Schema<IAssignment>({
   status: {
     type: String,
     required: true,
-    enum: ["Active", "Returned"],
+    enum: ["Active", "Returned", "Lost"],
     default: "Active",
+  },
+  date_lost: {
+    type: Date,
+    default: null,
+  },
+  lost_reason: {
+    type: String,
+    default: null,
   },
   ...BaseAuditSchemaDefinition,
 });

@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/db/connection";
 import { Assignment as AssignmentModel } from "@/lib/db/models/assignment";
-import type { CreateAssignmentInput, UpdateAssignmentInput, AssignmentFilters, Assignment } from "@/lib/types/assignment";
+import type { CreateAssignmentInput, UpdateAssignmentInput, ReturnAssignmentInput, MarkAsLostInput, AssignmentFilters, Assignment } from "@/lib/types/assignment";
 
 function toAssignment(d: Record<string, unknown>): Assignment {
   const createdByVal = d.created_by as unknown as
@@ -53,7 +53,9 @@ function toAssignment(d: Record<string, unknown>): Assignment {
     condition_on_issue: d.condition_on_issue as string,
     condition_on_return: (d.condition_on_return as string) ?? null,
     remarks: (d.remarks as string) ?? null,
-    status: d.status as "Active" | "Returned",
+    status: d.status as "Active" | "Returned" | "Lost",
+    date_lost: (d.date_lost as Date) ?? null,
+    lost_reason: (d.lost_reason as string) ?? null,
     created_at: d.created_at as Date,
     created_by,
     created_by_name,
@@ -300,6 +302,75 @@ export async function updateAssignment(id: string, data: UpdateAssignmentInput):
     if (data.location_id !== undefined) assetUpdate.location_id = data.location_id || null;
     await Asset.findByIdAndUpdate(data.asset_id || (assignment as unknown as Record<string, unknown>).asset_id, assetUpdate);
   }
+
+  return enrichAssignment(assignment as unknown as Record<string, unknown>);
+}
+
+export async function returnAssignment(id: string, data: ReturnAssignmentInput, userId?: string | null): Promise<Assignment> {
+  await connectDB();
+
+  const existing = await AssignmentModel.findById(id).lean();
+  if (!existing) throw new Error("Assignment not found");
+
+  const assetId = (existing as unknown as Record<string, unknown>).asset_id as { toString(): string };
+
+  await AssignmentModel.findByIdAndUpdate(id, {
+    returned_date: data.returned_date,
+    condition_on_return: data.condition_on_return,
+    status: "Returned",
+    updated_by: userId || null,
+    updated_at: new Date(),
+  });
+
+  const { Asset } = await import("@/lib/db/models/asset");
+  await Asset.findByIdAndUpdate(assetId.toString(), {
+    status: "Available",
+    assigned_to_employee: null,
+    assigned_to_department: null,
+    location_id: data.location_id || null,
+    updated_at: new Date(),
+  });
+
+  const assignment = await AssignmentModel.findById(id)
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
+    .lean();
+
+  if (!assignment) throw new Error("Assignment not found");
+
+  return enrichAssignment(assignment as unknown as Record<string, unknown>);
+}
+
+export async function markAsLost(id: string, data: MarkAsLostInput, userId?: string | null): Promise<Assignment> {
+  await connectDB();
+
+  const existing = await AssignmentModel.findById(id).lean();
+  if (!existing) throw new Error("Assignment not found");
+
+  const assetId = (existing as unknown as Record<string, unknown>).asset_id as { toString(): string };
+
+  await AssignmentModel.findByIdAndUpdate(id, {
+    status: "Lost",
+    date_lost: data.date_lost,
+    lost_reason: data.lost_reason,
+    updated_by: userId || null,
+    updated_at: new Date(),
+  });
+
+  const { Asset } = await import("@/lib/db/models/asset");
+  await Asset.findByIdAndUpdate(assetId.toString(), {
+    status: "Lost",
+    updated_at: new Date(),
+  });
+
+  const assignment = await AssignmentModel.findById(id)
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
+    .lean();
+
+  if (!assignment) throw new Error("Assignment not found");
 
   return enrichAssignment(assignment as unknown as Record<string, unknown>);
 }
