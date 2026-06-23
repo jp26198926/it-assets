@@ -77,13 +77,13 @@ export function UserChangePasswordModal({
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader>
+        <DialogHeader className="-mx-4 -mt-4 rounded-t-xl border-b bg-muted/50 p-4">
           <DialogTitle>Change Password</DialogTitle>
           <DialogDescription>
             Set a new password for <strong>{userName}</strong>.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
+        <form id="password-form" onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
           <div className="space-y-2">
             <Label htmlFor="new-password">New Password *</Label>
             <div className="relative">
@@ -133,20 +133,20 @@ export function UserChangePasswordModal({
           {errors.submit && (
             <p className="text-sm text-red-500">{errors.submit}</p>
           )}
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Change Password"}
-            </Button>
-          </DialogFooter>
         </form>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => handleOpenChange(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" form="password-form" disabled={loading}>
+            {loading ? "Saving..." : "Change Password"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

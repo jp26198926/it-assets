@@ -77,7 +77,7 @@ export function LocationFormModal({
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader>
+        <DialogHeader className="-mx-4 -mt-4 rounded-t-xl border-b bg-muted/50 p-4">
           <DialogTitle>{location ? "Edit Location" : "Add New Location"}</DialogTitle>
           <DialogDescription>
             {location
@@ -85,7 +85,7 @@ export function LocationFormModal({
               : "Fill in the details to add a new location."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
+        <form id="location-form" onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
           <div className="space-y-2">
             <Label htmlFor="name">Name *</Label>
             <Input
@@ -104,20 +104,20 @@ export function LocationFormModal({
           {errors.submit && (
             <p className="text-sm text-red-500">{errors.submit}</p>
           )}
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : location ? "Save Changes" : "Add Location"}
-            </Button>
-          </DialogFooter>
         </form>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" form="location-form" disabled={loading}>
+            {loading ? "Saving..." : location ? "Save Changes" : "Add Location"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

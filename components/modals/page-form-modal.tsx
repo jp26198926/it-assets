@@ -218,7 +218,7 @@ export function PageFormModal({
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader>
+        <DialogHeader className="-mx-4 -mt-4 rounded-t-xl border-b bg-muted/50 p-4">
           <DialogTitle>{page ? "Edit Page" : "Add New Page"}</DialogTitle>
           <DialogDescription>
             {page
@@ -226,7 +226,7 @@ export function PageFormModal({
               : "Fill in the details to add a new page."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
+        <form id="page-form" onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>
@@ -358,20 +358,20 @@ export function PageFormModal({
           {errors.submit && (
             <p className="text-sm text-red-500">{errors.submit}</p>
           )}
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : page ? "Save Changes" : "Add Page"}
-            </Button>
-          </DialogFooter>
         </form>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" form="page-form" disabled={loading}>
+            {loading ? "Saving..." : page ? "Save Changes" : "Add Page"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

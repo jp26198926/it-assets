@@ -84,7 +84,7 @@ export function DepartmentFormModal({
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader>
+        <DialogHeader className="-mx-4 -mt-4 rounded-t-xl border-b bg-muted/50 p-4">
           <DialogTitle>{department ? "Edit Department" : "Add New Department"}</DialogTitle>
           <DialogDescription>
             {department
@@ -92,7 +92,7 @@ export function DepartmentFormModal({
               : "Fill in the details to add a new department."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
+        <form id="department-form" onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
           <div className="space-y-2">
             <Label htmlFor="code">Code *</Label>
             <Input
@@ -138,20 +138,20 @@ export function DepartmentFormModal({
           {errors.submit && (
             <p className="text-sm text-red-500">{errors.submit}</p>
           )}
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : department ? "Save Changes" : "Add Department"}
-            </Button>
-          </DialogFooter>
         </form>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" form="department-form" disabled={loading}>
+            {loading ? "Saving..." : department ? "Save Changes" : "Add Department"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

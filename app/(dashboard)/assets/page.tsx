@@ -8,7 +8,13 @@ import { AssetViewModal } from "@/components/modals/asset-view-modal";
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
-import { getAssets, createAsset, updateAsset, deleteAsset, restoreAsset } from "@/lib/actions/asset-actions";
+import {
+  getAssets,
+  createAsset,
+  updateAsset,
+  deleteAsset,
+  restoreAsset,
+} from "@/lib/actions/asset-actions";
 import type { Asset, CreateAssetInput, AssetFilters } from "@/lib/types/asset";
 import { toast } from "sonner";
 
@@ -34,21 +40,27 @@ export default function AssetsPage() {
       }
     };
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleServerSearch = useCallback((filters: AssetFilters) => {
     setActiveFilters(filters);
-    getAssets(filters).then((data) => setAssets(data)).catch(() => {
-      toast.error("Failed to search assets");
-    });
+    getAssets(filters)
+      .then((data) => setAssets(data))
+      .catch(() => {
+        toast.error("Failed to search assets");
+      });
   }, []);
 
   const handleServerSearchClear = useCallback(() => {
     setActiveFilters({});
-    getAssets().then((data) => setAssets(data)).catch(() => {
-      toast.error("Failed to load assets");
-    });
+    getAssets()
+      .then((data) => setAssets(data))
+      .catch(() => {
+        toast.error("Failed to load assets");
+      });
   }, []);
 
   const handleView = (asset: Asset) => {
@@ -111,14 +123,21 @@ export default function AssetsPage() {
     }
   };
 
-  const columns = createAssetColumns(handleView, handleEdit, handleDelete, handleRestore);
+  const columns = createAssetColumns(
+    handleView,
+    handleEdit,
+    handleDelete,
+    handleRestore,
+  );
 
   if (loading) {
     return (
       <div className="space-y-4 sm:space-y-6">
         <ScrollReveal>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Assets</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">
+              Assets
+            </h1>
             <p className="text-sm sm:text-base text-[#64748b] mt-1">
               Manage and track all IT assets
             </p>
@@ -136,7 +155,9 @@ export default function AssetsPage() {
       <div className="space-y-4 sm:space-y-6">
         <ScrollReveal>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Assets</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">
+              Assets
+            </h1>
             <p className="text-sm sm:text-base text-[#64748b] mt-1">
               Manage and track all IT assets
             </p>

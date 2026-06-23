@@ -78,7 +78,7 @@ export function UOMFormModal({
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader>
+        <DialogHeader className="-mx-4 -mt-4 rounded-t-xl border-b bg-muted/50 p-4">
           <DialogTitle>{uom ? "Edit UOM" : "Add New UOM"}</DialogTitle>
           <DialogDescription>
             {uom
@@ -86,7 +86,7 @@ export function UOMFormModal({
               : "Fill in the details to add a new UOM."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
+        <form id="uom-form" onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
           <div className="space-y-2">
             <Label htmlFor="code">Code *</Label>
             <Input
@@ -120,20 +120,20 @@ export function UOMFormModal({
           {errors.submit && (
             <p className="text-sm text-red-500">{errors.submit}</p>
           )}
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : uom ? "Save Changes" : "Add UOM"}
-            </Button>
-          </DialogFooter>
         </form>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" form="uom-form" disabled={loading}>
+            {loading ? "Saving..." : uom ? "Save Changes" : "Add UOM"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -115,7 +115,7 @@ export function EmployeeFormModal({
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader>
+        <DialogHeader className="-mx-4 -mt-4 rounded-t-xl border-b bg-muted/50 p-4">
           <DialogTitle>{employee ? "Edit Employee" : "Add New Employee"}</DialogTitle>
           <DialogDescription>
             {employee
@@ -123,7 +123,7 @@ export function EmployeeFormModal({
               : "Fill in the details to add a new employee."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
+        <form id="employee-form" onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="emp_no">Emp No</Label>
@@ -232,20 +232,20 @@ export function EmployeeFormModal({
           {errors.submit && (
             <p className="text-sm text-red-500">{errors.submit}</p>
           )}
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : employee ? "Save Changes" : "Add Employee"}
-            </Button>
-          </DialogFooter>
         </form>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" form="employee-form" disabled={loading}>
+            {loading ? "Saving..." : employee ? "Save Changes" : "Add Employee"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -80,7 +80,7 @@ export function CategoryFormModal({
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader>
+        <DialogHeader className="-mx-4 -mt-4 rounded-t-xl border-b bg-muted/50 p-4">
           <DialogTitle>{category ? "Edit Category" : "Add New Category"}</DialogTitle>
           <DialogDescription>
             {category
@@ -88,7 +88,7 @@ export function CategoryFormModal({
               : "Fill in the details to add a new category."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
+        <form id="category-form" onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
           <div className="space-y-2">
             <Label htmlFor="name">Name *</Label>
             <Input
@@ -137,20 +137,20 @@ export function CategoryFormModal({
           {errors.submit && (
             <p className="text-sm text-red-500">{errors.submit}</p>
           )}
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : category ? "Save Changes" : "Add Category"}
-            </Button>
-          </DialogFooter>
         </form>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" form="category-form" disabled={loading}>
+            {loading ? "Saving..." : category ? "Save Changes" : "Add Category"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

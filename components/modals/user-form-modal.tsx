@@ -122,7 +122,7 @@ export function UserFormModal({
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader>
+        <DialogHeader className="-mx-4 -mt-4 rounded-t-xl border-b bg-muted/50 p-4">
           <DialogTitle>{user ? "Edit User" : "Add New User"}</DialogTitle>
           <DialogDescription>
             {user
@@ -130,7 +130,7 @@ export function UserFormModal({
               : "Fill in the details to add a new user."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
+        <form id="user-form" onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="first_name">First Name *</Label>
@@ -257,20 +257,20 @@ export function UserFormModal({
           {errors.submit && (
             <p className="text-sm text-red-500">{errors.submit}</p>
           )}
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading || optionsLoading}>
-              {loading ? "Saving..." : user ? "Save Changes" : "Add User"}
-            </Button>
-          </DialogFooter>
         </form>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" form="user-form" disabled={loading || optionsLoading}>
+            {loading ? "Saving..." : user ? "Save Changes" : "Add User"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

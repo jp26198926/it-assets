@@ -350,7 +350,7 @@ export function ProfileModal({
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader>
+        <DialogHeader className="-mx-4 -mt-4 rounded-t-xl border-b bg-muted/50 p-4">
           <DialogTitle>My Profile</DialogTitle>
           <DialogDescription>
             View and update your profile information.

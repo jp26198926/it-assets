@@ -81,7 +81,7 @@ export function RoleFormModal({
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader>
+        <DialogHeader className="-mx-4 -mt-4 rounded-t-xl border-b bg-muted/50 p-4">
           <DialogTitle>{role ? "Edit Role" : "Add New Role"}</DialogTitle>
           <DialogDescription>
             {role
@@ -89,7 +89,7 @@ export function RoleFormModal({
               : "Fill in the details to add a new role."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
+        <form id="role-form" onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
           <div className="space-y-2">
             <Label htmlFor="name">Name *</Label>
             <Input
@@ -120,20 +120,20 @@ export function RoleFormModal({
           {errors.submit && (
             <p className="text-sm text-red-500">{errors.submit}</p>
           )}
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : role ? "Save Changes" : "Add Role"}
-            </Button>
-          </DialogFooter>
         </form>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" form="role-form" disabled={loading}>
+            {loading ? "Saving..." : role ? "Save Changes" : "Add Role"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -170,18 +170,20 @@ export function ItemFormModal({
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader>
+        <DialogHeader className="-mx-4 -mt-4 rounded-t-xl border-b bg-muted/50 p-4">
           <DialogTitle>{item ? "Edit Item" : "Add New Item"}</DialogTitle>
-          {/* <DialogDescription>
+          <DialogDescription>
             {item
               ? "Update the item information below."
               : "Fill in the details to add a new item."}
-          </DialogDescription> */}
+          </DialogDescription>
         </DialogHeader>
 
-        <hr className="mt-3" />
-
-        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
+        <form
+          id="item-form"
+          onSubmit={handleSubmit}
+          className="space-y-4 flex-1 overflow-y-auto min-h-0"
+        >
           {item && (
             <div className="space-y-2">
               <Label htmlFor="item_code">
@@ -359,20 +361,20 @@ export function ItemFormModal({
           {errors.submit && (
             <p className="text-sm text-red-500">{errors.submit}</p>
           )}
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : item ? "Save Changes" : "Add Item"}
-            </Button>
-          </DialogFooter>
         </form>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" form="item-form" disabled={loading}>
+            {loading ? "Saving..." : item ? "Save Changes" : "Add Item"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -79,8 +79,34 @@ Example JSX structure:
 ## Modal — Scrollable Content Pattern
 All modals (form and view) must support scrollable content when content exceeds the viewport height, while keeping the header and footer fixed.
 
+Structure (header, scrollable content, and footer must be siblings):
+```
+DialogContent  flex flex-col max-h-[85vh]
+  DialogHeader                          ← pinned top (bg-muted/50)
+  <form/div>  flex-1 overflow-y-auto min-h-0  ← scrolls
+    ...fields/content...
+  </form/div>
+  DialogFooter                          ← pinned bottom (bg-muted/50)
+```
+
 Apply these classes:
 - **DialogContent**: `flex flex-col max-h-[85vh]`
-- **Content area** (the div between DialogHeader and DialogFooter): `flex-1 overflow-y-auto min-h-0`
+- **DialogHeader**: `-mx-4 -mt-4 rounded-t-xl border-b bg-muted/50 p-4`
+- **Content area** (form or div between DialogHeader and DialogFooter): `flex-1 overflow-y-auto min-h-0`
+- **DialogFooter**: Keep default styling (already has `bg-muted/50`)
+
+For form modals, the `DialogFooter` must be outside the `<form>` element. Add `id` to the form and `form="form-id"` to the submit button:
+```tsx
+<form id="asset-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto min-h-0">
+  {/* fields */}
+</form>
+<DialogFooter>
+  <Button type="button" variant="outline" onClick={...}>Cancel</Button>
+  <Button type="submit" form="asset-form">Save</Button>
+</DialogFooter>
+```
 
 This ensures the header and footer remain pinned while only the middle content scrolls.
+
+## Images — Use next/image
+Always use `next/image` (`Image` component) instead of the HTML `<img>` tag. This provides automatic optimization (modern formats, lazy loading, responsive sizing). For external images (e.g., Cloudinary), use the `unoptimized` prop.

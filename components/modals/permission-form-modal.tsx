@@ -81,7 +81,7 @@ export function PermissionFormModal({
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader>
+        <DialogHeader className="-mx-4 -mt-4 rounded-t-xl border-b bg-muted/50 p-4">
           <DialogTitle>{permission ? "Edit Permission" : "Add New Permission"}</DialogTitle>
           <DialogDescription>
             {permission
@@ -89,7 +89,7 @@ export function PermissionFormModal({
               : "Fill in the details to add a new permission."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
+        <form id="permission-form" onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
           <div className="space-y-2">
             <Label htmlFor="name">Name *</Label>
             <Input
@@ -120,20 +120,20 @@ export function PermissionFormModal({
           {errors.submit && (
             <p className="text-sm text-red-500">{errors.submit}</p>
           )}
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : permission ? "Save Changes" : "Add Permission"}
-            </Button>
-          </DialogFooter>
         </form>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" form="permission-form" disabled={loading}>
+            {loading ? "Saving..." : permission ? "Save Changes" : "Add Permission"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
