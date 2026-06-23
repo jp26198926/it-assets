@@ -35,6 +35,7 @@ const defaultFormData: CreateAssetInput = {
   barcode: "",
   serial_number: "",
   remarks: "",
+  date_received: "",
   purchase_date: "",
   purchase_price: undefined,
   warranty_expiry: "",
@@ -86,6 +87,9 @@ export function AssetFormModal({
         barcode: asset.barcode,
         serial_number: asset.serial_number || "",
         remarks: asset.remarks || "",
+        date_received: asset.date_received
+          ? new Date(asset.date_received).toISOString().split("T")[0]
+          : "",
         purchase_date: asset.purchase_date
           ? new Date(asset.purchase_date).toISOString().split("T")[0]
           : "",
@@ -120,6 +124,7 @@ export function AssetFormModal({
           item_id: formData.item_id || undefined,
           serial_number: formData.serial_number || undefined,
           remarks: formData.remarks || undefined,
+          date_received: formData.date_received || undefined,
           purchase_date: formData.purchase_date || undefined,
           purchase_price: formData.purchase_price || undefined,
           warranty_expiry: formData.warranty_expiry || undefined,
@@ -241,6 +246,19 @@ export function AssetFormModal({
               </Select>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="date_received">Date Received</Label>
+              <Input
+                id="date_received"
+                type="date"
+                value={formData.date_received || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, date_received: e.target.value })
+                }
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="purchase_date">Purchase Date</Label>
               <Input
                 id="purchase_date"
@@ -251,8 +269,6 @@ export function AssetFormModal({
                 }
               />
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="warranty_expiry">Warranty Expiry</Label>
               <Input
@@ -264,6 +280,8 @@ export function AssetFormModal({
                 }
               />
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="purchase_price">Purchase Price</Label>
               <Input

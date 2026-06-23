@@ -50,7 +50,7 @@ function toAsset(d: Record<string, unknown>): Asset {
   }
 
   const empVal = d.assigned_to_employee as unknown as
-    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | { _id: { toString(): string }; firstname: string; lastname: string }
     | string
     | null;
 
@@ -58,7 +58,7 @@ function toAsset(d: Record<string, unknown>): Asset {
   let assigned_to_employee_name: string | undefined;
   if (empVal && typeof empVal === "object" && "_id" in empVal) {
     assigned_to_employee = empVal._id.toString();
-    assigned_to_employee_name = `${empVal.first_name} ${empVal.last_name}`;
+    assigned_to_employee_name = `${empVal.firstname} ${empVal.lastname}`;
   } else if (typeof empVal === "string") {
     assigned_to_employee = empVal;
   }
@@ -126,6 +126,7 @@ function toAsset(d: Record<string, unknown>): Asset {
     barcode: d.barcode as string,
     serial_number: (d.serial_number as string) ?? null,
     remarks: (d.remarks as string) ?? null,
+    date_received: (d.date_received as Date) ?? null,
     purchase_date: (d.purchase_date as Date) ?? null,
     purchase_price: (d.purchase_price as number) ?? null,
     warranty_expiry: (d.warranty_expiry as Date) ?? null,
@@ -159,7 +160,7 @@ export async function getAssetSelectOptions(): Promise<{
 
   const items = await ItemModel.find({ deleted_at: null, status: "Active" }).select("name").sort({ name: 1 }).lean();
   const locations = await LocationModel.find({ deleted_at: null }).select("name").sort({ name: 1 }).lean();
-  const employees = await EmployeeModel.find({ deleted_at: null }).select("first_name last_name").sort({ last_name: 1, first_name: 1 }).lean();
+  const employees = await EmployeeModel.find({ deleted_at: null }).select("firstname lastname").sort({ lastname: 1, firstname: 1 }).lean();
   const departments = await DepartmentModel.find({ deleted_at: null }).select("name").sort({ name: 1 }).lean();
 
   return {
@@ -173,7 +174,7 @@ export async function getAssetSelectOptions(): Promise<{
     })),
     employees: employees.map((e) => ({
       id: (e._id as { toString(): string }).toString(),
-      name: `${e.first_name} ${e.last_name}`,
+      name: `${e.firstname} ${e.lastname}`,
     })),
     departments: departments.map((d) => ({
       id: (d._id as { toString(): string }).toString(),
@@ -239,7 +240,7 @@ export async function getAssets(filters?: AssetFilters): Promise<Asset[]> {
   const assets = await AssetModel.find(query)
     .populate({ path: "item_id", select: "name brand model category_id", populate: { path: "category_id", select: "name" } })
     .populate("location_id", "name")
-    .populate("assigned_to_employee", "first_name last_name")
+    .populate("assigned_to_employee", "firstname lastname")
     .populate("assigned_to_department", "name")
     .populate("created_by", "first_name last_name")
     .populate("updated_by", "first_name last_name")
@@ -256,7 +257,7 @@ export async function getAssetById(id: string): Promise<Asset | null> {
   const asset = await AssetModel.findById(id)
     .populate({ path: "item_id", select: "name brand model category_id", populate: { path: "category_id", select: "name" } })
     .populate("location_id", "name")
-    .populate("assigned_to_employee", "first_name last_name")
+    .populate("assigned_to_employee", "firstname lastname")
     .populate("assigned_to_department", "name")
     .populate("created_by", "first_name last_name")
     .populate("updated_by", "first_name last_name")
@@ -278,6 +279,7 @@ export async function createAsset(data: CreateAssetInput): Promise<Asset> {
     barcode,
     serial_number: data.serial_number || null,
     remarks: data.remarks || null,
+    date_received: data.date_received ? new Date(data.date_received) : null,
     purchase_date: data.purchase_date ? new Date(data.purchase_date) : null,
     purchase_price: data.purchase_price ?? null,
     warranty_expiry: data.warranty_expiry ? new Date(data.warranty_expiry) : null,
@@ -290,7 +292,7 @@ export async function createAsset(data: CreateAssetInput): Promise<Asset> {
   const created = await AssetModel.findById(asset._id)
     .populate({ path: "item_id", select: "name brand model category_id", populate: { path: "category_id", select: "name" } })
     .populate("location_id", "name")
-    .populate("assigned_to_employee", "first_name last_name")
+    .populate("assigned_to_employee", "firstname lastname")
     .populate("assigned_to_department", "name")
     .populate("created_by", "first_name last_name")
     .populate("updated_by", "first_name last_name")
@@ -310,6 +312,7 @@ export async function updateAsset(id: string, data: UpdateAssetInput): Promise<A
   if (data.barcode !== undefined) updateData.barcode = data.barcode;
   if (data.serial_number !== undefined) updateData.serial_number = data.serial_number || null;
   if (data.remarks !== undefined) updateData.remarks = data.remarks || null;
+  if (data.date_received !== undefined) updateData.date_received = data.date_received ? new Date(data.date_received) : null;
   if (data.purchase_date !== undefined) updateData.purchase_date = data.purchase_date ? new Date(data.purchase_date) : null;
   if (data.purchase_price !== undefined) updateData.purchase_price = data.purchase_price ?? null;
   if (data.warranty_expiry !== undefined) updateData.warranty_expiry = data.warranty_expiry ? new Date(data.warranty_expiry) : null;
@@ -322,7 +325,7 @@ export async function updateAsset(id: string, data: UpdateAssetInput): Promise<A
   const asset = await AssetModel.findByIdAndUpdate(id, updateData, { new: true })
     .populate({ path: "item_id", select: "name brand model category_id", populate: { path: "category_id", select: "name" } })
     .populate("location_id", "name")
-    .populate("assigned_to_employee", "first_name last_name")
+    .populate("assigned_to_employee", "firstname lastname")
     .populate("assigned_to_department", "name")
     .populate("created_by", "first_name last_name")
     .populate("updated_by", "first_name last_name")

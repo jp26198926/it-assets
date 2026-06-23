@@ -58,7 +58,7 @@ function Actions({ asset, onView, onEdit, onDelete, onRestore }: ActionsProps) {
         )}
         <DropdownMenuSeparator />
         {!asset.deleted_at ? (
-          canDelete && (
+          canDelete && asset.status === "Available" && (
             <DropdownMenuItem
               onClick={() => onDelete(asset)}
               className="cursor-pointer gap-2 text-[#dc2626]"

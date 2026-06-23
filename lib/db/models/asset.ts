@@ -6,6 +6,7 @@ export interface IAsset extends Omit<Document, "model">, BaseAuditFields {
   barcode: string;
   serial_number: string | null;
   remarks: string | null;
+  date_received: Date | null;
   purchase_date: Date | null;
   purchase_price: number | null;
   warranty_expiry: Date | null;
@@ -32,6 +33,10 @@ const AssetSchema = new Schema<IAsset>({
   },
   remarks: {
     type: String,
+    default: null,
+  },
+  date_received: {
+    type: Date,
     default: null,
   },
   purchase_date: {
