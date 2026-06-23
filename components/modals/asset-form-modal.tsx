@@ -144,7 +144,7 @@ export function AssetFormModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-4xl flex flex-col max-h-[85vh]"
+        className="max-w-4xl sm:max-w-4xl flex flex-col max-h-[85vh]"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >

@@ -171,7 +171,7 @@ export function AssignmentFormModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-4xl flex flex-col max-h-[85vh]"
+        className="max-w-4xl sm:max-w-4xl flex flex-col max-h-[85vh]"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
@@ -321,7 +321,7 @@ export function AssignmentFormModal({
                   disabled={optionsLoading}
                 >
                   <SelectTrigger
-                    className={errors.assignTo ? "border-red-500" : ""}
+                    className={`w-full ${errors.assignTo ? "border-red-500" : ""}`}
                   >
                     <SelectValue placeholder="Select employee" />
                   </SelectTrigger>
@@ -349,7 +349,7 @@ export function AssignmentFormModal({
                   disabled={optionsLoading}
                 >
                   <SelectTrigger
-                    className={errors.assignTo ? "border-red-500" : ""}
+                    className={`w-full ${errors.assignTo ? "border-red-500" : ""}`}
                   >
                     <SelectValue placeholder="Select department" />
                   </SelectTrigger>
