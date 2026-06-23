@@ -5,6 +5,7 @@ import { Item as ItemModel } from "@/lib/db/models/item";
 import { Location as LocationModel } from "@/lib/db/models/location";
 import { Employee as EmployeeModel } from "@/lib/db/models/employee";
 import { Department as DepartmentModel } from "@/lib/db/models/department";
+import { Category as CategoryModel } from "@/lib/db/models/category";
 import type { CreateAssetInput, UpdateAssetInput, AssetFilters, Asset } from "@/lib/types/asset";
 
 function toAsset(d: Record<string, unknown>): Asset {
@@ -15,9 +16,21 @@ function toAsset(d: Record<string, unknown>): Asset {
 
   let item_id: string | null = null;
   let item_name: string | undefined;
+  let item_brand: string | undefined;
+  let item_model: string | undefined;
+  let item_category_name: string | undefined;
   if (itemId && typeof itemId === "object" && "_id" in itemId) {
     item_id = itemId._id.toString();
     item_name = itemId.name;
+    item_brand = (itemId as Record<string, unknown>).brand as string | undefined;
+    item_model = (itemId as Record<string, unknown>).model as string | undefined;
+    const cat = (itemId as Record<string, unknown>).category_id as
+      | { _id: { toString(): string }; name: string }
+      | null
+      | undefined;
+    if (cat && typeof cat === "object" && "_id" in cat) {
+      item_category_name = cat.name;
+    }
   } else if (typeof itemId === "string") {
     item_id = itemId;
   }
@@ -107,6 +120,9 @@ function toAsset(d: Record<string, unknown>): Asset {
     id: (d._id as { toString(): string }).toString(),
     item_id,
     item_name,
+    item_brand,
+    item_model,
+    item_category_name,
     barcode: d.barcode as string,
     serial_number: (d.serial_number as string) ?? null,
     remarks: (d.remarks as string) ?? null,
@@ -181,6 +197,7 @@ async function generateBarcode(): Promise<string> {
 
 export async function getAssets(filters?: AssetFilters): Promise<Asset[]> {
   await connectDB();
+  void CategoryModel;
 
   const query: Record<string, unknown> = {};
 
@@ -220,7 +237,7 @@ export async function getAssets(filters?: AssetFilters): Promise<Asset[]> {
   }
 
   const assets = await AssetModel.find(query)
-    .populate("item_id", "name")
+    .populate({ path: "item_id", select: "name brand model category_id", populate: { path: "category_id", select: "name" } })
     .populate("location_id", "name")
     .populate("assigned_to_employee", "first_name last_name")
     .populate("assigned_to_department", "name")
@@ -237,7 +254,7 @@ export async function getAssetById(id: string): Promise<Asset | null> {
   await connectDB();
 
   const asset = await AssetModel.findById(id)
-    .populate("item_id", "name")
+    .populate({ path: "item_id", select: "name brand model category_id", populate: { path: "category_id", select: "name" } })
     .populate("location_id", "name")
     .populate("assigned_to_employee", "first_name last_name")
     .populate("assigned_to_department", "name")
@@ -271,7 +288,7 @@ export async function createAsset(data: CreateAssetInput): Promise<Asset> {
   });
 
   const created = await AssetModel.findById(asset._id)
-    .populate("item_id", "name")
+    .populate({ path: "item_id", select: "name brand model category_id", populate: { path: "category_id", select: "name" } })
     .populate("location_id", "name")
     .populate("assigned_to_employee", "first_name last_name")
     .populate("assigned_to_department", "name")
@@ -303,7 +320,7 @@ export async function updateAsset(id: string, data: UpdateAssetInput): Promise<A
   updateData.updated_at = new Date();
 
   const asset = await AssetModel.findByIdAndUpdate(id, updateData, { new: true })
-    .populate("item_id", "name")
+    .populate({ path: "item_id", select: "name brand model category_id", populate: { path: "category_id", select: "name" } })
     .populate("location_id", "name")
     .populate("assigned_to_employee", "first_name last_name")
     .populate("assigned_to_department", "name")

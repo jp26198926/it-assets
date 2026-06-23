@@ -25,7 +25,9 @@ const filterFields: { value: keyof Asset; label: string }[] = [
   { value: "barcode", label: "Barcode" },
   { value: "serial_number", label: "Serial Number" },
   { value: "item_name", label: "Item" },
-  { value: "location_name", label: "Location" },
+  { value: "item_brand", label: "Brand" },
+  { value: "item_model", label: "Model" },
+  { value: "item_category_name", label: "Category" },
   { value: "assigned_to_employee_name", label: "Assigned To" },
   { value: "status", label: "Status" },
 ];

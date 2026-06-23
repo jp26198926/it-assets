@@ -1,7 +1,6 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -130,15 +129,45 @@ export function createAssetColumns(
       },
     },
     {
-      accessorKey: "location_name",
+      accessorKey: "item_brand",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Location" />
+        <DataTableColumnHeader column={column} title="Brand" />
       ),
       cell: ({ row }) => {
         const original = row.original as Asset;
-        const name = original.location_name;
-        return name ? (
-          <span className="text-[#64748b]">{name}</span>
+        const brand = original.item_brand;
+        return brand ? (
+          <span className="text-[#64748b]">{brand}</span>
+        ) : (
+          <span className="text-[#94a3b8] italic">N/A</span>
+        );
+      },
+    },
+    {
+      accessorKey: "item_model",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Model" />
+      ),
+      cell: ({ row }) => {
+        const original = row.original as Asset;
+        const model = original.item_model;
+        return model ? (
+          <span className="text-[#64748b]">{model}</span>
+        ) : (
+          <span className="text-[#94a3b8] italic">N/A</span>
+        );
+      },
+    },
+    {
+      accessorKey: "item_category_name",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Category" />
+      ),
+      cell: ({ row }) => {
+        const original = row.original as Asset;
+        const category = original.item_category_name;
+        return category ? (
+          <span className="text-[#64748b]">{category}</span>
         ) : (
           <span className="text-[#94a3b8] italic">N/A</span>
         );
@@ -187,20 +216,6 @@ export function createAssetColumns(
             <span className={`size-1.5 ${config.dot}`} />
             {status}
           </div>
-        );
-      },
-    },
-    {
-      accessorKey: "created_at",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Created" />
-      ),
-      cell: ({ row }) => {
-        const date = row.getValue("created_at") as Date;
-        return (
-          <span className="text-sm tabular-nums text-[#1a1f36]">
-            {format(new Date(date), "MMM dd, yyyy")}
-          </span>
         );
       },
     },

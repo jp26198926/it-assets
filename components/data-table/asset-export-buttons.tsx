@@ -34,17 +34,19 @@ export function AssetExportButtons({ table }: AssetExportButtonsProps) {
       const rows = table.getFilteredRowModel().rows.map((row) => [
         row.original.barcode,
         row.original.item_name || "N/A",
+        row.original.item_brand || "N/A",
+        row.original.item_model || "N/A",
+        row.original.item_category_name || "N/A",
         row.original.serial_number || "N/A",
-        row.original.location_name || "N/A",
         row.original.assigned_to_employee_name || "Unassigned",
+        row.original.assigned_to_department_name || "N/A",
         row.original.status,
         row.original.purchase_price ? `$${row.original.purchase_price.toFixed(2)}` : "N/A",
-        new Date(row.original.created_at).toLocaleDateString(),
       ]);
 
       autoTable(doc, {
         startY: 35,
-        head: [["Barcode", "Item", "Serial Number", "Location", "Assigned To", "Status", "Price", "Created"]],
+        head: [["Barcode", "Item", "Brand", "Model", "Category", "Serial Number", "Assigned To", "Department", "Status", "Price"]],
         body: rows,
         headStyles: { fillColor: [59, 130, 246] },
       });
@@ -65,8 +67,10 @@ export function AssetExportButtons({ table }: AssetExportButtonsProps) {
       const rows = table.getFilteredRowModel().rows.map((row) => ({
         Barcode: row.original.barcode,
         Item: row.original.item_name || "N/A",
+        Brand: row.original.item_brand || "N/A",
+        Model: row.original.item_model || "N/A",
+        Category: row.original.item_category_name || "N/A",
         "Serial Number": row.original.serial_number || "N/A",
-        Location: row.original.location_name || "N/A",
         "Assigned To": row.original.assigned_to_employee_name || "Unassigned",
         Department: row.original.assigned_to_department_name || "N/A",
         Status: row.original.status,
@@ -77,7 +81,6 @@ export function AssetExportButtons({ table }: AssetExportButtonsProps) {
         "Warranty Expiry": row.original.warranty_expiry
           ? new Date(row.original.warranty_expiry).toLocaleDateString()
           : "N/A",
-        Created: new Date(row.original.created_at).toLocaleDateString(),
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(rows);
@@ -87,13 +90,14 @@ export function AssetExportButtons({ table }: AssetExportButtonsProps) {
       worksheet["!cols"] = [
         { wch: 15 },
         { wch: 25 },
-        { wch: 20 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 15 },
         { wch: 20 },
         { wch: 20 },
         { wch: 15 },
         { wch: 10 },
         { wch: 12 },
-        { wch: 15 },
         { wch: 15 },
         { wch: 15 },
       ];
