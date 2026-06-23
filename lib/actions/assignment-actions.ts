@@ -1,6 +1,7 @@
 "use server";
 
 import * as assignmentService from "@/lib/services/assignment-service";
+import { getAuthFromRequest } from "@/lib/services/api-auth";
 import type { CreateAssignmentInput, UpdateAssignmentInput, AssignmentFilters, Assignment } from "@/lib/types/assignment";
 
 export async function getAssignmentSelectOptions(): Promise<{
@@ -21,11 +22,19 @@ export async function getAssignmentById(id: string): Promise<Assignment | null> 
 }
 
 export async function createAssignment(data: CreateAssignmentInput): Promise<Assignment> {
-  return assignmentService.createAssignment(data);
+  const user = await getAuthFromRequest();
+  return assignmentService.createAssignment({
+    ...data,
+    created_by: user?.userId || null,
+  });
 }
 
 export async function updateAssignment(id: string, data: UpdateAssignmentInput): Promise<Assignment> {
-  return assignmentService.updateAssignment(id, data);
+  const user = await getAuthFromRequest();
+  return assignmentService.updateAssignment(id, {
+    ...data,
+    updated_by: user?.userId || null,
+  });
 }
 
 export async function deleteAssignment(id: string, reason?: string): Promise<void> {

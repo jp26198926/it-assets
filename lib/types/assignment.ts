@@ -8,6 +8,9 @@ export interface Assignment {
   department_name?: string;
   location_id: string | null;
   location_name?: string;
+  item_name?: string;
+  serial_number?: string;
+  item_category_name?: string;
   assigned_date: Date;
   returned_date: Date | null;
   condition_on_issue: string;
@@ -37,9 +40,12 @@ export interface CreateAssignmentInput {
   condition_on_return?: string;
   remarks?: string;
   status?: "Active" | "Returned";
+  created_by?: string | null;
 }
 
-export interface UpdateAssignmentInput extends Partial<CreateAssignmentInput> {}
+export interface UpdateAssignmentInput extends Partial<CreateAssignmentInput> {
+  updated_by?: string | null;
+}
 
 export interface AssignmentFilters {
   search?: string;

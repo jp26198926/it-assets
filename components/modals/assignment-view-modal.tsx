@@ -62,16 +62,24 @@ export function AssignmentViewModal({
                 <p className="text-sm mt-1 font-medium">{assignment.asset_barcode || "N/A"}</p>
               </div>
               <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Item</p>
+                <p className="text-sm mt-1">{assignment.item_name || "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Serial No.</p>
+                <p className="text-sm mt-1">{assignment.serial_number || "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Category</p>
+                <p className="text-sm mt-1">{assignment.item_category_name || "—"}</p>
+              </div>
+              <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Employee</p>
                 <p className="text-sm mt-1">{assignment.employee_name || "—"}</p>
               </div>
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Department</p>
                 <p className="text-sm mt-1">{assignment.department_name || "—"}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Location</p>
-                <p className="text-sm mt-1">{assignment.location_name || "—"}</p>
               </div>
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Assigned Date</p>
@@ -89,16 +97,6 @@ export function AssignmentViewModal({
               )}
             </div>
             <div className="space-y-4">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Condition on Issue</p>
-                <p className="text-sm mt-1">{assignment.condition_on_issue}</p>
-              </div>
-              {assignment.condition_on_return && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Condition on Return</p>
-                  <p className="text-sm mt-1">{assignment.condition_on_return}</p>
-                </div>
-              )}
               {assignment.remarks && (
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Remarks</p>

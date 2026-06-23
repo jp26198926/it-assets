@@ -98,6 +98,33 @@ export function createAssignmentColumns(
       ),
     },
     {
+      accessorKey: "item_name",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Item" />
+      ),
+      cell: ({ row }) => (
+        <span className="text-sm text-[#1a1f36]">{(row.getValue("item_name") as string) || "—"}</span>
+      ),
+    },
+    {
+      accessorKey: "serial_number",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Serial No." />
+      ),
+      cell: ({ row }) => (
+        <span className="text-sm text-[#1a1f36]">{(row.getValue("serial_number") as string) || "—"}</span>
+      ),
+    },
+    {
+      accessorKey: "item_category_name",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Category" />
+      ),
+      cell: ({ row }) => (
+        <span className="text-sm text-[#1a1f36]">{(row.getValue("item_category_name") as string) || "—"}</span>
+      ),
+    },
+    {
       accessorKey: "employee_name",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Employee" />
@@ -113,15 +140,6 @@ export function createAssignmentColumns(
       ),
       cell: ({ row }) => (
         <span className="text-sm text-[#1a1f36]">{(row.getValue("department_name") as string) || "—"}</span>
-      ),
-    },
-    {
-      accessorKey: "location_name",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Location" />
-      ),
-      cell: ({ row }) => (
-        <span className="text-sm text-[#1a1f36]">{(row.getValue("location_name") as string) || "—"}</span>
       ),
     },
     {
@@ -151,24 +169,6 @@ export function createAssignmentColumns(
           </span>
         );
       },
-    },
-    {
-      accessorKey: "condition_on_issue",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Condition on Issue" />
-      ),
-      cell: ({ row }) => (
-        <span className="text-sm text-[#1a1f36]">{row.getValue("condition_on_issue")}</span>
-      ),
-    },
-    {
-      accessorKey: "condition_on_return",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Condition on Return" />
-      ),
-      cell: ({ row }) => (
-        <span className="text-sm text-[#1a1f36]">{(row.getValue("condition_on_return") as string) || "—"}</span>
-      ),
     },
     {
       accessorKey: "status",

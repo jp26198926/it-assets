@@ -74,9 +74,16 @@ async function enrichAssignment(d: Record<string, unknown>): Promise<Assignment>
   const { Department } = await import("@/lib/db/models/department");
 
   const { Location } = await import("@/lib/db/models/location");
+  const { Item } = await import("@/lib/db/models/item");
+  const { Category } = await import("@/lib/db/models/category");
+  void Item;
+  void Category;
 
   const [asset, employee, department, location] = await Promise.all([
-    Asset.findById(assignment.asset_id).lean().catch(() => null),
+    Asset.findById(assignment.asset_id)
+      .populate({ path: "item_id", select: "name category_id", populate: { path: "category_id", select: "name" } })
+      .lean()
+      .catch(() => null),
     assignment.employee_id ? Employee.findById(assignment.employee_id).lean().catch(() => null) : null,
     assignment.department_id ? Department.findById(assignment.department_id).lean().catch(() => null) : null,
     assignment.location_id ? Location.findById(assignment.location_id).lean().catch(() => null) : null,
@@ -85,6 +92,15 @@ async function enrichAssignment(d: Record<string, unknown>): Promise<Assignment>
   if (asset) {
     const a = asset as unknown as Record<string, unknown>;
     assignment.asset_barcode = a.barcode as string;
+    assignment.serial_number = (a.serial_number as string) ?? null;
+    const item = a.item_id as unknown as Record<string, unknown> | null;
+    if (item) {
+      assignment.item_name = item.name as string;
+      const cat = item.category_id as unknown as Record<string, unknown> | null;
+      if (cat) {
+        assignment.item_category_name = cat.name as string;
+      }
+    }
   }
   if (employee) {
     const e = employee as unknown as Record<string, unknown>;
@@ -230,6 +246,7 @@ export async function createAssignment(data: CreateAssignmentInput): Promise<Ass
     condition_on_return: data.condition_on_return || null,
     remarks: data.remarks || null,
     status: data.status || "Active",
+    created_by: data.created_by || null,
   });
 
   const { Asset } = await import("@/lib/db/models/asset");
@@ -266,6 +283,7 @@ export async function updateAssignment(id: string, data: UpdateAssignmentInput):
   if (data.condition_on_return !== undefined) updateData.condition_on_return = data.condition_on_return || null;
   if (data.remarks !== undefined) updateData.remarks = data.remarks || null;
   if (data.status !== undefined) updateData.status = data.status;
+  if (data.updated_by !== undefined) updateData.updated_by = data.updated_by || null;
   updateData.updated_at = new Date();
 
   const assignment = await AssignmentModel.findByIdAndUpdate(id, updateData, { new: true })
