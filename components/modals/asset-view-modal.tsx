@@ -90,6 +90,10 @@ export function AssetViewModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Department</p>
                 <p className="text-sm mt-1">{asset.assigned_to_department_name || "N/A"}</p>
               </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Remarks</p>
+                <p className="text-sm mt-1">{asset.remarks || "N/A"}</p>
+              </div>
             </div>
             <div className="space-y-4">
               <div>

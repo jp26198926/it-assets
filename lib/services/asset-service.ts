@@ -108,6 +108,7 @@ function toAsset(d: Record<string, unknown>): Asset {
     item_name,
     barcode: d.barcode as string,
     serial_number: (d.serial_number as string) ?? null,
+    remarks: (d.remarks as string) ?? null,
     purchase_date: (d.purchase_date as Date) ?? null,
     purchase_price: (d.purchase_price as number) ?? null,
     warranty_expiry: (d.warranty_expiry as Date) ?? null,
@@ -139,10 +140,10 @@ export async function getAssetSelectOptions(): Promise<{
 }> {
   await connectDB();
 
-  const items = await ItemModel.find({ deleted_at: null, status: "Active" }).select("name").lean();
-  const locations = await LocationModel.find({ deleted_at: null }).select("name").lean();
-  const employees = await EmployeeModel.find({ deleted_at: null }).select("first_name last_name").lean();
-  const departments = await DepartmentModel.find({ deleted_at: null }).select("name").lean();
+  const items = await ItemModel.find({ deleted_at: null, status: "Active" }).select("name").sort({ name: 1 }).lean();
+  const locations = await LocationModel.find({ deleted_at: null }).select("name").sort({ name: 1 }).lean();
+  const employees = await EmployeeModel.find({ deleted_at: null }).select("first_name last_name").sort({ last_name: 1, first_name: 1 }).lean();
+  const departments = await DepartmentModel.find({ deleted_at: null }).select("name").sort({ name: 1 }).lean();
 
   return {
     items: items.map((i) => ({
@@ -267,6 +268,7 @@ export async function createAsset(data: CreateAssetInput): Promise<Asset> {
     item_id: data.item_id || null,
     barcode: data.barcode,
     serial_number: data.serial_number || null,
+    remarks: data.remarks || null,
     purchase_date: data.purchase_date ? new Date(data.purchase_date) : null,
     purchase_price: data.purchase_price ?? null,
     warranty_expiry: data.warranty_expiry ? new Date(data.warranty_expiry) : null,
@@ -298,6 +300,7 @@ export async function updateAsset(id: string, data: UpdateAssetInput): Promise<A
   if (data.item_id !== undefined) updateData.item_id = data.item_id || null;
   if (data.barcode !== undefined) updateData.barcode = data.barcode;
   if (data.serial_number !== undefined) updateData.serial_number = data.serial_number || null;
+  if (data.remarks !== undefined) updateData.remarks = data.remarks || null;
   if (data.purchase_date !== undefined) updateData.purchase_date = data.purchase_date ? new Date(data.purchase_date) : null;
   if (data.purchase_price !== undefined) updateData.purchase_price = data.purchase_price ?? null;
   if (data.warranty_expiry !== undefined) updateData.warranty_expiry = data.warranty_expiry ? new Date(data.warranty_expiry) : null;

@@ -99,8 +99,8 @@ export async function getUserSelectOptions(): Promise<{ roles: UserSelectItem[];
   await connectDB();
 
   const [roles, departments] = await Promise.all([
-    RoleModel.find({ deleted_at: null }).select("name").lean(),
-    DepartmentModel.find({ deleted_at: null }).select("name").lean(),
+    RoleModel.find({ deleted_at: null }).select("name").sort({ name: 1 }).lean(),
+    DepartmentModel.find({ deleted_at: null }).select("name").sort({ name: 1 }).lean(),
   ]);
 
   return {

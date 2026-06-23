@@ -84,7 +84,7 @@ function toEmployee(e: Record<string, unknown>): Employee {
 export async function getEmployeeSelectOptions(): Promise<{ departments: { id: string; name: string }[] }> {
   await connectDB();
 
-  const departments = await DepartmentModel.find({ deleted_at: null }).select("name").lean();
+  const departments = await DepartmentModel.find({ deleted_at: null }).select("name").sort({ name: 1 }).lean();
 
   return {
     departments: departments.map((d) => ({

@@ -5,6 +5,7 @@ export interface IAsset extends Omit<Document, "model">, BaseAuditFields {
   item_id: mongoose.Types.ObjectId | null;
   barcode: string;
   serial_number: string | null;
+  remarks: string | null;
   purchase_date: Date | null;
   purchase_price: number | null;
   warranty_expiry: Date | null;
@@ -26,6 +27,10 @@ const AssetSchema = new Schema<IAsset>({
     unique: true,
   },
   serial_number: {
+    type: String,
+    default: null,
+  },
+  remarks: {
     type: String,
     default: null,
   },

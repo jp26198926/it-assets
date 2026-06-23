@@ -34,6 +34,7 @@ export async function PUT(
       item_id: body.item_id,
       barcode: body.barcode,
       serial_number: body.serial_number,
+      remarks: body.remarks,
       purchase_date: body.purchase_date,
       purchase_price: body.purchase_price,
       warranty_expiry: body.warranty_expiry,

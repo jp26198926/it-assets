@@ -240,7 +240,7 @@ export function UserFormModal({
                 }
                 disabled={optionsLoading}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={optionsLoading ? "Loading..." : "Select department"} />
                 </SelectTrigger>
                 <SelectContent>

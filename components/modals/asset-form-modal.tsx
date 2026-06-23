@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -29,19 +30,17 @@ interface AssetFormModalProps {
   onSubmit: (data: CreateAssetInput) => Promise<void>;
 }
 
-const statuses = ["Available", "Assigned", "Repair", "Lost", "Disposed"] as const;
-
 const defaultFormData: CreateAssetInput = {
   item_id: undefined,
   barcode: "",
   serial_number: "",
+  remarks: "",
   purchase_date: "",
   purchase_price: undefined,
   warranty_expiry: "",
   location_id: undefined,
   assigned_to_employee: undefined,
   assigned_to_department: undefined,
-  status: "Available",
 };
 
 export function AssetFormModal({
@@ -80,6 +79,7 @@ export function AssetFormModal({
         item_id: asset.item_id || undefined,
         barcode: asset.barcode,
         serial_number: asset.serial_number || "",
+        remarks: asset.remarks || "",
         purchase_date: asset.purchase_date
           ? new Date(asset.purchase_date).toISOString().split("T")[0]
           : "",
@@ -90,7 +90,6 @@ export function AssetFormModal({
         location_id: asset.location_id || undefined,
         assigned_to_employee: asset.assigned_to_employee || undefined,
         assigned_to_department: asset.assigned_to_department || undefined,
-        status: asset.status,
       });
     } else {
       generateBarcode()
@@ -119,6 +118,7 @@ export function AssetFormModal({
           ...formData,
           item_id: formData.item_id || undefined,
           serial_number: formData.serial_number || undefined,
+          remarks: formData.remarks || undefined,
           purchase_date: formData.purchase_date || undefined,
           purchase_price: formData.purchase_price || undefined,
           warranty_expiry: formData.warranty_expiry || undefined,
@@ -151,6 +151,30 @@ export function AssetFormModal({
           </DialogDescription>
         </DialogHeader>
         <form id="asset-form" onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
+          <div className="space-y-2">
+            <Label htmlFor="item_id">Item</Label>
+            <Select
+              value={formData.item_id || "none"}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  item_id: value === "none" ? undefined : value,
+                })
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={optionsLoading ? "Loading..." : "Select item"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No Item</SelectItem>
+                {items.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {item.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="barcode">Barcode *</Label>
@@ -181,30 +205,6 @@ export function AssetFormModal({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="item_id">Item</Label>
-              <Select
-                value={formData.item_id || "none"}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    item_id: value === "none" ? undefined : value,
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={optionsLoading ? "Loading..." : "Select item"} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Item</SelectItem>
-                  {items.map((item) => (
-                    <SelectItem key={item.id} value={item.id}>
-                      {item.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="location_id">Location</Label>
               <Select
                 value={formData.location_id || "none"}
@@ -215,7 +215,7 @@ export function AssetFormModal({
                   })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={optionsLoading ? "Loading..." : "Select location"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -228,6 +228,59 @@ export function AssetFormModal({
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="purchase_date">Purchase Date</Label>
+              <Input
+                id="purchase_date"
+                type="date"
+                value={formData.purchase_date || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, purchase_date: e.target.value })
+                }
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="warranty_expiry">Warranty Expiry</Label>
+              <Input
+                id="warranty_expiry"
+                type="date"
+                value={formData.warranty_expiry || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, warranty_expiry: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="purchase_price">Purchase Price</Label>
+              <Input
+                id="purchase_price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.purchase_price ?? ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    purchase_price: e.target.value ? Number(e.target.value) : undefined,
+                  })
+                }
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="remarks">Remarks</Label>
+            <Textarea
+              id="remarks"
+              value={formData.remarks || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, remarks: e.target.value })
+              }
+              placeholder="Additional notes or remarks..."
+              rows={3}
+            />
           </div>
           {asset && (
             <div className="grid grid-cols-2 gap-4">
@@ -242,7 +295,7 @@ export function AssetFormModal({
                     })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder={optionsLoading ? "Loading..." : "Select employee"} />
                   </SelectTrigger>
                   <SelectContent>
@@ -266,7 +319,7 @@ export function AssetFormModal({
                     })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder={optionsLoading ? "Loading..." : "Select department"} />
                   </SelectTrigger>
                   <SelectContent>
@@ -281,72 +334,6 @@ export function AssetFormModal({
               </div>
             </div>
           )}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="purchase_date">Purchase Date</Label>
-              <Input
-                id="purchase_date"
-                type="date"
-                value={formData.purchase_date || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, purchase_date: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="warranty_expiry">Warranty Expiry</Label>
-              <Input
-                id="warranty_expiry"
-                type="date"
-                value={formData.warranty_expiry || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, warranty_expiry: e.target.value })
-                }
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="purchase_price">Purchase Price</Label>
-              <Input
-                id="purchase_price"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.purchase_price ?? ""}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    purchase_price: e.target.value ? Number(e.target.value) : undefined,
-                  })
-                }
-                placeholder="0.00"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={formData.status || "Available"}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    status: value as CreateAssetInput["status"],
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {statuses.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
           {errors.submit && (
             <p className="text-sm text-red-500">{errors.submit}</p>
           )}

@@ -4,6 +4,7 @@ export interface Asset {
   item_name?: string;
   barcode: string;
   serial_number: string | null;
+  remarks: string | null;
   purchase_date: Date | null;
   purchase_price: number | null;
   warranty_expiry: Date | null;
@@ -30,6 +31,7 @@ export interface CreateAssetInput {
   item_id?: string;
   barcode: string;
   serial_number?: string;
+  remarks?: string;
   purchase_date?: string;
   purchase_price?: number;
   warranty_expiry?: string;

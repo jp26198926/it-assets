@@ -316,13 +316,14 @@ export function PageFormModal({
                   })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="No parent (root level)" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">No parent (root level)</SelectItem>
                   {pages
                     .filter((p) => p.id !== page?.id)
+                    .sort((a, b) => a.name.localeCompare(b.name))
                     .map((p) => (
                       <SelectItem key={p.id} value={p.id}>
                         {p.name}

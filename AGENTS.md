@@ -110,3 +110,9 @@ This ensures the header and footer remain pinned while only the middle content s
 
 ## Images — Use next/image
 Always use `next/image` (`Image` component) instead of the HTML `<img>` tag. This provides automatic optimization (modern formats, lazy loading, responsive sizing). For external images (e.g., Cloudinary), use the `unoptimized` prop.
+
+## SelectTrigger — Always use w-full
+All `SelectTrigger` components in forms must include `className="w-full"` so dropdowns use the full width of their container. The default `SelectTrigger` is `w-fit`, which causes inconsistent sizing.
+
+## Select Options — Always sorted A-Z
+All dropdown option lists must be sorted alphabetically (A-Z). Sort at the database query level in the service layer using `.sort({ name: 1 })` (or equivalent field). For employee names, sort by last name then first name.

@@ -128,8 +128,8 @@ export async function getItemSelectOptions(): Promise<{
 }> {
   await connectDB();
 
-  const categories = await CategoryModel.find({ deleted_at: null }).select("name").lean();
-  const uoms = await UOMModel.find({ deleted_at: null }).select("name code").lean();
+  const categories = await CategoryModel.find({ deleted_at: null }).select("name").sort({ name: 1 }).lean();
+  const uoms = await UOMModel.find({ deleted_at: null }).select("name code").sort({ name: 1 }).lean();
 
   return {
     categories: categories.map((c) => ({
