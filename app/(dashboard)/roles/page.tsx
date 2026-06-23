@@ -100,10 +100,10 @@ export default function RolesPage() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (reason: string) => {
     if (deleteRoleItem) {
       try {
-        await deleteRole(deleteRoleItem.id);
+        await deleteRole(deleteRoleItem.id, reason || undefined);
         toast.success(`${deleteRoleItem.name} has been deleted`);
         setDeleteRoleItem(null);
         loadData(activeFilters);

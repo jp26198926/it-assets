@@ -118,10 +118,10 @@ export default function UsersPage() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (reason: string) => {
     if (deleteUserItem) {
       try {
-        await deleteUser(deleteUserItem.id);
+        await deleteUser(deleteUserItem.id, reason || undefined);
         toast.success(`${deleteUserItem.first_name} ${deleteUserItem.last_name} has been deleted`);
         setDeleteUserItem(null);
         loadData(activeFilters);

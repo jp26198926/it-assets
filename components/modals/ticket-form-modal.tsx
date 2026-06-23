@@ -32,7 +32,7 @@ interface TicketFormModalProps {
   onSubmit: (data: CreateTicketInput) => Promise<void>;
   selectOptions: {
     categories: { id: string; name: string }[];
-    assets: { id: string; barcode: string }[];
+    assets: { id: string; barcode: string; itemName: string }[];
     users: { id: string; name: string }[];
   };
   currentUser?: { firstName: string; lastName: string; email: string } | null;
@@ -179,7 +179,7 @@ export function TicketFormModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-2xl flex flex-col max-h-[85vh]"
+        className="max-w-4xl sm:max-w-4xl flex flex-col max-h-[85vh]"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
@@ -297,7 +297,7 @@ export function TicketFormModal({
                   <SelectItem value="none">None</SelectItem>
                   {selectOptions.assets.map((asset) => (
                     <SelectItem key={asset.id} value={asset.id}>
-                      {asset.barcode}
+                      {asset.barcode} - {asset.itemName}
                     </SelectItem>
                   ))}
                 </SelectContent>

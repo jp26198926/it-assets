@@ -97,10 +97,10 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (reason: string) => {
     if (deleteCategoryItem) {
       try {
-        await deleteCategory(deleteCategoryItem.id);
+        await deleteCategory(deleteCategoryItem.id, reason || undefined);
         toast.success(`${deleteCategoryItem.name} has been deleted`);
         setDeleteCategoryItem(null);
         const refreshed = await getCategories(activeFilters);

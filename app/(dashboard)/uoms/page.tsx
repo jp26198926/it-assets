@@ -94,10 +94,10 @@ export default function UOMsPage() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (reason: string) => {
     if (deleteUOMItem) {
       try {
-        await deleteUOM(deleteUOMItem.id);
+        await deleteUOM(deleteUOMItem.id, reason || undefined);
         toast.success(`${deleteUOMItem.name} has been deleted`);
         setDeleteUOMItem(null);
         loadData(activeFilters);

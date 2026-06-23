@@ -5,12 +5,23 @@ import { TicketDataTable } from "@/components/data-table/ticket-data-table";
 import { createTicketColumns } from "@/components/data-table/ticket-data-table-columns";
 import { TicketFormModal } from "@/components/modals/ticket-form-modal";
 import { TicketViewModal } from "@/components/modals/ticket-view-modal";
-import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
+import { TicketDeleteConfirmModal } from "@/components/modals/ticket-delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
 import { useAuthorization } from "@/hooks/use-authorization";
-import { getTickets, createTicket, updateTicket, deleteTicket, restoreTicket, getTicketSelectOptions } from "@/lib/actions/ticket-actions";
-import type { Ticket, CreateTicketInput, TicketFilters } from "@/lib/types/ticket";
+import {
+  getTickets,
+  createTicket,
+  updateTicket,
+  deleteTicket,
+  restoreTicket,
+  getTicketSelectOptions,
+} from "@/lib/actions/ticket-actions";
+import type {
+  Ticket,
+  CreateTicketInput,
+  TicketFilters,
+} from "@/lib/types/ticket";
 import { toast } from "sonner";
 
 export default function TicketsPage() {
@@ -24,7 +35,7 @@ export default function TicketsPage() {
   const [activeFilters, setActiveFilters] = useState<TicketFilters>({});
   const [selectOptions, setSelectOptions] = useState<{
     categories: { id: string; name: string }[];
-    assets: { id: string; barcode: string }[];
+    assets: { id: string; barcode: string; itemName: string }[];
     users: { id: string; name: string }[];
   }>({ categories: [], assets: [], users: [] });
 
@@ -47,21 +58,27 @@ export default function TicketsPage() {
       }
     };
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleServerSearch = useCallback((filters: TicketFilters) => {
     setActiveFilters(filters);
-    getTickets(filters).then((data) => setTickets(data)).catch(() => {
-      toast.error("Failed to search tickets");
-    });
+    getTickets(filters)
+      .then((data) => setTickets(data))
+      .catch(() => {
+        toast.error("Failed to search tickets");
+      });
   }, []);
 
   const handleServerSearchClear = useCallback(() => {
     setActiveFilters({});
-    getTickets().then((data) => setTickets(data)).catch(() => {
-      toast.error("Failed to load tickets");
-    });
+    getTickets()
+      .then((data) => setTickets(data))
+      .catch(() => {
+        toast.error("Failed to load tickets");
+      });
   }, []);
 
   const handleView = (ticket: Ticket) => {
@@ -110,10 +127,10 @@ export default function TicketsPage() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (reason: string) => {
     if (deleteTicketItem) {
       try {
-        await deleteTicket(deleteTicketItem.id);
+        await deleteTicket(deleteTicketItem.id, reason || undefined);
         toast.success(`${deleteTicketItem.ticket_no} has been deleted`);
         setDeleteTicketItem(null);
         const refreshed = await getTickets(activeFilters);
@@ -124,20 +141,29 @@ export default function TicketsPage() {
     }
   };
 
-  const columns = createTicketColumns(handleView, handleEdit, handleDelete, handleRestore);
+  const columns = createTicketColumns(
+    handleView,
+    handleEdit,
+    handleDelete,
+    handleRestore,
+  );
 
-  const currentUser = authUser ? {
-    firstName: authUser.firstName,
-    lastName: authUser.lastName,
-    email: authUser.email,
-  } : null;
+  const currentUser = authUser
+    ? {
+        firstName: authUser.firstName,
+        lastName: authUser.lastName,
+        email: authUser.email,
+      }
+    : null;
 
   if (loading) {
     return (
       <div className="space-y-4 sm:space-y-6">
         <ScrollReveal>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Tickets</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">
+              Tickets
+            </h1>
             <p className="text-sm sm:text-base text-[#64748b] mt-1">
               Manage support tickets
             </p>
@@ -155,7 +181,9 @@ export default function TicketsPage() {
       <div className="space-y-4 sm:space-y-6">
         <ScrollReveal>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">Tickets</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">
+              Tickets
+            </h1>
             <p className="text-sm sm:text-base text-[#64748b] mt-1">
               Manage support tickets
             </p>
@@ -191,10 +219,10 @@ export default function TicketsPage() {
           ticket={viewTicket}
         />
 
-        <DeleteConfirmModal
+        <TicketDeleteConfirmModal
           open={!!deleteTicketItem}
           onOpenChange={(open) => !open && setDeleteTicketItem(null)}
-          assetName={deleteTicketItem?.ticket_no || ""}
+          ticketNo={deleteTicketItem?.ticket_no || ""}
           onConfirm={handleDeleteConfirm}
         />
       </div>

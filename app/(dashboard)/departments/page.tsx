@@ -94,10 +94,10 @@ export default function DepartmentsPage() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (reason: string) => {
     if (deleteDepartmentItem) {
       try {
-        await deleteDepartment(deleteDepartmentItem.id);
+        await deleteDepartment(deleteDepartmentItem.id, reason || undefined);
         toast.success(`${deleteDepartmentItem.name} has been deleted`);
         setDeleteDepartmentItem(null);
         loadData(activeFilters);

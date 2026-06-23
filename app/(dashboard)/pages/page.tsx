@@ -94,10 +94,10 @@ export default function PagesPage() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (reason: string) => {
     if (deletePageItem) {
       try {
-        await deletePage(deletePageItem.id);
+        await deletePage(deletePageItem.id, reason || undefined);
         toast.success(`${deletePageItem.name} has been deleted`);
         setDeletePageItem(null);
         loadData(activeFilters);

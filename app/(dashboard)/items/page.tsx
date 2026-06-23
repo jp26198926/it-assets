@@ -97,10 +97,10 @@ export default function ItemsPage() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (reason: string) => {
     if (deleteItemItem) {
       try {
-        await deleteItem(deleteItemItem.id);
+        await deleteItem(deleteItemItem.id, reason || undefined);
         toast.success(`${deleteItemItem.name} has been deleted`);
         setDeleteItemItem(null);
         const refreshed = await getItems(activeFilters);

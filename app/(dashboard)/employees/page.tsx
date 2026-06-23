@@ -94,10 +94,10 @@ export default function EmployeesPage() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (reason: string) => {
     if (deleteEmployeeItem) {
       try {
-        await deleteEmployee(deleteEmployeeItem.id);
+        await deleteEmployee(deleteEmployeeItem.id, reason || undefined);
         toast.success(`${deleteEmployeeItem.firstname} ${deleteEmployeeItem.lastname} has been deleted`);
         setDeleteEmployeeItem(null);
         loadData(activeFilters);

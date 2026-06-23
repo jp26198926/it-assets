@@ -109,10 +109,10 @@ export default function AssetsPage() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (reason: string) => {
     if (deleteAssetItem) {
       try {
-        await deleteAsset(deleteAssetItem.id);
+        await deleteAsset(deleteAssetItem.id, reason || undefined);
         toast.success(`${deleteAssetItem.barcode} has been deleted`);
         setDeleteAssetItem(null);
         const refreshed = await getAssets(activeFilters);

@@ -190,6 +190,295 @@ async function sendWelcomeEmail(email: string, password: string): Promise<void> 
   });
 }
 
+async function sendRequestorEmail(
+  ticket_no: string,
+  title: string,
+  priority: string,
+  email: string
+): Promise<void> {
+  const settings = await getMailSettings();
+
+  if (!settings.smtp_host) {
+    console.log(`[TICKET] Requestor email - To: ${email}, Ticket: ${ticket_no}`);
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: settings.smtp_host,
+    port: settings.smtp_port,
+    secure: settings.smtp_secure,
+    auth: settings.smtp_user
+      ? { user: settings.smtp_user, pass: settings.smtp_pass }
+      : undefined,
+  });
+
+  const appName = "IT Asset Manager";
+
+  await transporter.sendMail({
+    from: `"${settings.sender_name || appName}" <${settings.smtp_from}>`,
+    to: email,
+    subject: `[${ticket_no}] Your Support Ticket Has Been Created`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: #3b82f6; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0; font-size: 24px;">${appName}</h1>
+        </div>
+        <div style="padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0;">
+          <h2 style="color: #1a1f36; margin-top: 0;">Ticket Created</h2>
+          <p style="color: #475569; line-height: 1.6;">
+            Your support ticket has been successfully created. Here are the details:
+          </p>
+          <div style="background: #f0f4f8; padding: 15px; border-radius: 4px; margin: 20px 0;">
+            <p style="margin: 5px 0; color: #475569;"><strong>Ticket No:</strong> ${ticket_no}</p>
+            <p style="margin: 5px 0; color: #475569;"><strong>Title:</strong> ${title}</p>
+            <p style="margin: 5px 0; color: #475569;"><strong>Priority:</strong> ${priority}</p>
+          </div>
+          <p style="color: #475569; line-height: 1.6;">
+            Our team will review your ticket and get back to you as soon as possible.
+          </p>
+          <p style="color: #94a3b8; font-size: 12px; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+            Sent at ${new Date().toLocaleString()}
+          </p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+async function sendAssigneeEmail(
+  ticket_no: string,
+  title: string,
+  priority: string,
+  assigneeEmail: string,
+  requestorName: string
+): Promise<void> {
+  const settings = await getMailSettings();
+
+  if (!settings.smtp_host) {
+    console.log(`[TICKET] Assignee email - To: ${assigneeEmail}, Ticket: ${ticket_no}`);
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: settings.smtp_host,
+    port: settings.smtp_port,
+    secure: settings.smtp_secure,
+    auth: settings.smtp_user
+      ? { user: settings.smtp_user, pass: settings.smtp_pass }
+      : undefined,
+  });
+
+  const appName = "IT Asset Manager";
+
+  await transporter.sendMail({
+    from: `"${settings.sender_name || appName}" <${settings.smtp_from}>`,
+    to: assigneeEmail,
+    subject: `[${ticket_no}] New Ticket Assigned to You`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: #3b82f6; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0; font-size: 24px;">${appName}</h1>
+        </div>
+        <div style="padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0;">
+          <h2 style="color: #1a1f36; margin-top: 0;">Ticket Assigned to You</h2>
+          <p style="color: #475569; line-height: 1.6;">
+            A new support ticket has been assigned to you. Here are the details:
+          </p>
+          <div style="background: #f0f4f8; padding: 15px; border-radius: 4px; margin: 20px 0;">
+            <p style="margin: 5px 0; color: #475569;"><strong>Ticket No:</strong> ${ticket_no}</p>
+            <p style="margin: 5px 0; color: #475569;"><strong>Title:</strong> ${title}</p>
+            <p style="margin: 5px 0; color: #475569;"><strong>Priority:</strong> ${priority}</p>
+            <p style="margin: 5px 0; color: #475569;"><strong>Requestor:</strong> ${requestorName}</p>
+          </div>
+          <p style="color: #475569; line-height: 1.6;">
+            Please review and address this ticket promptly.
+          </p>
+          <p style="color: #94a3b8; font-size: 12px; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+            Sent at ${new Date().toLocaleString()}
+          </p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+async function sendTicketUpdatedEmail(
+  ticket_no: string,
+  title: string,
+  email: string,
+  updatedBy: string,
+  changes: string[]
+): Promise<void> {
+  const settings = await getMailSettings();
+
+  if (!settings.smtp_host) {
+    console.log(`[TICKET] Update email - To: ${email}, Ticket: ${ticket_no}, Changes: ${changes.join(", ")}`);
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: settings.smtp_host,
+    port: settings.smtp_port,
+    secure: settings.smtp_secure,
+    auth: settings.smtp_user
+      ? { user: settings.smtp_user, pass: settings.smtp_pass }
+      : undefined,
+  });
+
+  const appName = "IT Asset Manager";
+
+  await transporter.sendMail({
+    from: `"${settings.sender_name || appName}" <${settings.smtp_from}>`,
+    to: email,
+    subject: `[${ticket_no}] Your Ticket Has Been Updated`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: #3b82f6; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0; font-size: 24px;">${appName}</h1>
+        </div>
+        <div style="padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0;">
+          <h2 style="color: #1a1f36; margin-top: 0;">Ticket Updated</h2>
+          <p style="color: #475569; line-height: 1.6;">
+            Your support ticket <strong>${ticket_no}</strong> has been updated by <strong>${updatedBy}</strong>.
+          </p>
+          <div style="background: #f0f4f8; padding: 15px; border-radius: 4px; margin: 20px 0;">
+            <p style="margin: 5px 0; color: #475569;"><strong>Ticket No:</strong> ${ticket_no}</p>
+            <p style="margin: 5px 0; color: #475569;"><strong>Title:</strong> ${title}</p>
+            <p style="margin: 5px 0; color: #475569;"><strong>Changes:</strong> ${changes.join(", ")}</p>
+          </div>
+          <p style="color: #94a3b8; font-size: 12px; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+            Sent at ${new Date().toLocaleString()}
+          </p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+async function sendTicketStatusChangedEmail(
+  ticket_no: string,
+  title: string,
+  email: string,
+  oldStatus: string,
+  newStatus: string,
+  updatedBy: string
+): Promise<void> {
+  const settings = await getMailSettings();
+
+  if (!settings.smtp_host) {
+    console.log(`[TICKET] Status change email - To: ${email}, Ticket: ${ticket_no}, Status: ${oldStatus} → ${newStatus}`);
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: settings.smtp_host,
+    port: settings.smtp_port,
+    secure: settings.smtp_secure,
+    auth: settings.smtp_user
+      ? { user: settings.smtp_user, pass: settings.smtp_pass }
+      : undefined,
+  });
+
+  const appName = "IT Asset Manager";
+
+  const statusColors: Record<string, string> = {
+    Open: "#1d4ed8",
+    "In Progress": "#b45309",
+    Resolved: "#059669",
+    Closed: "#475569",
+  };
+
+  await transporter.sendMail({
+    from: `"${settings.sender_name || appName}" <${settings.smtp_from}>`,
+    to: email,
+    subject: `[${ticket_no}] Ticket Status Changed: ${newStatus}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: #3b82f6; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0; font-size: 24px;">${appName}</h1>
+        </div>
+        <div style="padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0;">
+          <h2 style="color: #1a1f36; margin-top: 0;">Ticket Status Changed</h2>
+          <p style="color: #475569; line-height: 1.6;">
+            The status of your support ticket <strong>${ticket_no}</strong> has been updated by <strong>${updatedBy}</strong>.
+          </p>
+          <div style="background: #f0f4f8; padding: 15px; border-radius: 4px; margin: 20px 0;">
+            <p style="margin: 5px 0; color: #475569;"><strong>Ticket No:</strong> ${ticket_no}</p>
+            <p style="margin: 5px 0; color: #475569;"><strong>Title:</strong> ${title}</p>
+            <p style="margin: 5px 0; color: #475569;">
+              <strong>Status:</strong>
+              <span style="color: ${statusColors[oldStatus] || "#475569"}">${oldStatus}</span>
+              →
+              <span style="color: ${statusColors[newStatus] || "#475569"}; font-weight: bold;">${newStatus}</span>
+            </p>
+          </div>
+          <p style="color: #94a3b8; font-size: 12px; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+            Sent at ${new Date().toLocaleString()}
+          </p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+async function sendNewAssigneeEmail(
+  ticket_no: string,
+  title: string,
+  priority: string,
+  assigneeEmail: string,
+  requestorName: string,
+  assignedBy: string
+): Promise<void> {
+  const settings = await getMailSettings();
+
+  if (!settings.smtp_host) {
+    console.log(`[TICKET] New assignee email - To: ${assigneeEmail}, Ticket: ${ticket_no}`);
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: settings.smtp_host,
+    port: settings.smtp_port,
+    secure: settings.smtp_secure,
+    auth: settings.smtp_user
+      ? { user: settings.smtp_user, pass: settings.smtp_pass }
+      : undefined,
+  });
+
+  const appName = "IT Asset Manager";
+
+  await transporter.sendMail({
+    from: `"${settings.sender_name || appName}" <${settings.smtp_from}>`,
+    to: assigneeEmail,
+    subject: `[${ticket_no}] Ticket Assigned to You`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: #3b82f6; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0; font-size: 24px;">${appName}</h1>
+        </div>
+        <div style="padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0;">
+          <h2 style="color: #1a1f36; margin-top: 0;">Ticket Assigned to You</h2>
+          <p style="color: #475569; line-height: 1.6;">
+            A support ticket has been assigned to you by <strong>${assignedBy}</strong>.
+          </p>
+          <div style="background: #f0f4f8; padding: 15px; border-radius: 4px; margin: 20px 0;">
+            <p style="margin: 5px 0; color: #475569;"><strong>Ticket No:</strong> ${ticket_no}</p>
+            <p style="margin: 5px 0; color: #475569;"><strong>Title:</strong> ${title}</p>
+            <p style="margin: 5px 0; color: #475569;"><strong>Priority:</strong> ${priority}</p>
+            <p style="margin: 5px 0; color: #475569;"><strong>Requestor:</strong> ${requestorName}</p>
+          </div>
+          <p style="color: #475569; line-height: 1.6;">
+            Please review and address this ticket promptly.
+          </p>
+          <p style="color: #94a3b8; font-size: 12px; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+            Sent at ${new Date().toLocaleString()}
+          </p>
+        </div>
+      </div>
+    `,
+  });
+}
+
 async function resolveRequestorId(email: string): Promise<string | null> {
   await connectDB();
 
@@ -317,7 +606,7 @@ export async function createTicket(data: CreateTicketInput, createdByUserId?: st
     asset_id: data.asset_id || null,
     assigned_to: data.assigned_to || null,
     attachments: data.attachments || [],
-    status: "Open",
+    status: data.assigned_to ? "In Progress" : "Open",
     created_by: createdByUserId || null,
   });
 
@@ -325,7 +614,30 @@ export async function createTicket(data: CreateTicketInput, createdByUserId?: st
 
   if (!created) throw new Error("Failed to create ticket");
 
-  return enrichTicket(created as unknown as Record<string, unknown>);
+  const ticketData = enrichTicket(created as unknown as Record<string, unknown>);
+
+  sendRequestorEmail(
+    ticket_no,
+    data.title,
+    data.priority || "Low",
+    data.email
+  ).catch(() => {});
+
+  if (data.assigned_to) {
+    const assignee = await UserModel.findById(data.assigned_to).lean();
+    if (assignee) {
+      const assigneeEmail = (assignee as unknown as { email: string }).email;
+      sendAssigneeEmail(
+        ticket_no,
+        data.title,
+        data.priority || "Low",
+        assigneeEmail,
+        data.name
+      ).catch(() => {});
+    }
+  }
+
+  return ticketData;
 }
 
 export async function updateTicket(
@@ -334,6 +646,23 @@ export async function updateTicket(
   updatedByUserId?: string | null
 ): Promise<Ticket> {
   await connectDB();
+
+  const oldTicket = await TicketModel.findById(id).lean();
+  if (!oldTicket) throw new Error("Ticket not found");
+
+  const oldStatus = oldTicket.status as string;
+  const oldAssignedTo = oldTicket.assigned_to ? (oldTicket.assigned_to as { toString(): string }).toString() : null;
+  const oldEmail = oldTicket.email as string;
+  const oldTitle = oldTicket.title as string;
+  const ticket_no = oldTicket.ticket_no as string;
+
+  let updatedByName = "System";
+  if (updatedByUserId) {
+    const updater = await UserModel.findById(updatedByUserId).lean();
+    if (updater) {
+      updatedByName = `${(updater as unknown as { first_name: string }).first_name} ${(updater as unknown as { last_name: string }).last_name}`.trim();
+    }
+  }
 
   const updateData: Record<string, unknown> = {};
   if (data.name !== undefined) updateData.name = data.name;
@@ -360,7 +689,65 @@ export async function updateTicket(
 
   if (!ticket) throw new Error("Ticket not found");
 
-  return enrichTicket(ticket as unknown as Record<string, unknown>);
+  const ticketData = enrichTicket(ticket as unknown as Record<string, unknown>);
+
+  const newStatus = data.status !== undefined ? data.status : oldStatus;
+  const newAssignedTo = data.assigned_to !== undefined ? (data.assigned_to || null) : oldAssignedTo;
+  const statusChanged = data.status !== undefined && data.status !== oldStatus;
+  const assigneeChanged = data.assigned_to !== undefined && newAssignedTo !== oldAssignedTo;
+
+  const requestorEmail = data.email || oldEmail;
+  const ticketTitle = data.title || oldTitle;
+  const ticketPriority = data.priority || (oldTicket.priority as string);
+
+  if (statusChanged) {
+    sendTicketStatusChangedEmail(
+      ticket_no,
+      ticketTitle,
+      requestorEmail,
+      oldStatus,
+      newStatus!,
+      updatedByName
+    ).catch(() => {});
+  } else {
+    const changes: string[] = [];
+    if (data.name !== undefined) changes.push("Name");
+    if (data.email !== undefined) changes.push("Email");
+    if (data.title !== undefined) changes.push("Title");
+    if (data.description !== undefined) changes.push("Description");
+    if (data.category_id !== undefined) changes.push("Category");
+    if (data.priority !== undefined) changes.push("Priority");
+    if (data.asset_id !== undefined) changes.push("Asset");
+    if (data.attachments !== undefined) changes.push("Attachments");
+
+    if (changes.length > 0) {
+      sendTicketUpdatedEmail(
+        ticket_no,
+        ticketTitle,
+        requestorEmail,
+        updatedByName,
+        changes
+      ).catch(() => {});
+    }
+  }
+
+  if (assigneeChanged && newAssignedTo) {
+    const assignee = await UserModel.findById(newAssignedTo).lean();
+    if (assignee) {
+      const assigneeEmail = (assignee as unknown as { email: string }).email;
+      const requestorName = data.name || oldTicket.name as string;
+      sendNewAssigneeEmail(
+        ticket_no,
+        ticketTitle,
+        ticketPriority,
+        assigneeEmail,
+        requestorName,
+        updatedByName
+      ).catch(() => {});
+    }
+  }
+
+  return ticketData;
 }
 
 export async function deleteTicket(id: string, deletedByUserId?: string | null, reason?: string): Promise<void> {
@@ -389,23 +776,34 @@ export async function restoreTicket(id: string): Promise<void> {
 
 export async function getTicketSelectOptions(): Promise<{
   categories: { id: string; name: string }[];
-  assets: { id: string; barcode: string }[];
+  assets: { id: string; barcode: string; itemName: string }[];
   users: { id: string; name: string }[];
 }> {
   await connectDB();
 
   const { TicketCategory: TicketCategoryModel } = await import("@/lib/db/models/ticket-category");
   const { Asset: AssetModel } = await import("@/lib/db/models/asset");
+  await import("@/lib/db/models/item");
 
-  const [categories, assets, users] = await Promise.all([
+  const assignableRoles = await RoleModel.find({ name: { $in: ["Administrator", "Technician"] }, deleted_at: null }).lean();
+  const assignableRoleIds = assignableRoles.map((r) => r._id);
+
+  const [categories, rawAssets, users] = await Promise.all([
     TicketCategoryModel.find({ deleted_at: null, status: "Active" }).select("name").sort({ name: 1 }).lean(),
-    AssetModel.find({ deleted_at: null }).select("barcode").sort({ barcode: 1 }).lean(),
-    UserModel.find({ deleted_at: null, status: "Active" }).select("first_name last_name").sort({ last_name: 1, first_name: 1 }).lean(),
+    AssetModel.find({ deleted_at: null }).populate("item_id", "name").sort({ barcode: 1 }).lean(),
+    UserModel.find({ deleted_at: null, status: "Active", role_id: { $in: assignableRoleIds } }).select("first_name last_name").sort({ last_name: 1, first_name: 1 }).lean(),
   ]);
 
   return {
     categories: categories.map((c) => ({ id: (c._id as { toString(): string }).toString(), name: c.name })),
-    assets: assets.map((a) => ({ id: (a._id as { toString(): string }).toString(), barcode: a.barcode })),
+    assets: rawAssets.map((a) => {
+      const item = a.item_id as unknown as { name?: string } | null;
+      return {
+        id: (a._id as { toString(): string }).toString(),
+        barcode: a.barcode,
+        itemName: item?.name ?? "Unknown Item",
+      };
+    }),
     users: users.map((u) => ({ id: (u._id as { toString(): string }).toString(), name: `${u.first_name} ${u.last_name}`.trim() })),
   };
 }

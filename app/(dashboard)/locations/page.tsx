@@ -94,10 +94,10 @@ export default function LocationsPage() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (reason: string) => {
     if (deleteLocationItem) {
       try {
-        await deleteLocation(deleteLocationItem.id);
+        await deleteLocation(deleteLocationItem.id, reason || undefined);
         toast.success(`${deleteLocationItem.name} has been deleted`);
         setDeleteLocationItem(null);
         loadData(activeFilters);

@@ -116,3 +116,20 @@ All `SelectTrigger` components in forms must include `className="w-full"` so dro
 
 ## Select Options — Always sorted A-Z
 All dropdown option lists must be sorted alphabetically (A-Z). Sort at the database query level in the service layer using `.sort({ name: 1 })` (or equivalent field). For employee names, sort by last name then first name.
+
+## Delete Confirmation — Always Include Reason
+All delete confirmation modals must include an optional "Delete Reason" textarea field. The `onConfirm` callback must accept a `reason: string` parameter and pass it to the delete service function.
+
+**DeleteConfirmModal** pattern:
+- `onConfirm: (reason: string) => void` — callback receives the reason
+- Textarea for optional delete reason
+- Reset reason on cancel
+
+**Page handler** pattern:
+```tsx
+const handleDeleteConfirm = async (reason: string) => {
+  if (deleteItem) {
+    await deleteItem(deleteItem.id, reason || undefined);
+  }
+};
+```

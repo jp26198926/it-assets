@@ -97,10 +97,10 @@ export default function TicketCategoriesPage() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (reason: string) => {
     if (deleteTicketCategoryItem) {
       try {
-        await deleteTicketCategory(deleteTicketCategoryItem.id);
+        await deleteTicketCategory(deleteTicketCategoryItem.id, reason || undefined);
         toast.success(`${deleteTicketCategoryItem.name} has been deleted`);
         setDeleteTicketCategoryItem(null);
         const refreshed = await getTicketCategories(activeFilters);

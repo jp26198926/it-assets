@@ -94,10 +94,10 @@ export default function PermissionsPage() {
     }
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (reason: string) => {
     if (deletePermissionItem) {
       try {
-        await deletePermission(deletePermissionItem.id);
+        await deletePermission(deletePermissionItem.id, reason || undefined);
         toast.success(`${deletePermissionItem.name} has been deleted`);
         setDeletePermissionItem(null);
         loadData(activeFilters);

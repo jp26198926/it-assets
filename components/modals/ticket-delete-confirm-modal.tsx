@@ -15,21 +15,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { AlertTriangle } from "lucide-react";
 
-interface DeleteConfirmModalProps {
+interface TicketDeleteConfirmModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  assetName: string;
+  ticketNo: string;
   onConfirm: (reason: string) => void;
-  title?: string;
 }
 
-export function DeleteConfirmModal({
+export function TicketDeleteConfirmModal({
   open,
   onOpenChange,
-  assetName,
+  ticketNo,
   onConfirm,
-  title = "Delete",
-}: DeleteConfirmModalProps) {
+}: TicketDeleteConfirmModalProps) {
   const [reason, setReason] = useState("");
 
   const handleConfirm = () => {
@@ -50,10 +48,10 @@ export function DeleteConfirmModal({
             <AlertTriangle className="size-6 text-red-600" />
           </div>
           <AlertDialogTitle className="text-center text-lg">
-            {title}
+            Delete Ticket
           </AlertDialogTitle>
           <AlertDialogDescription className="text-center">
-            Are you sure you want to delete <strong className="text-foreground">{assetName}</strong>?
+            Are you sure you want to delete ticket <strong className="text-foreground">{ticketNo}</strong>?
             This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
