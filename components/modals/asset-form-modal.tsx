@@ -40,8 +40,7 @@ const defaultFormData: CreateAssetInput = {
   purchase_price: undefined,
   warranty_expiry: "",
   location_id: undefined,
-  assigned_to_employee: undefined,
-  assigned_to_department: undefined,
+
 };
 
 export function AssetFormModal({
@@ -57,12 +56,7 @@ export function AssetFormModal({
   const [locations, setLocations] = useState<{ id: string; name: string }[]>(
     [],
   );
-  const [employees, setEmployees] = useState<{ id: string; name: string }[]>(
-    [],
-  );
-  const [departments, setDepartments] = useState<
-    { id: string; name: string }[]
-  >([]);
+
   const [optionsLoading, setOptionsLoading] = useState(false);
 
   useEffect(() => {
@@ -72,8 +66,7 @@ export function AssetFormModal({
         .then((options) => {
           setItems(options.items);
           setLocations(options.locations);
-          setEmployees(options.employees);
-          setDepartments(options.departments);
+
         })
         .catch(() => {})
         .finally(() => setOptionsLoading(false));
@@ -98,8 +91,7 @@ export function AssetFormModal({
           ? new Date(asset.warranty_expiry).toISOString().split("T")[0]
           : "",
         location_id: asset.location_id || undefined,
-        assigned_to_employee: asset.assigned_to_employee || undefined,
-        assigned_to_department: asset.assigned_to_department || undefined,
+
       });
     } else {
       setFormData(defaultFormData);
@@ -129,8 +121,7 @@ export function AssetFormModal({
           purchase_price: formData.purchase_price || undefined,
           warranty_expiry: formData.warranty_expiry || undefined,
           location_id: formData.location_id || undefined,
-          assigned_to_employee: formData.assigned_to_employee || undefined,
-          assigned_to_department: formData.assigned_to_department || undefined,
+
         });
         onOpenChange(false);
       } catch {
@@ -196,7 +187,7 @@ export function AssetFormModal({
                 onChange={(e) =>
                   setFormData({ ...formData, barcode: e.target.value })
                 }
-                disabled={!asset}
+                disabled
                 placeholder={asset ? "IT2600001" : "Auto-generated"}
                 className={errors.barcode ? "border-red-500" : ""}
               />
@@ -314,72 +305,6 @@ export function AssetFormModal({
               rows={3}
             />
           </div>
-          {asset && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="assigned_to_employee">
-                  Assigned To (Employee)
-                </Label>
-                <Select
-                  value={formData.assigned_to_employee || "none"}
-                  onValueChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      assigned_to_employee:
-                        value === "none" ? undefined : value,
-                    })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={
-                        optionsLoading ? "Loading..." : "Select employee"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Unassigned</SelectItem>
-                    {employees.map((emp) => (
-                      <SelectItem key={emp.id} value={emp.id}>
-                        {emp.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="assigned_to_department">
-                  Assigned To (Department)
-                </Label>
-                <Select
-                  value={formData.assigned_to_department || "none"}
-                  onValueChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      assigned_to_department:
-                        value === "none" ? undefined : value,
-                    })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={
-                        optionsLoading ? "Loading..." : "Select department"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No Department</SelectItem>
-                    {departments.map((dept) => (
-                      <SelectItem key={dept.id} value={dept.id}>
-                        {dept.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
           {errors.submit && (
             <p className="text-sm text-red-500">{errors.submit}</p>
           )}
