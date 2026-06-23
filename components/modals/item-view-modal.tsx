@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import type { Item } from "@/lib/types/item";
 
 interface ItemViewModalProps {
@@ -130,16 +131,35 @@ export function ItemViewModal({
 
           <div>
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Image URL
+              Description
             </p>
-            <p className="text-sm mt-1 break-all">{item.image_url || "N/A"}</p>
+            <p className="text-sm mt-1">{item.description || "N/A"}</p>
           </div>
 
           <div>
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Description
+              Image URL
             </p>
-            <p className="text-sm mt-1">{item.description || "N/A"}</p>
+            {item.image_url ? (
+              <a
+                href={item.image_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 inline-block relative"
+              >
+                <div className="h-20 w-20 rounded-md bg-muted animate-pulse" />
+                <Image
+                  src={item.image_url}
+                  alt={item.name}
+                  width={80}
+                  height={80}
+                  unoptimized
+                  className="absolute inset-0 rounded-md object-cover border hover:opacity-80 transition-opacity"
+                />
+              </a>
+            ) : (
+              <p className="text-sm mt-1">N/A</p>
+            )}
           </div>
 
           <div className="py-3">
