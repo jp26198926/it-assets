@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db/connection";
 import { Asset as AssetModel } from "@/lib/db/models/asset";
+import { Counter as CounterModel } from "@/lib/db/models/counter";
 import { Item as ItemModel } from "@/lib/db/models/item";
 import { Location as LocationModel } from "@/lib/db/models/location";
 import { Employee as EmployeeModel } from "@/lib/db/models/employee";
@@ -165,28 +166,17 @@ export async function getAssetSelectOptions(): Promise<{
   };
 }
 
-export async function generateBarcode(): Promise<string> {
-  await connectDB();
-
+async function generateBarcode(): Promise<string> {
   const year = new Date().getFullYear().toString().slice(-2);
-  const pattern = `IT${year}`;
+  const counterName = `asset_${year}`;
 
-  const lastAsset = await AssetModel.findOne({
-    barcode: { $regex: `^${pattern}` },
-  })
-    .sort({ barcode: -1 })
-    .lean();
+  const counter = await CounterModel.findOneAndUpdate(
+    { name: counterName },
+    { $inc: { seq: 1 } },
+    { upsert: true, new: true }
+  );
 
-  let sequence = 1;
-  if (lastAsset) {
-    const lastBarcode = lastAsset.barcode;
-    const lastNum = parseInt(lastBarcode.slice(-5), 10);
-    if (!isNaN(lastNum)) {
-      sequence = lastNum + 1;
-    }
-  }
-
-  return `${pattern}${sequence.toString().padStart(5, "0")}`;
+  return `IT${year}${counter.seq.toString().padStart(5, "0")}`;
 }
 
 export async function getAssets(filters?: AssetFilters): Promise<Asset[]> {
@@ -264,9 +254,11 @@ export async function getAssetById(id: string): Promise<Asset | null> {
 export async function createAsset(data: CreateAssetInput): Promise<Asset> {
   await connectDB();
 
+  const barcode = data.barcode || await generateBarcode();
+
   const asset = await AssetModel.create({
     item_id: data.item_id || null,
-    barcode: data.barcode,
+    barcode,
     serial_number: data.serial_number || null,
     remarks: data.remarks || null,
     purchase_date: data.purchase_date ? new Date(data.purchase_date) : null,

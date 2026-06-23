@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getAssetSelectOptions, generateBarcode } from "@/lib/actions/asset-actions";
+import { getAssetSelectOptions } from "@/lib/actions/asset-actions";
 import type { Asset, CreateAssetInput } from "@/lib/types/asset";
 
 interface AssetFormModalProps {
@@ -53,9 +53,15 @@ export function AssetFormModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<{ id: string; name: string }[]>([]);
-  const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
-  const [employees, setEmployees] = useState<{ id: string; name: string }[]>([]);
-  const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
+  const [locations, setLocations] = useState<{ id: string; name: string }[]>(
+    [],
+  );
+  const [employees, setEmployees] = useState<{ id: string; name: string }[]>(
+    [],
+  );
+  const [departments, setDepartments] = useState<
+    { id: string; name: string }[]
+  >([]);
   const [optionsLoading, setOptionsLoading] = useState(false);
 
   useEffect(() => {
@@ -92,11 +98,6 @@ export function AssetFormModal({
         assigned_to_department: asset.assigned_to_department || undefined,
       });
     } else {
-      generateBarcode()
-        .then((barcode) => {
-          setFormData((prev) => ({ ...prev, barcode }));
-        })
-        .catch(() => {});
       setFormData(defaultFormData);
     }
     setErrors({});
@@ -104,7 +105,7 @@ export function AssetFormModal({
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.barcode) newErrors.barcode = "Barcode is required";
+    if (asset && !formData.barcode) newErrors.barcode = "Barcode is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -150,7 +151,11 @@ export function AssetFormModal({
               : "Fill in the details to add a new asset."}
           </DialogDescription>
         </DialogHeader>
-        <form id="asset-form" onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
+        <form
+          id="asset-form"
+          onSubmit={handleSubmit}
+          className="space-y-4 flex-1 overflow-y-auto min-h-0"
+        >
           <div className="space-y-2">
             <Label htmlFor="item_id">Item</Label>
             <Select
@@ -163,7 +168,9 @@ export function AssetFormModal({
               }
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={optionsLoading ? "Loading..." : "Select item"} />
+                <SelectValue
+                  placeholder={optionsLoading ? "Loading..." : "Select item"}
+                />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">No Item</SelectItem>
@@ -177,14 +184,15 @@ export function AssetFormModal({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="barcode">Barcode *</Label>
+              <Label htmlFor="barcode">Barcode {!asset && "*"}</Label>
               <Input
                 id="barcode"
-                value={formData.barcode}
+                value={asset ? formData.barcode : ""}
                 onChange={(e) =>
                   setFormData({ ...formData, barcode: e.target.value })
                 }
-                placeholder="IT2600001"
+                disabled={!asset}
+                placeholder={asset ? "IT2600001" : "Auto-generated"}
                 className={errors.barcode ? "border-red-500" : ""}
               />
               {errors.barcode && (
@@ -216,7 +224,11 @@ export function AssetFormModal({
                 }
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={optionsLoading ? "Loading..." : "Select location"} />
+                  <SelectValue
+                    placeholder={
+                      optionsLoading ? "Loading..." : "Select location"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No Location</SelectItem>
@@ -263,7 +275,9 @@ export function AssetFormModal({
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    purchase_price: e.target.value ? Number(e.target.value) : undefined,
+                    purchase_price: e.target.value
+                      ? Number(e.target.value)
+                      : undefined,
                   })
                 }
                 placeholder="0.00"
@@ -285,18 +299,25 @@ export function AssetFormModal({
           {asset && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="assigned_to_employee">Assigned To (Employee)</Label>
+                <Label htmlFor="assigned_to_employee">
+                  Assigned To (Employee)
+                </Label>
                 <Select
                   value={formData.assigned_to_employee || "none"}
                   onValueChange={(value) =>
                     setFormData({
                       ...formData,
-                      assigned_to_employee: value === "none" ? undefined : value,
+                      assigned_to_employee:
+                        value === "none" ? undefined : value,
                     })
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder={optionsLoading ? "Loading..." : "Select employee"} />
+                    <SelectValue
+                      placeholder={
+                        optionsLoading ? "Loading..." : "Select employee"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Unassigned</SelectItem>
@@ -309,18 +330,25 @@ export function AssetFormModal({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="assigned_to_department">Assigned To (Department)</Label>
+                <Label htmlFor="assigned_to_department">
+                  Assigned To (Department)
+                </Label>
                 <Select
                   value={formData.assigned_to_department || "none"}
                   onValueChange={(value) =>
                     setFormData({
                       ...formData,
-                      assigned_to_department: value === "none" ? undefined : value,
+                      assigned_to_department:
+                        value === "none" ? undefined : value,
                     })
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder={optionsLoading ? "Loading..." : "Select department"} />
+                    <SelectValue
+                      placeholder={
+                        optionsLoading ? "Loading..." : "Select department"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No Department</SelectItem>

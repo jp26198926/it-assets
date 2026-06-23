@@ -29,7 +29,7 @@ export interface Asset {
 
 export interface CreateAssetInput {
   item_id?: string;
-  barcode: string;
+  barcode?: string;
   serial_number?: string;
   remarks?: string;
   purchase_date?: string;

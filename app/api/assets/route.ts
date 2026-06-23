@@ -33,9 +33,6 @@ export async function POST(request: NextRequest) {
     if (error) return error;
 
     const body = await request.json();
-    if (!body.barcode || typeof body.barcode !== "string") {
-      return apiError("barcode is required", 400);
-    }
 
     const asset = await assetService.createAsset({
       item_id: body.item_id,

@@ -35,7 +35,3 @@ export async function getAssetSelectOptions(): Promise<{
 }> {
   return assetService.getAssetSelectOptions();
 }
-
-export async function generateBarcode(): Promise<string> {
-  return assetService.generateBarcode();
-}
