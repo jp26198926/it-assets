@@ -1,0 +1,411 @@
+import { connectDB } from "@/lib/db/connection";
+import { Ticket as TicketModel } from "@/lib/db/models/ticket";
+import { Counter as CounterModel } from "@/lib/db/models/counter";
+import { User as UserModel } from "@/lib/db/models/user";
+import { Role as RoleModel } from "@/lib/db/models/role";
+import { getMailSettings } from "./mail-service";
+import bcrypt from "bcryptjs";
+import nodemailer from "nodemailer";
+import type { CreateTicketInput, UpdateTicketInput, TicketFilters, Ticket } from "@/lib/types/ticket";
+
+function toTicket(d: Record<string, unknown>): Ticket {
+  const createdByVal = d.created_by as unknown as
+    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | string
+    | null;
+  let created_by: string | null = null;
+  let created_by_name: string | undefined;
+  if (createdByVal && typeof createdByVal === "object" && "_id" in createdByVal) {
+    created_by = createdByVal._id.toString();
+    created_by_name = `${createdByVal.first_name} ${createdByVal.last_name}`.trim();
+  } else if (typeof createdByVal === "string") {
+    created_by = createdByVal;
+  }
+
+  const updatedByVal = d.updated_by as unknown as
+    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | string
+    | null;
+  let updated_by: string | null = null;
+  let updated_by_name: string | undefined;
+  if (updatedByVal && typeof updatedByVal === "object" && "_id" in updatedByVal) {
+    updated_by = updatedByVal._id.toString();
+    updated_by_name = `${updatedByVal.first_name} ${updatedByVal.last_name}`.trim();
+  } else if (typeof updatedByVal === "string") {
+    updated_by = updatedByVal;
+  }
+
+  const deletedByVal = d.deleted_by as unknown as
+    | { _id: { toString(): string }; first_name: string; last_name: string }
+    | string
+    | null;
+  let deleted_by: string | null = null;
+  let deleted_by_name: string | undefined;
+  if (deletedByVal && typeof deletedByVal === "object" && "_id" in deletedByVal) {
+    deleted_by = deletedByVal._id.toString();
+    deleted_by_name = `${deletedByVal.first_name} ${deletedByVal.last_name}`.trim();
+  } else if (typeof deletedByVal === "string") {
+    deleted_by = deletedByVal;
+  }
+
+  const categoryId = d.category_id as unknown as { _id: { toString(): string }; name: string } | string;
+  let category_id: string;
+  let category_name: string | undefined;
+  if (typeof categoryId === "string") {
+    category_id = categoryId;
+  } else {
+    category_id = categoryId._id.toString();
+    category_name = categoryId.name;
+  }
+
+  const assetId = d.asset_id as unknown as { _id: { toString(): string }; barcode?: string; item_name?: string } | string | null;
+  let asset_id: string | null = null;
+  let asset_name: string | undefined;
+  if (assetId && typeof assetId === "object" && "_id" in assetId) {
+    asset_id = assetId._id.toString();
+    asset_name = assetId.barcode || assetId.item_name;
+  } else if (typeof assetId === "string") {
+    asset_id = assetId;
+  }
+
+  const assignedToVal = d.assigned_to as unknown as { _id: { toString(): string }; first_name: string; last_name: string } | string | null;
+  let assigned_to: string | null = null;
+  let assigned_to_name: string | undefined;
+  if (assignedToVal && typeof assignedToVal === "object" && "_id" in assignedToVal) {
+    assigned_to = assignedToVal._id.toString();
+    assigned_to_name = `${assignedToVal.first_name} ${assignedToVal.last_name}`.trim();
+  } else if (typeof assignedToVal === "string") {
+    assigned_to = assignedToVal;
+  }
+
+  const requestorVal = d.requestor_id as unknown as { _id: { toString(): string }; first_name: string; last_name: string } | string | null;
+  let requestor_id: string | null = null;
+  let requestor_name: string | undefined;
+  if (requestorVal && typeof requestorVal === "object" && "_id" in requestorVal) {
+    requestor_id = requestorVal._id.toString();
+    requestor_name = `${requestorVal.first_name} ${requestorVal.last_name}`.trim();
+  } else if (typeof requestorVal === "string") {
+    requestor_id = requestorVal;
+  }
+
+  return {
+    id: (d._id as { toString(): string }).toString(),
+    ticket_no: d.ticket_no as string,
+    name: d.name as string,
+    email: d.email as string,
+    requestor_id,
+    requestor_name,
+    title: d.title as string,
+    description: d.description as string,
+    category_id,
+    category_name,
+    priority: d.priority as "Low" | "Medium" | "High" | "Critical",
+    asset_id,
+    asset_name,
+    assigned_to,
+    assigned_to_name,
+    attachments: (d.attachments as string[]) || [],
+    status: d.status as "Open" | "In Progress" | "Resolved" | "Closed" | "Deleted",
+    created_at: d.created_at as Date,
+    created_by,
+    created_by_name,
+    updated_at: (d.updated_at as Date) ?? null,
+    updated_by,
+    updated_by_name,
+    deleted_at: (d.deleted_at as Date) ?? null,
+    deleted_by,
+    deleted_by_name,
+    deleted_reason: (d.deleted_reason as string) ?? null,
+  };
+}
+
+async function generateTicketNo(): Promise<string> {
+  await connectDB();
+
+  const counter = await CounterModel.findOneAndUpdate(
+    { name: "ticket_no" },
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true }
+  ).lean();
+
+  const seq = (counter as unknown as { seq: number }).seq;
+  return `TK-${String(seq).padStart(6, "0")}`;
+}
+
+function generateRandomPassword(length = 12): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+}
+
+async function sendWelcomeEmail(email: string, password: string): Promise<void> {
+  const settings = await getMailSettings();
+
+  if (!settings.smtp_host) {
+    console.log(`[TICKET] Auto-registered user - Email: ${email}, Password: ${password}`);
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: settings.smtp_host,
+    port: settings.smtp_port,
+    secure: settings.smtp_secure,
+    auth: settings.smtp_user
+      ? { user: settings.smtp_user, pass: settings.smtp_pass }
+      : undefined,
+  });
+
+  const appName = "IT Asset Manager";
+
+  await transporter.sendMail({
+    from: `"${settings.sender_name || appName}" <${settings.smtp_from}>`,
+    to: email,
+    subject: `Welcome to ${appName} - Your Account Has Been Created`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: #3b82f6; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0; font-size: 24px;">${appName}</h1>
+        </div>
+        <div style="padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0;">
+          <h2 style="color: #1a1f36; margin-top: 0;">Welcome!</h2>
+          <p style="color: #475569; line-height: 1.6;">
+            An account has been created for you on <strong>${appName}</strong> because a support ticket was submitted using your email address.
+          </p>
+          <div style="background: #f0f4f8; padding: 15px; border-radius: 4px; margin: 20px 0;">
+            <p style="margin: 5px 0; color: #475569;"><strong>Email:</strong> ${email}</p>
+            <p style="margin: 5px 0; color: #475569;"><strong>Password:</strong> ${password}</p>
+          </div>
+          <p style="color: #475569; line-height: 1.6;">
+            You can now log in using these credentials. Please change your password after your first login for security.
+          </p>
+          <p style="color: #94a3b8; font-size: 12px; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+            If you did not expect this email, please disregard it.
+          </p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+async function resolveRequestorId(email: string): Promise<string | null> {
+  await connectDB();
+
+  const existingUser = await UserModel.findOne({ email }).lean();
+  if (existingUser) {
+    return (existingUser._id as { toString(): string }).toString();
+  }
+
+  const viewerRole = await RoleModel.findOne({ name: "Viewer" }).lean();
+  if (!viewerRole) {
+    throw new Error("Viewer role not found for auto-registration");
+  }
+
+  const emailPrefix = email.split("@")[0];
+  const firstName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+  const password = generateRandomPassword();
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  const newUser = await UserModel.create({
+    first_name: firstName,
+    last_name: " ",
+    email,
+    password_hash: passwordHash,
+    role_id: viewerRole._id,
+    status: "Active",
+    is_verified: true,
+    email_verified_at: new Date(),
+  });
+
+  await sendWelcomeEmail(email, password);
+
+  return (newUser._id as { toString(): string }).toString();
+}
+
+async function enrichTicket(d: Record<string, unknown>): Promise<Ticket> {
+  const ticket = toTicket(d);
+  return ticket;
+}
+
+function populateQuery(query: ReturnType<typeof TicketModel.find>) {
+  return query
+    .populate("category_id", "name")
+    .populate("asset_id", "barcode item_name")
+    .populate("assigned_to", "first_name last_name")
+    .populate("requestor_id", "first_name last_name")
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name");
+}
+
+export async function getTickets(filters?: TicketFilters): Promise<Ticket[]> {
+  await connectDB();
+
+  const query: Record<string, unknown> = {};
+
+  if (filters?.search) {
+    query.$or = [
+      { ticket_no: { $regex: filters.search, $options: "i" } },
+      { title: { $regex: filters.search, $options: "i" } },
+      { name: { $regex: filters.search, $options: "i" } },
+      { email: { $regex: filters.search, $options: "i" } },
+    ];
+  }
+
+  if (filters?.name) {
+    query.name = { $regex: filters.name, $options: "i" };
+  }
+
+  if (filters?.email) {
+    query.email = { $regex: filters.email, $options: "i" };
+  }
+
+  if (filters?.ticket_no) {
+    query.ticket_no = { $regex: filters.ticket_no, $options: "i" };
+  }
+
+  if (filters?.category_id) {
+    query.category_id = filters.category_id;
+  }
+
+  if (filters?.priority) {
+    query.priority = filters.priority;
+  }
+
+  if (filters?.status) {
+    query.status = filters.status;
+  }
+
+  if (filters?.assigned_to) {
+    query.assigned_to = filters.assigned_to;
+  }
+
+  const tickets = await populateQuery(
+    TicketModel.find(query).sort({ created_at: -1 })
+  ).lean();
+
+  return Promise.all(tickets.map((d) => enrichTicket(d as unknown as Record<string, unknown>)));
+}
+
+export async function getTicketById(id: string): Promise<Ticket | null> {
+  await connectDB();
+
+  const ticket = await populateQuery(TicketModel.findById(id)).lean();
+
+  if (!ticket) return null;
+
+  return enrichTicket(ticket as unknown as Record<string, unknown>);
+}
+
+export async function createTicket(data: CreateTicketInput, createdByUserId?: string | null): Promise<Ticket> {
+  await connectDB();
+
+  const ticket_no = await generateTicketNo();
+  const requestor_id = await resolveRequestorId(data.email);
+
+  const ticket = await TicketModel.create({
+    ticket_no,
+    name: data.name,
+    email: data.email,
+    requestor_id: requestor_id || null,
+    title: data.title,
+    description: data.description,
+    category_id: data.category_id,
+    priority: data.priority || "Low",
+    asset_id: data.asset_id || null,
+    assigned_to: data.assigned_to || null,
+    attachments: data.attachments || [],
+    status: "Open",
+    created_by: createdByUserId || null,
+  });
+
+  const created = await populateQuery(TicketModel.findById(ticket._id)).lean();
+
+  if (!created) throw new Error("Failed to create ticket");
+
+  return enrichTicket(created as unknown as Record<string, unknown>);
+}
+
+export async function updateTicket(
+  id: string,
+  data: UpdateTicketInput,
+  updatedByUserId?: string | null
+): Promise<Ticket> {
+  await connectDB();
+
+  const updateData: Record<string, unknown> = {};
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.email !== undefined) updateData.email = data.email;
+  if (data.title !== undefined) updateData.title = data.title;
+  if (data.description !== undefined) updateData.description = data.description;
+  if (data.category_id !== undefined) updateData.category_id = data.category_id;
+  if (data.priority !== undefined) updateData.priority = data.priority;
+  if (data.asset_id !== undefined) updateData.asset_id = data.asset_id || null;
+  if (data.assigned_to !== undefined) updateData.assigned_to = data.assigned_to || null;
+  if (data.status !== undefined) updateData.status = data.status;
+  if (data.attachments !== undefined) updateData.attachments = data.attachments;
+  if (updatedByUserId) updateData.updated_by = updatedByUserId;
+  updateData.updated_at = new Date();
+
+  if (data.email) {
+    const requestor_id = await resolveRequestorId(data.email);
+    updateData.requestor_id = requestor_id || null;
+  }
+
+  const ticket = await populateQuery(
+    TicketModel.findByIdAndUpdate(id, updateData, { new: true })
+  ).lean();
+
+  if (!ticket) throw new Error("Ticket not found");
+
+  return enrichTicket(ticket as unknown as Record<string, unknown>);
+}
+
+export async function deleteTicket(id: string, deletedByUserId?: string | null, reason?: string): Promise<void> {
+  await connectDB();
+
+  await TicketModel.findByIdAndUpdate(id, {
+    deleted_at: new Date(),
+    deleted_by: deletedByUserId || null,
+    deleted_reason: reason || null,
+    status: "Deleted",
+    updated_at: new Date(),
+  });
+}
+
+export async function restoreTicket(id: string): Promise<void> {
+  await connectDB();
+
+  await TicketModel.findByIdAndUpdate(id, {
+    deleted_at: null,
+    deleted_by: null,
+    deleted_reason: null,
+    status: "Open",
+    updated_at: new Date(),
+  });
+}
+
+export async function getTicketSelectOptions(): Promise<{
+  categories: { id: string; name: string }[];
+  assets: { id: string; barcode: string }[];
+  users: { id: string; name: string }[];
+}> {
+  await connectDB();
+
+  const { TicketCategory: TicketCategoryModel } = await import("@/lib/db/models/ticket-category");
+  const { Asset: AssetModel } = await import("@/lib/db/models/asset");
+
+  const [categories, assets, users] = await Promise.all([
+    TicketCategoryModel.find({ deleted_at: null, status: "Active" }).select("name").sort({ name: 1 }).lean(),
+    AssetModel.find({ deleted_at: null }).select("barcode").sort({ barcode: 1 }).lean(),
+    UserModel.find({ deleted_at: null, status: "Active" }).select("first_name last_name").sort({ last_name: 1, first_name: 1 }).lean(),
+  ]);
+
+  return {
+    categories: categories.map((c) => ({ id: (c._id as { toString(): string }).toString(), name: c.name })),
+    assets: assets.map((a) => ({ id: (a._id as { toString(): string }).toString(), barcode: a.barcode })),
+    users: users.map((u) => ({ id: (u._id as { toString(): string }).toString(), name: `${u.first_name} ${u.last_name}`.trim() })),
+  };
+}
