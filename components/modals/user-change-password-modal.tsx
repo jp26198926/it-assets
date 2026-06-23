@@ -73,7 +73,7 @@ export function UserChangePasswordModal({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="w-fit max-h-[85vh] overflow-y-auto max-w-[90vw] sm:max-w-[70vw]"
+        className="w-fit flex flex-col max-h-[85vh] max-w-[90vw] sm:max-w-[70vw]"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
@@ -83,7 +83,7 @@ export function UserChangePasswordModal({
             Set a new password for <strong>{userName}</strong>.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
           <div className="space-y-2">
             <Label htmlFor="new-password">New Password *</Label>
             <div className="relative">

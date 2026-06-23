@@ -146,7 +146,7 @@ export function RolePermissionModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-h-[85vh] overflow-y-auto sm:max-w-2xl"
+        className="flex flex-col max-h-[85vh] sm:max-w-2xl"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
@@ -160,7 +160,7 @@ export function RolePermissionModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 overflow-y-auto min-h-0">
           <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-1">
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">

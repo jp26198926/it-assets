@@ -346,7 +346,7 @@ export function ProfileModal({
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="w-fit max-h-[85vh] overflow-y-auto max-w-[90vw] sm:max-w-[500px]"
+        className="w-fit flex flex-col max-h-[85vh] max-w-[90vw] sm:max-w-[500px]"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
@@ -357,7 +357,7 @@ export function ProfileModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5">
+        <div className="space-y-5 flex-1 overflow-y-auto min-h-0">
           <div className="flex flex-col items-center gap-4">
             <div className="relative group">
               {avatarUrl ? (

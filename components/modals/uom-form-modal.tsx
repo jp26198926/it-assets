@@ -74,7 +74,7 @@ export function UOMFormModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-4xl max-h-[85vh] overflow-y-auto"
+        className="max-w-4xl flex flex-col max-h-[85vh]"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
@@ -86,7 +86,7 @@ export function UOMFormModal({
               : "Fill in the details to add a new UOM."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
           <div className="space-y-2">
             <Label htmlFor="code">Code *</Label>
             <Input

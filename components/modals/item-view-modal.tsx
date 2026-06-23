@@ -39,7 +39,7 @@ export function ItemViewModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-2xl"
+        className="max-w-2xl flex flex-col max-h-[85vh]"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
@@ -67,7 +67,7 @@ export function ItemViewModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="rounded-xl bg-muted/30 p-4 space-y-4">
+        <div className="rounded-xl bg-muted/30 p-4 space-y-4 flex-1 overflow-y-auto min-h-0">
           <div>
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Name

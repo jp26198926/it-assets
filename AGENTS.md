@@ -75,3 +75,12 @@ Example JSX structure:
   </div>
 </div>
 ```
+
+## Modal — Scrollable Content Pattern
+All modals (form and view) must support scrollable content when content exceeds the viewport height, while keeping the header and footer fixed.
+
+Apply these classes:
+- **DialogContent**: `flex flex-col max-h-[85vh]`
+- **Content area** (the div between DialogHeader and DialogFooter): `flex-1 overflow-y-auto min-h-0`
+
+This ensures the header and footer remain pinned while only the middle content scrolls.

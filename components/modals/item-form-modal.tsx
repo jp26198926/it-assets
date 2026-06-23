@@ -166,7 +166,7 @@ export function ItemFormModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-4xl max-h-[85vh] overflow-y-auto"
+        className="max-w-4xl flex flex-col max-h-[85vh]"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
@@ -181,7 +181,7 @@ export function ItemFormModal({
 
         <hr className="mt-3" />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
           {item && (
             <div className="space-y-2">
               <Label htmlFor="item_code">
