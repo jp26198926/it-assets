@@ -6,6 +6,7 @@ import { Location as LocationModel } from "@/lib/db/models/location";
 import { Employee as EmployeeModel } from "@/lib/db/models/employee";
 import { Department as DepartmentModel } from "@/lib/db/models/department";
 import { Category as CategoryModel } from "@/lib/db/models/category";
+import { UOM as UOMModel } from "@/lib/db/models/uom";
 import type { CreateAssetInput, UpdateAssetInput, AssetFilters, Asset } from "@/lib/types/asset";
 
 function toAsset(d: Record<string, unknown>): Asset {
@@ -213,7 +214,8 @@ async function generateBarcode(): Promise<string> {
 
 export async function getAssets(filters?: AssetFilters): Promise<Asset[]> {
   await connectDB();
-  void CategoryModel;
+  await import("@/lib/db/models/category");
+  await import("@/lib/db/models/uom");
 
   const query: Record<string, unknown> = {};
 
@@ -268,6 +270,8 @@ export async function getAssets(filters?: AssetFilters): Promise<Asset[]> {
 
 export async function getAssetById(id: string): Promise<Asset | null> {
   await connectDB();
+  await import("@/lib/db/models/category");
+  await import("@/lib/db/models/uom");
 
   const asset = await AssetModel.findById(id)
     .populate({ path: "item_id", select: "name item_code brand model description category_id uom_id", populate: [{ path: "category_id", select: "name" }, { path: "uom_id", select: "name code" }] })
@@ -286,6 +290,8 @@ export async function getAssetById(id: string): Promise<Asset | null> {
 
 export async function createAsset(data: CreateAssetInput): Promise<Asset> {
   await connectDB();
+  await import("@/lib/db/models/category");
+  await import("@/lib/db/models/uom");
 
   const barcode = data.barcode || await generateBarcode();
 
@@ -321,6 +327,8 @@ export async function createAsset(data: CreateAssetInput): Promise<Asset> {
 
 export async function updateAsset(id: string, data: UpdateAssetInput): Promise<Asset> {
   await connectDB();
+  await import("@/lib/db/models/category");
+  await import("@/lib/db/models/uom");
 
   const updateData: Record<string, unknown> = {};
   if (data.item_id !== undefined) updateData.item_id = data.item_id || null;

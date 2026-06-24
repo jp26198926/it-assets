@@ -12,6 +12,7 @@ export interface ITicket extends Document, BaseAuditFields {
   department_id: Types.ObjectId | null;
   priority: "Low" | "Medium" | "High" | "Critical";
   asset_id: Types.ObjectId | null;
+  asset_status: string | null;
   assigned_to: Types.ObjectId | null;
   attachments: string[];
   status: "Open" | "In Progress" | "Resolved" | "Closed" | "Deleted";
@@ -63,6 +64,10 @@ const TicketSchema = new Schema<ITicket>({
   asset_id: {
     type: Schema.Types.ObjectId,
     ref: "Asset",
+    default: null,
+  },
+  asset_status: {
+    type: String,
     default: null,
   },
   assigned_to: {

@@ -1274,6 +1274,16 @@ export default function TicketDetailPage() {
                           : "N/A"}
                       </span>
                     </div>
+                    {ticket.asset_status && (
+                      <div className="flex items-start justify-between">
+                        <span className="text-xs text-[#64748b]">
+                          Asset status before repair
+                        </span>
+                        <span className="text-sm font-medium text-[#1a1f36]">
+                          {ticket.asset_status}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </CollapsibleContent>
               </div>

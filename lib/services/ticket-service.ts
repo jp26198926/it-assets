@@ -118,6 +118,7 @@ function toTicket(d: Record<string, unknown>): Ticket {
     priority: d.priority as "Low" | "Medium" | "High" | "Critical",
     asset_id,
     asset_name,
+    asset_status: (d.asset_status as string) ?? null,
     assigned_to,
     assigned_to_name,
     attachments: (d.attachments as string[]) || [],
@@ -619,6 +620,15 @@ export async function createTicket(data: CreateTicketInput, createdByUserId?: st
   const ticket_no = await generateTicketNo();
   const requestor_id = await resolveRequestorId(data.email);
 
+  let asset_status: string | null = null;
+  if (data.asset_id) {
+    const asset = await AssetModel.findById(data.asset_id).lean();
+    if (asset) {
+      asset_status = (asset as unknown as { status: string }).status;
+      await AssetModel.findByIdAndUpdate(data.asset_id, { status: "Repair" });
+    }
+  }
+
   const ticket = await TicketModel.create({
     ticket_no,
     name: data.name,
@@ -630,6 +640,7 @@ export async function createTicket(data: CreateTicketInput, createdByUserId?: st
     department_id: data.department_id || null,
     priority: data.priority || "Low",
     asset_id: data.asset_id || null,
+    asset_status,
     assigned_to: data.assigned_to || null,
     attachments: data.attachments || [],
     status: data.assigned_to ? "In Progress" : "Open",
@@ -736,6 +747,16 @@ export async function updateTicket(
   const ticketPriority = data.priority || (oldTicket.priority as string);
 
   if (statusChanged) {
+    if (
+      (newStatus === "Resolved" || newStatus === "Closed") &&
+      oldTicket.asset_id &&
+      oldTicket.asset_status
+    ) {
+      await AssetModel.findByIdAndUpdate(oldTicket.asset_id, {
+        status: oldTicket.asset_status,
+      });
+    }
+
     sendTicketStatusChangedEmail(
       ticket_no,
       ticketTitle,
@@ -883,7 +904,7 @@ export async function getTicketSelectOptions(): Promise<{
   const [categories, departments, rawAssets, users] = await Promise.all([
     TicketCategoryModel.find({ deleted_at: null, status: "Active" }).select("name").sort({ name: 1 }).lean(),
     DepartmentModel.find({ deleted_at: null, status: "Active" }).select("name").sort({ name: 1 }).lean(),
-    AssetModel.find({ deleted_at: null }).populate("item_id", "name").sort({ barcode: 1 }).lean(),
+    AssetModel.find({ deleted_at: null, status: { $ne: "Repair" } }).populate("item_id", "name").sort({ barcode: 1 }).lean(),
     UserModel.find({ deleted_at: null, status: "Active", role_id: { $in: assignableRoleIds } }).select("first_name last_name").sort({ last_name: 1, first_name: 1 }).lean(),
   ]);
 

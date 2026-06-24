@@ -14,6 +14,7 @@ export interface Ticket {
   priority: "Low" | "Medium" | "High" | "Critical";
   asset_id: string | null;
   asset_name?: string;
+  asset_status: string | null;
   assigned_to: string | null;
   assigned_to_name?: string;
   attachments: string[];
