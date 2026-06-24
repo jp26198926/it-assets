@@ -4,6 +4,7 @@ import { Counter as CounterModel } from "@/lib/db/models/counter";
 import { User as UserModel } from "@/lib/db/models/user";
 import { Role as RoleModel } from "@/lib/db/models/role";
 import { getMailSettings } from "./mail-service";
+import { createTicketStatusLog } from "./ticket-status-log-service";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
 import type { CreateTicketInput, UpdateTicketInput, TicketFilters, Ticket } from "@/lib/types/ticket";
@@ -637,6 +638,14 @@ export async function createTicket(data: CreateTicketInput, createdByUserId?: st
     }
   }
 
+  createTicketStatusLog({
+    ticket_id: ticket.id,
+    old_status: "",
+    new_status: ticket.status,
+    remarks: "Ticket created",
+    created_by: createdByUserId || null,
+  }).catch(() => {});
+
   return ticketData;
 }
 
@@ -709,6 +718,14 @@ export async function updateTicket(
       newStatus!,
       updatedByName
     ).catch(() => {});
+
+    createTicketStatusLog({
+      ticket_id: id,
+      old_status: oldStatus,
+      new_status: newStatus!,
+      remarks: `Status changed from ${oldStatus} to ${newStatus}`,
+      created_by: updatedByUserId || null,
+    }).catch(() => {});
   } else {
     const changes: string[] = [];
     if (data.name !== undefined) changes.push("Name");
@@ -753,6 +770,9 @@ export async function updateTicket(
 export async function deleteTicket(id: string, deletedByUserId?: string | null, reason?: string): Promise<void> {
   await connectDB();
 
+  const oldTicket = await TicketModel.findById(id).lean();
+  const oldStatus = oldTicket ? (oldTicket.status as string) : "Unknown";
+
   await TicketModel.findByIdAndUpdate(id, {
     deleted_at: new Date(),
     deleted_by: deletedByUserId || null,
@@ -760,6 +780,14 @@ export async function deleteTicket(id: string, deletedByUserId?: string | null, 
     status: "Deleted",
     updated_at: new Date(),
   });
+
+  createTicketStatusLog({
+    ticket_id: id,
+    old_status: oldStatus,
+    new_status: "Deleted",
+    remarks: reason ? `Ticket deleted: ${reason}` : "Ticket deleted",
+    created_by: deletedByUserId || null,
+  }).catch(() => {});
 }
 
 export async function restoreTicket(id: string): Promise<void> {
@@ -776,6 +804,13 @@ export async function restoreTicket(id: string): Promise<void> {
     status: newStatus,
     updated_at: new Date(),
   });
+
+  createTicketStatusLog({
+    ticket_id: id,
+    old_status: "Deleted",
+    new_status: newStatus,
+    remarks: "Ticket restored",
+  }).catch(() => {});
 }
 
 export async function getTicketSelectOptions(): Promise<{

@@ -36,8 +36,9 @@ import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
 import { TicketUpdateStatusModal } from "@/components/modals/ticket-update-status-modal";
 import { TicketEditModal } from "@/components/modals/ticket-edit-modal";
-import { getTicketById, updateTicket, getActiveTicketCategories } from "@/lib/actions/ticket-actions";
+import { getTicketById, updateTicket, getActiveTicketCategories, getTicketStatusLogs, getTicketStatusLogTotal } from "@/lib/actions/ticket-actions";
 import type { Ticket } from "@/lib/types/ticket";
+import type { TicketStatusLog } from "@/lib/types/ticket-status-log";
 import { toast } from "sonner";
 
 const priorityConfig: Record<string, { bg: string; text: string }> = {
@@ -66,6 +67,10 @@ export default function TicketDetailPage() {
   const [replyContent, setReplyContent] = useState("");
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [statusLogs, setStatusLogs] = useState<TicketStatusLog[]>([]);
+  const [logTotal, setLogTotal] = useState(0);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const LOG_PAGE_SIZE = 5;
   const [resolveConfirmOpen, setResolveConfirmOpen] = useState(false);
   const [selectOptions, setSelectOptions] = useState<{
     categories: { id: string; name: string }[];
@@ -74,9 +79,12 @@ export default function TicketDetailPage() {
   useEffect(() => {
     const fetchTicket = async () => {
       try {
-        const [data, categories] = await Promise.all([
-          getTicketById(params.id as string),
+        const ticketId = params.id as string;
+        const [data, categories, logs, total] = await Promise.all([
+          getTicketById(ticketId),
           getActiveTicketCategories(),
+          getTicketStatusLogs(ticketId, LOG_PAGE_SIZE, 0),
+          getTicketStatusLogTotal(ticketId),
         ]);
         if (data) {
           setTicket(data);
@@ -84,6 +92,8 @@ export default function TicketDetailPage() {
           setError(true);
         }
         setSelectOptions({ categories });
+        setStatusLogs(logs);
+        setLogTotal(total);
       } catch {
         setError(true);
       } finally {
@@ -98,6 +108,12 @@ export default function TicketDetailPage() {
     try {
       await updateTicket(ticket.id, { status: newStatus as "Open" | "In Progress" | "Resolved" | "Closed" });
       setTicket({ ...ticket, status: newStatus as Ticket["status"] });
+      const [logs, total] = await Promise.all([
+        getTicketStatusLogs(ticket.id, LOG_PAGE_SIZE, 0),
+        getTicketStatusLogTotal(ticket.id),
+      ]);
+      setStatusLogs(logs);
+      setLogTotal(total);
       toast.success(`Status updated to ${newStatus}`);
     } catch {
       toast.error("Failed to update status");
@@ -125,9 +141,28 @@ export default function TicketDetailPage() {
     try {
       await updateTicket(ticket.id, { status: "Resolved" });
       setTicket({ ...ticket, status: "Resolved" });
+      const [logs, total] = await Promise.all([
+        getTicketStatusLogs(ticket.id, LOG_PAGE_SIZE, 0),
+        getTicketStatusLogTotal(ticket.id),
+      ]);
+      setStatusLogs(logs);
+      setLogTotal(total);
       toast.success("Ticket marked as resolved");
     } catch {
       toast.error("Failed to update status");
+    }
+  };
+
+  const handleLoadMoreLogs = async () => {
+    if (!ticket) return;
+    setLogsLoading(true);
+    try {
+      const moreLogs = await getTicketStatusLogs(ticket.id, LOG_PAGE_SIZE, statusLogs.length);
+      setStatusLogs((prev) => [...prev, ...moreLogs]);
+    } catch {
+      toast.error("Failed to load more logs");
+    } finally {
+      setLogsLoading(false);
     }
   };
 
@@ -365,7 +400,7 @@ export default function TicketDetailPage() {
                 </div>
               </Collapsible>
 
-              {/* Ticket History (Collapsible — placeholder) */}
+              {/* Ticket History */}
               <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
                 <div className="bg-white shadow-sm rounded-xl">
                   <CollapsibleTrigger className="flex items-center justify-between w-full p-4 text-left">
@@ -378,7 +413,45 @@ export default function TicketDetailPage() {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="px-4 pb-4">
-                      <p className="text-sm text-[#64748b]">No history yet.</p>
+                      {statusLogs.length === 0 ? (
+                        <p className="text-sm text-[#64748b]">No history yet.</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {statusLogs.map((log) => {
+                            const logStatusConfig: Record<string, { bg: string; text: string }> = {
+                              Open: { bg: "bg-[#dbeafe]", text: "text-[#1d4ed8]" },
+                              "In Progress": { bg: "bg-[#fef3c7]", text: "text-[#b45309]" },
+                              Resolved: { bg: "bg-[#d1fae5]", text: "text-[#059669]" },
+                              Closed: { bg: "bg-[#e2e8f0]", text: "text-[#475569]" },
+                              Deleted: { bg: "bg-[#fee2e2]", text: "text-[#dc2626]" },
+                            };
+                            const cfg = logStatusConfig[log.new_status] || logStatusConfig.Open;
+                            return (
+                              <div key={log.id} className="flex items-start gap-3 text-sm">
+                                <span className={`inline-flex items-center shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${cfg.bg} ${cfg.text}`}>
+                                  {log.new_status}
+                                </span>
+                                <div className="min-w-0">
+                                  <p className="text-[#1a1f36]">{log.remarks}</p>
+                                  <p className="text-xs text-[#64748b] mt-0.5">
+                                    {format(new Date(log.created_at), "MMM dd, yyyy HH:mm")}
+                                    {log.created_by_name && ` by ${log.created_by_name}`}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          {statusLogs.length < logTotal && (
+                            <button
+                              onClick={handleLoadMoreLogs}
+                              disabled={logsLoading}
+                              className="w-full text-center text-sm text-[#3b82f6] hover:underline py-2 disabled:opacity-50"
+                            >
+                              {logsLoading ? "Loading..." : `Load more (${statusLogs.length} of ${logTotal})`}
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </CollapsibleContent>
                 </div>

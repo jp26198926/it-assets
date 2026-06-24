@@ -1,8 +1,10 @@
 "use server";
 
 import * as ticketService from "@/lib/services/ticket-service";
+import { getLogsByTicketId, getTicketStatusLogCount } from "@/lib/services/ticket-status-log-service";
 import { getAuthFromRequest } from "@/lib/services/api-auth";
 import type { CreateTicketInput, UpdateTicketInput, TicketFilters, Ticket } from "@/lib/types/ticket";
+import type { TicketStatusLog } from "@/lib/types/ticket-status-log";
 
 export async function getTickets(filters?: TicketFilters): Promise<Ticket[]> {
   return ticketService.getTickets(filters);
@@ -41,6 +43,14 @@ export async function getTicketSelectOptions(): Promise<{
 
 export async function getActiveTicketCategories(): Promise<{ id: string; name: string }[]> {
   return ticketService.getActiveTicketCategories();
+}
+
+export async function getTicketStatusLogs(ticketId: string, limit?: number, skip?: number): Promise<TicketStatusLog[]> {
+  return getLogsByTicketId(ticketId, limit, skip);
+}
+
+export async function getTicketStatusLogTotal(ticketId: string): Promise<number> {
+  return getTicketStatusLogCount(ticketId);
 }
 
 export async function uploadTicketAttachment(
