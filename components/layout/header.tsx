@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
@@ -26,6 +26,7 @@ import { UserChangePasswordModal } from "@/components/modals/user-change-passwor
 import { ProfileModal } from "@/components/modals/profile-modal";
 import { toast } from "sonner";
 import type { AuthUser } from "@/lib/types/auth";
+import { useBreadcrumbOverrides } from "@/components/layout/breadcrumb-override-context";
 
 export function Header() {
   const pathname = usePathname();
@@ -35,6 +36,7 @@ export function Header() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const { overrides } = useBreadcrumbOverrides();
 
   const fetchUser = useCallback(async () => {
     const currentUser = await getCurrentUser();
@@ -47,7 +49,8 @@ export function Header() {
 
   const breadcrumbItems = segments.map((segment, index) => {
     const href = "/" + segments.slice(0, index + 1).join("/");
-    const label = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ");
+    const defaultLabel = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ");
+    const label = overrides[segment] || defaultLabel;
     const isLast = index === segments.length - 1;
 
     return { href, label, isLast };
@@ -89,8 +92,9 @@ export function Header() {
               </BreadcrumbLink>
             </BreadcrumbItem>
             {breadcrumbItems.map((item) => (
-              <BreadcrumbItem key={item.href}>
+              <React.Fragment key={item.href}>
                 <BreadcrumbSeparator className="text-[#cbd5e1]" />
+                <BreadcrumbItem>
                 {item.isLast ? (
                   <BreadcrumbPage className="font-semibold text-[#1a1f36]">{item.label}</BreadcrumbPage>
                 ) : (
@@ -101,7 +105,8 @@ export function Header() {
                     {item.label}
                   </BreadcrumbLink>
                 )}
-              </BreadcrumbItem>
+                </BreadcrumbItem>
+              </React.Fragment>
             ))}
           </BreadcrumbList>
         </Breadcrumb>

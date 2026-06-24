@@ -43,6 +43,7 @@ import type { Ticket } from "@/lib/types/ticket";
 import type { TicketStatusLog } from "@/lib/types/ticket-status-log";
 import type { TicketComment } from "@/lib/types/ticket-comment";
 import { toast } from "sonner";
+import { useBreadcrumbOverrides } from "@/components/layout/breadcrumb-override-context";
 
 const priorityConfig: Record<string, { bg: string; text: string }> = {
   Low: { bg: "bg-blue-50", text: "text-blue-700" },
@@ -88,6 +89,7 @@ export default function TicketDetailPage() {
   }>({ categories: [] });
   const [appSettings, setAppSettings] = useState<{ app_name: string; tagline: string }>({ app_name: "", tagline: "" });
   const [assetDetails, setAssetDetails] = useState<{ serial_number: string | null; item_brand: string | null; item_model: string | null } | null>(null);
+  const { setOverrides: setBreadcrumbOverrides } = useBreadcrumbOverrides();
 
   useEffect(() => {
     const fetchTicket = async () => {
@@ -104,6 +106,7 @@ export default function TicketDetailPage() {
         ]);
         if (data) {
           setTicket(data);
+          setBreadcrumbOverrides({ [ticketId]: data.ticket_no });
         } else {
           setError(true);
         }
@@ -709,6 +712,8 @@ export default function TicketDetailPage() {
               <div className="flex items-center gap-2 mt-1 text-sm text-[#64748b]">
                 <span>Contact: <span className="font-medium text-[#1a1f36]">{ticket.name}</span></span>
                 <span>&middot;</span>
+                <span>{ticket.email}</span>
+                <span>&middot;</span>
                 <span>{timeAgo}</span>
               </div>
             </div>
@@ -938,6 +943,10 @@ export default function TicketDetailPage() {
                       <span className="text-sm text-[#1a1f36]">
                         {format(new Date(ticket.created_at), "yyyy-MM-dd HH:mm:ss")}
                       </span>
+                    </div>
+                    <div className="flex items-start justify-between">
+                      <span className="text-xs text-[#64748b]">Created by</span>
+                      <span className="text-sm text-[#1a1f36]">{ticket.created_by_name || "N/A"}</span>
                     </div>
                     <div className="flex items-start justify-between">
                       <span className="text-xs text-[#64748b]">Updated</span>

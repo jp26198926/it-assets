@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthorizationProvider } from "@/components/providers/authorization-provider";
+import { BreadcrumbOverrideProvider } from "@/components/layout/breadcrumb-override-context";
 
 export default function DashboardLayout({
   children,
@@ -13,6 +14,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
+    <BreadcrumbOverrideProvider>
     <AuthorizationProvider>
       <TooltipProvider>
         <SidebarProvider>
@@ -25,5 +27,6 @@ export default function DashboardLayout({
         <Toaster />
       </TooltipProvider>
     </AuthorizationProvider>
+    </BreadcrumbOverrideProvider>
   );
 }
