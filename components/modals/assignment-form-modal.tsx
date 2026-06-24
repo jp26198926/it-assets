@@ -28,6 +28,7 @@ interface AssignmentFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   assignment?: Assignment | null;
+  defaultAssetId?: string | null;
   onSubmit: (data: CreateAssignmentInput) => Promise<void>;
 }
 
@@ -46,6 +47,7 @@ export function AssignmentFormModal({
   open,
   onOpenChange,
   assignment,
+  defaultAssetId,
   onSubmit,
 }: AssignmentFormModalProps) {
   const [formData, setFormData] =
@@ -107,6 +109,7 @@ export function AssignmentFormModal({
     } else {
       setFormData({
         ...defaultFormData,
+        asset_id: defaultAssetId || "",
         assigned_date: new Date().toISOString().split("T")[0],
       });
       setAssignTo("employee");
@@ -114,7 +117,7 @@ export function AssignmentFormModal({
     }
     setErrors({});
     setAssetDropdownOpen(false);
-  }, [assignment, open]);
+  }, [assignment, open, defaultAssetId]);
 
   const filteredAssets = useMemo(() => {
     if (!assetSearch) return assets;
@@ -127,6 +130,7 @@ export function AssignmentFormModal({
   }, [assets, assetSearch]);
 
   const selectedAsset = assets.find((a) => a.id === formData.asset_id);
+  const isAssetLocked = !!defaultAssetId && !assignment;
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -197,23 +201,25 @@ export function AssignmentFormModal({
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#94a3b8] z-10" />
               <Input
                 value={
-                  assetDropdownOpen
+                  assetDropdownOpen && !isAssetLocked
                     ? assetSearch
                     : selectedAsset
                       ? `${selectedAsset.barcode} — ${selectedAsset.itemName}`
                       : ""
                 }
                 onChange={(e) => {
+                  if (isAssetLocked) return;
                   setAssetSearch(e.target.value);
                   setAssetDropdownOpen(true);
                 }}
                 onFocus={() => {
+                  if (isAssetLocked) return;
                   setAssetDropdownOpen(true);
                   setAssetSearch("");
                 }}
-                placeholder="Search by barcode or item name..."
+                placeholder={isAssetLocked ? "" : "Search by barcode or item name..."}
                 className={`pl-9 ${errors.asset_id ? "border-red-500" : ""}`}
-                disabled={optionsLoading}
+                disabled={optionsLoading || isAssetLocked}
               />
               {assetDropdownOpen && (
                 <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-[#e2e8f0] shadow-lg max-h-60 overflow-y-auto">

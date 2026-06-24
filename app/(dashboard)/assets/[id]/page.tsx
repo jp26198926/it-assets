@@ -18,12 +18,13 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { PageGuard } from "@/components/auth/page-guard";
+import { AssignmentFormModal } from "@/components/modals/assignment-form-modal";
 import { getAssetById } from "@/lib/actions/asset-actions";
-import { getAssignments } from "@/lib/actions/assignment-actions";
+import { getAssignments, createAssignment } from "@/lib/actions/assignment-actions";
 import { getTickets } from "@/lib/actions/ticket-actions";
 import { useBreadcrumbOverrides } from "@/components/layout/breadcrumb-override-context";
 import type { Asset } from "@/lib/types/asset";
-import type { Assignment } from "@/lib/types/assignment";
+import type { Assignment, CreateAssignmentInput } from "@/lib/types/assignment";
 import type { Ticket } from "@/lib/types/ticket";
 import { toast } from "sonner";
 
@@ -69,6 +70,7 @@ export default function AssetDetailPage() {
   const [error, setError] = useState(false);
   const [assignmentsOpen, setAssignmentsOpen] = useState(true);
   const [ticketsOpen, setTicketsOpen] = useState(true);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,6 +100,24 @@ export default function AssetDetailPage() {
 
     fetchData();
   }, [params.id]);
+
+  const handleAssignSubmit = async (data: CreateAssignmentInput) => {
+    try {
+      await createAssignment(data);
+      toast.success("Assignment has been added");
+      setAssignModalOpen(false);
+      if (asset) {
+        const [updatedAsset, updatedAssignments] = await Promise.all([
+          getAssetById(asset.id),
+          getAssignments({ asset_id: asset.id }),
+        ]);
+        if (updatedAsset) setAsset(updatedAsset);
+        setAssignments(updatedAssignments);
+      }
+    } catch {
+      toast.error("Failed to create assignment");
+    }
+  };
 
   if (loading) {
     return (
@@ -353,6 +373,15 @@ export default function AssetDetailPage() {
                   <ArrowLeft className="h-4 w-4" />
                   Back
                 </Button>
+                {asset.status === "Available" && (
+                  <Button
+                    size="sm"
+                    className="gap-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
+                    onClick={() => setAssignModalOpen(true)}
+                  >
+                    Assign
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -533,6 +562,13 @@ export default function AssetDetailPage() {
           </div>
         </div>
       </div>
+
+      <AssignmentFormModal
+        open={assignModalOpen}
+        onOpenChange={setAssignModalOpen}
+        defaultAssetId={asset?.id}
+        onSubmit={handleAssignSubmit}
+      />
     </PageGuard>
   );
 }
