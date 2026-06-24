@@ -39,6 +39,10 @@ export async function getTicketSelectOptions(): Promise<{
   return ticketService.getTicketSelectOptions();
 }
 
+export async function getActiveTicketCategories(): Promise<{ id: string; name: string }[]> {
+  return ticketService.getActiveTicketCategories();
+}
+
 export async function uploadTicketAttachment(
   fileBase64: string,
   fileName: string

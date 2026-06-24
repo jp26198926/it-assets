@@ -811,3 +811,13 @@ export async function getTicketSelectOptions(): Promise<{
     users: users.map((u) => ({ id: (u._id as { toString(): string }).toString(), name: `${u.first_name} ${u.last_name}`.trim() })),
   };
 }
+
+export async function getActiveTicketCategories(): Promise<{ id: string; name: string }[]> {
+  await connectDB();
+  const { TicketCategory: TicketCategoryModel } = await import("@/lib/db/models/ticket-category");
+  const categories = await TicketCategoryModel.find({ deleted_at: null, status: "Active" })
+    .select("name")
+    .sort({ name: 1 })
+    .lean();
+  return categories.map((c) => ({ id: (c._id as { toString(): string }).toString(), name: c.name }));
+}

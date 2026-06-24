@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { TicketDataTable } from "@/components/data-table/ticket-data-table";
 import { createTicketColumns } from "@/components/data-table/ticket-data-table-columns";
 import { TicketFormModal } from "@/components/modals/ticket-form-modal";
-import { TicketViewModal } from "@/components/modals/ticket-view-modal";
 import { TicketDeleteConfirmModal } from "@/components/modals/ticket-delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
@@ -20,9 +20,9 @@ import type { Ticket, TicketFilters } from "@/lib/types/ticket";
 import { toast } from "sonner";
 
 export default function TicketsPage() {
+  const router = useRouter();
   const { user: authUser } = useAuthorization();
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [viewTicket, setViewTicket] = useState<Ticket | null>(null);
   const [deleteTicketItem, setDeleteTicketItem] = useState<Ticket | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -76,7 +76,7 @@ export default function TicketsPage() {
   }, []);
 
   const handleView = (ticket: Ticket) => {
-    setViewTicket(ticket);
+    router.push(`/tickets/${ticket.id}`);
   };
 
   const handleDelete = (ticket: Ticket) => {
@@ -187,12 +187,6 @@ export default function TicketsPage() {
           onSubmit={handleFormSubmit}
           selectOptions={selectOptions}
           currentUser={currentUser}
-        />
-
-        <TicketViewModal
-          open={!!viewTicket}
-          onOpenChange={(open) => !open && setViewTicket(null)}
-          ticket={viewTicket}
         />
 
         <TicketDeleteConfirmModal
