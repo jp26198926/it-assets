@@ -14,7 +14,6 @@ import type { Ticket, TicketFilters, TicketAdvancedFilter } from "@/lib/types/ti
 interface TicketDataTableToolbarProps<TData> {
   table: Table<TData>;
   onView: (ticket: Ticket) => void;
-  onEdit: (ticket: Ticket) => void;
   onDelete: (ticket: Ticket) => void;
   onRestore: (ticket: Ticket) => void;
   onAdd: () => void;

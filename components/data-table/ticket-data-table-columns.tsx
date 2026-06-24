@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Eye, Edit, Trash2, RotateCcw } from "lucide-react";
+import { MoreHorizontal, Eye, Trash2, RotateCcw } from "lucide-react";
 import { useAuthorization } from "@/hooks/use-authorization";
 import type { Ticket } from "@/lib/types/ticket";
 import { DataTableColumnHeader } from "./data-table-column-header";
@@ -33,16 +33,16 @@ const statusConfig: Record<string, { color: string; dot: string }> = {
 interface ActionsProps {
   ticket: Ticket;
   onView: (ticket: Ticket) => void;
-  onEdit: (ticket: Ticket) => void;
   onDelete: (ticket: Ticket) => void;
   onRestore: (ticket: Ticket) => void;
 }
 
-function Actions({ ticket, onView, onEdit, onDelete, onRestore }: ActionsProps) {
+function Actions({ ticket, onView, onDelete, onRestore }: ActionsProps) {
   const { hasPermission } = useAuthorization();
-  const canEdit = hasPermission("/tickets", "Edit");
   const canDelete = hasPermission("/tickets", "Delete");
   const canRestore = hasPermission("/tickets", "Restore");
+
+  const canDeleteStatus = ticket.status === "Open" || ticket.status === "In Progress";
 
   return (
     <DropdownMenu>
@@ -57,15 +57,9 @@ function Actions({ ticket, onView, onEdit, onDelete, onRestore }: ActionsProps) 
           <Eye className="h-4 w-4 text-[#64748b]" />
           View Details
         </DropdownMenuItem>
-        {canEdit && (
-          <DropdownMenuItem onClick={() => onEdit(ticket)} className="cursor-pointer gap-2 text-[#1a1f36]">
-            <Edit className="h-4 w-4 text-[#64748b]" />
-            Edit Ticket
-          </DropdownMenuItem>
-        )}
         <DropdownMenuSeparator />
         {!ticket.deleted_at ? (
-          canDelete && (
+          canDelete && canDeleteStatus && (
             <DropdownMenuItem
               onClick={() => onDelete(ticket)}
               className="cursor-pointer gap-2 text-[#dc2626]"
@@ -92,7 +86,6 @@ function Actions({ ticket, onView, onEdit, onDelete, onRestore }: ActionsProps) 
 
 export function createTicketColumns(
   onView: (ticket: Ticket) => void,
-  onEdit: (ticket: Ticket) => void,
   onDelete: (ticket: Ticket) => void,
   onRestore: (ticket: Ticket) => void
 ): ColumnDef<Ticket>[] {
@@ -185,7 +178,6 @@ export function createTicketColumns(
         <Actions
           ticket={row.original}
           onView={onView}
-          onEdit={onEdit}
           onDelete={onDelete}
           onRestore={onRestore}
         />

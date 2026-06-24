@@ -12,23 +12,17 @@ import { useAuthorization } from "@/hooks/use-authorization";
 import {
   getTickets,
   createTicket,
-  updateTicket,
   deleteTicket,
   restoreTicket,
   getTicketSelectOptions,
 } from "@/lib/actions/ticket-actions";
-import type {
-  Ticket,
-  CreateTicketInput,
-  TicketFilters,
-} from "@/lib/types/ticket";
+import type { Ticket, TicketFilters } from "@/lib/types/ticket";
 import { toast } from "sonner";
 
 export default function TicketsPage() {
   const { user: authUser } = useAuthorization();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [viewTicket, setViewTicket] = useState<Ticket | null>(null);
-  const [editTicket, setEditTicket] = useState<Ticket | null>(null);
   const [deleteTicketItem, setDeleteTicketItem] = useState<Ticket | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -85,11 +79,6 @@ export default function TicketsPage() {
     setViewTicket(ticket);
   };
 
-  const handleEdit = (ticket: Ticket) => {
-    setEditTicket(ticket);
-    setFormOpen(true);
-  };
-
   const handleDelete = (ticket: Ticket) => {
     setDeleteTicketItem(ticket);
   };
@@ -106,19 +95,13 @@ export default function TicketsPage() {
   };
 
   const handleAdd = () => {
-    setEditTicket(null);
     setFormOpen(true);
   };
 
-  const handleFormSubmit = async (data: CreateTicketInput) => {
+  const handleFormSubmit = async (data: Parameters<typeof createTicket>[0]) => {
     try {
-      if (editTicket) {
-        await updateTicket(editTicket.id, data);
-        toast.success(`${data.title} has been updated`);
-      } else {
-        await createTicket(data);
-        toast.success(`${data.title} has been created`);
-      }
+      await createTicket(data);
+      toast.success(`${data.title} has been created`);
       const refreshed = await getTickets(activeFilters);
       setTickets(refreshed);
     } catch {
@@ -141,12 +124,7 @@ export default function TicketsPage() {
     }
   };
 
-  const columns = createTicketColumns(
-    handleView,
-    handleEdit,
-    handleDelete,
-    handleRestore,
-  );
+  const columns = createTicketColumns(handleView, handleDelete, handleRestore);
 
   const currentUser = authUser
     ? {
@@ -195,7 +173,6 @@ export default function TicketsPage() {
             columns={columns}
             data={tickets}
             onView={handleView}
-            onEdit={handleEdit}
             onDelete={handleDelete}
             onRestore={handleRestore}
             onAdd={handleAdd}
@@ -207,7 +184,6 @@ export default function TicketsPage() {
         <TicketFormModal
           open={formOpen}
           onOpenChange={setFormOpen}
-          ticket={editTicket}
           onSubmit={handleFormSubmit}
           selectOptions={selectOptions}
           currentUser={currentUser}

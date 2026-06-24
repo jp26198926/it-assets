@@ -31,7 +31,6 @@ interface TicketDataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   onView: (ticket: Ticket) => void;
-  onEdit: (ticket: Ticket) => void;
   onDelete: (ticket: Ticket) => void;
   onRestore: (ticket: Ticket) => void;
   onAdd: () => void;
@@ -43,7 +42,6 @@ export function TicketDataTable<TData, TValue>({
   columns,
   data,
   onView,
-  onEdit,
   onDelete,
   onRestore,
   onAdd,
@@ -122,7 +120,6 @@ export function TicketDataTable<TData, TValue>({
       <TicketDataTableToolbar
         table={table}
         onView={onView}
-        onEdit={onEdit}
         onDelete={onDelete}
         onRestore={onRestore}
         onAdd={onAdd}
@@ -218,12 +215,6 @@ export function TicketDataTable<TData, TValue>({
                       className="p-2 hover:bg-[#f0f4f8] transition-colors"
                     >
                       <span className="text-[#64748b]">👁️</span>
-                    </button>
-                    <button
-                      onClick={() => onEdit(ticket)}
-                      className="p-2 hover:bg-[#f0f4f8] transition-colors"
-                    >
-                      <span className="text-[#64748b]">✏️</span>
                     </button>
                     {!ticket.deleted_at ? (
                       <button

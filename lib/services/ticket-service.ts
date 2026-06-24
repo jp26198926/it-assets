@@ -765,11 +765,15 @@ export async function deleteTicket(id: string, deletedByUserId?: string | null, 
 export async function restoreTicket(id: string): Promise<void> {
   await connectDB();
 
+  const ticket = await TicketModel.findById(id).lean();
+  const assignedTo = ticket?.assigned_to;
+  const newStatus = assignedTo ? "In Progress" : "Open";
+
   await TicketModel.findByIdAndUpdate(id, {
     deleted_at: null,
     deleted_by: null,
     deleted_reason: null,
-    status: "Open",
+    status: newStatus,
     updated_at: new Date(),
   });
 }
