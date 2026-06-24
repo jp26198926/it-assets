@@ -547,7 +547,10 @@ function populateQuery(query: ReturnType<typeof TicketModel.find>) {
     .populate("deleted_by", "first_name last_name");
 }
 
-export async function getTickets(filters?: TicketFilters): Promise<Ticket[]> {
+export async function getTickets(
+  filters?: TicketFilters,
+  user?: { userId: string; role: string } | null
+): Promise<Ticket[]> {
   await connectDB();
 
   const query: Record<string, unknown> = {};
@@ -597,6 +600,20 @@ export async function getTickets(filters?: TicketFilters): Promise<Ticket[]> {
     query.asset_id = filters.asset_id;
   }
 
+  if (user && user.role !== "Administrator") {
+    if (user.role === "Viewer") {
+      query.$and = query.$and || [];
+      (query.$and as Record<string, unknown>[]).push({
+        $or: [{ requestor_id: user.userId }, { created_by: user.userId }],
+      });
+    } else if (user.role === "Technician") {
+      query.$and = query.$and || [];
+      (query.$and as Record<string, unknown>[]).push({
+        $or: [{ created_by: user.userId }, { assigned_to: user.userId }],
+      });
+    }
+  }
+
   const tickets = await populateQuery(
     TicketModel.find(query).sort({ created_at: -1 })
   ).lean();
@@ -604,12 +621,38 @@ export async function getTickets(filters?: TicketFilters): Promise<Ticket[]> {
   return Promise.all(tickets.map((d) => enrichTicket(d as unknown as Record<string, unknown>)));
 }
 
-export async function getTicketById(id: string): Promise<Ticket | null> {
+export async function getTicketById(
+  id: string,
+  user?: { userId: string; role: string } | null
+): Promise<Ticket | null> {
   await connectDB();
 
   const ticket = await populateQuery(TicketModel.findById(id)).lean();
 
   if (!ticket) return null;
+
+  if (user && user.role !== "Administrator") {
+    const ticketData = ticket as unknown as Record<string, unknown>;
+    const requestorId = ticketData.requestor_id
+      ? (ticketData.requestor_id as { toString(): string }).toString()
+      : null;
+    const createdBy = ticketData.created_by
+      ? (ticketData.created_by as { toString(): string }).toString()
+      : null;
+    const assignedTo = ticketData.assigned_to
+      ? (ticketData.assigned_to as { toString(): string }).toString()
+      : null;
+
+    if (user.role === "Viewer") {
+      if (requestorId !== user.userId && createdBy !== user.userId) {
+        return null;
+      }
+    } else if (user.role === "Technician") {
+      if (createdBy !== user.userId && assignedTo !== user.userId) {
+        return null;
+      }
+    }
+  }
 
   return enrichTicket(ticket as unknown as Record<string, unknown>);
 }

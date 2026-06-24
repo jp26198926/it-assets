@@ -7,11 +7,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await withPageAuth("/tickets", "Access");
+    const { auth, error } = await withPageAuth("/tickets", "Access");
     if (error) return error;
 
     const { id } = await params;
-    const ticket = await ticketService.getTicketById(id);
+    const user = auth.user ? { userId: auth.user.userId, role: auth.user.role } : null;
+    const ticket = await ticketService.getTicketById(id, user);
     if (!ticket) return apiError("Ticket not found", 404);
     return apiSuccess(ticket);
   } catch (error) {
@@ -24,10 +25,14 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await withPageAuth("/tickets", "Edit");
+    const { auth, error } = await withPageAuth("/tickets", "Edit");
     if (error) return error;
 
     const { id } = await params;
+    const user = auth.user ? { userId: auth.user.userId, role: auth.user.role } : null;
+    const existing = await ticketService.getTicketById(id, user);
+    if (!existing) return apiError("Ticket not found or access denied", 404);
+
     const body = await request.json();
 
     const ticket = await ticketService.updateTicket(id, {
@@ -54,10 +59,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error } = await withPageAuth("/tickets", "Delete");
+    const { auth, error } = await withPageAuth("/tickets", "Delete");
     if (error) return error;
 
     const { id } = await params;
+    const user = auth.user ? { userId: auth.user.userId, role: auth.user.role } : null;
+    const existing = await ticketService.getTicketById(id, user);
+    if (!existing) return apiError("Ticket not found or access denied", 404);
+
     let reason: string | undefined;
 
     try {

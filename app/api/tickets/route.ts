@@ -5,7 +5,7 @@ import type { TicketFilters } from "@/lib/types/ticket";
 
 export async function GET(request: NextRequest) {
   try {
-    const { error } = await withPageAuth("/tickets", "Access");
+    const { auth, error } = await withPageAuth("/tickets", "Access");
     if (error) return error;
 
     const { searchParams } = new URL(request.url);
@@ -21,7 +21,8 @@ export async function GET(request: NextRequest) {
     if (searchParams.get("department_id")) filters.department_id = searchParams.get("department_id")!;
 
     const hasFilters = Object.keys(filters).length > 0;
-    const tickets = await ticketService.getTickets(hasFilters ? filters : undefined);
+    const user = auth.user ? { userId: auth.user.userId, role: auth.user.role } : null;
+    const tickets = await ticketService.getTickets(hasFilters ? filters : undefined, user);
     return apiSuccess(tickets);
   } catch (error) {
     return apiError(error instanceof Error ? error.message : "Failed to fetch tickets");

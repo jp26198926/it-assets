@@ -7,11 +7,13 @@ import type { CreateTicketInput, UpdateTicketInput, TicketFilters, Ticket } from
 import type { TicketStatusLog } from "@/lib/types/ticket-status-log";
 
 export async function getTickets(filters?: TicketFilters): Promise<Ticket[]> {
-  return ticketService.getTickets(filters);
+  const user = await getAuthFromRequest();
+  return ticketService.getTickets(filters, user ? { userId: user.userId, role: user.role } : null);
 }
 
 export async function getTicketById(id: string): Promise<Ticket | null> {
-  return ticketService.getTicketById(id);
+  const user = await getAuthFromRequest();
+  return ticketService.getTicketById(id, user ? { userId: user.userId, role: user.role } : null);
 }
 
 export async function createTicket(data: CreateTicketInput): Promise<Ticket> {
