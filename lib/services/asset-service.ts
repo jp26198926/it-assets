@@ -16,20 +16,32 @@ function toAsset(d: Record<string, unknown>): Asset {
 
   let item_id: string | null = null;
   let item_name: string | undefined;
+  let item_code: string | undefined;
   let item_brand: string | undefined;
   let item_model: string | undefined;
+  let item_description: string | undefined;
   let item_category_name: string | undefined;
+  let item_uom: string | undefined;
   if (itemId && typeof itemId === "object" && "_id" in itemId) {
     item_id = itemId._id.toString();
     item_name = itemId.name;
+    item_code = (itemId as Record<string, unknown>).item_code as string | undefined;
     item_brand = (itemId as Record<string, unknown>).brand as string | undefined;
     item_model = (itemId as Record<string, unknown>).model as string | undefined;
+    item_description = (itemId as Record<string, unknown>).description as string | undefined;
     const cat = (itemId as Record<string, unknown>).category_id as
       | { _id: { toString(): string }; name: string }
       | null
       | undefined;
     if (cat && typeof cat === "object" && "_id" in cat) {
       item_category_name = cat.name;
+    }
+    const uom = (itemId as Record<string, unknown>).uom_id as
+      | { _id: { toString(): string }; name: string; code: string }
+      | null
+      | undefined;
+    if (uom && typeof uom === "object" && "_id" in uom) {
+      item_uom = uom.name;
     }
   } else if (typeof itemId === "string") {
     item_id = itemId;
@@ -120,9 +132,12 @@ function toAsset(d: Record<string, unknown>): Asset {
     id: (d._id as { toString(): string }).toString(),
     item_id,
     item_name,
+    item_code,
     item_brand,
     item_model,
+    item_description,
     item_category_name,
+    item_uom,
     barcode: d.barcode as string,
     serial_number: (d.serial_number as string) ?? null,
     remarks: (d.remarks as string) ?? null,
@@ -238,7 +253,7 @@ export async function getAssets(filters?: AssetFilters): Promise<Asset[]> {
   }
 
   const assets = await AssetModel.find(query)
-    .populate({ path: "item_id", select: "name brand model category_id", populate: { path: "category_id", select: "name" } })
+    .populate({ path: "item_id", select: "name item_code brand model description category_id uom_id", populate: [{ path: "category_id", select: "name" }, { path: "uom_id", select: "name code" }] })
     .populate("location_id", "name")
     .populate("assigned_to_employee", "firstname lastname")
     .populate("assigned_to_department", "name")
@@ -255,7 +270,7 @@ export async function getAssetById(id: string): Promise<Asset | null> {
   await connectDB();
 
   const asset = await AssetModel.findById(id)
-    .populate({ path: "item_id", select: "name brand model category_id", populate: { path: "category_id", select: "name" } })
+    .populate({ path: "item_id", select: "name item_code brand model description category_id uom_id", populate: [{ path: "category_id", select: "name" }, { path: "uom_id", select: "name code" }] })
     .populate("location_id", "name")
     .populate("assigned_to_employee", "firstname lastname")
     .populate("assigned_to_department", "name")
@@ -290,7 +305,7 @@ export async function createAsset(data: CreateAssetInput): Promise<Asset> {
   });
 
   const created = await AssetModel.findById(asset._id)
-    .populate({ path: "item_id", select: "name brand model category_id", populate: { path: "category_id", select: "name" } })
+    .populate({ path: "item_id", select: "name item_code brand model description category_id uom_id", populate: [{ path: "category_id", select: "name" }, { path: "uom_id", select: "name code" }] })
     .populate("location_id", "name")
     .populate("assigned_to_employee", "firstname lastname")
     .populate("assigned_to_department", "name")
@@ -323,7 +338,7 @@ export async function updateAsset(id: string, data: UpdateAssetInput): Promise<A
   updateData.updated_at = new Date();
 
   const asset = await AssetModel.findByIdAndUpdate(id, updateData, { new: true })
-    .populate({ path: "item_id", select: "name brand model category_id", populate: { path: "category_id", select: "name" } })
+    .populate({ path: "item_id", select: "name item_code brand model description category_id uom_id", populate: [{ path: "category_id", select: "name" }, { path: "uom_id", select: "name code" }] })
     .populate("location_id", "name")
     .populate("assigned_to_employee", "firstname lastname")
     .populate("assigned_to_department", "name")

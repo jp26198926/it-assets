@@ -592,6 +592,10 @@ export async function getTickets(filters?: TicketFilters): Promise<Ticket[]> {
     query.department_id = filters.department_id;
   }
 
+  if (filters?.asset_id) {
+    query.asset_id = filters.asset_id;
+  }
+
   const tickets = await populateQuery(
     TicketModel.find(query).sort({ created_at: -1 })
   ).lean();

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { AssetDataTable } from "@/components/data-table/asset-data-table";
 import { createAssetColumns } from "@/components/data-table/asset-data-table-columns";
 import { AssetFormModal } from "@/components/modals/asset-form-modal";
-import { AssetViewModal } from "@/components/modals/asset-view-modal";
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
@@ -19,8 +19,8 @@ import type { Asset, CreateAssetInput, AssetFilters } from "@/lib/types/asset";
 import { toast } from "sonner";
 
 export default function AssetsPage() {
+  const router = useRouter();
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [viewAsset, setViewAsset] = useState<Asset | null>(null);
   const [editAsset, setEditAsset] = useState<Asset | null>(null);
   const [deleteAssetItem, setDeleteAssetItem] = useState<Asset | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -64,7 +64,7 @@ export default function AssetsPage() {
   }, []);
 
   const handleView = (asset: Asset) => {
-    setViewAsset(asset);
+    router.push(`/assets/${asset.id}`);
   };
 
   const handleEdit = (asset: Asset) => {
@@ -183,12 +183,6 @@ export default function AssetsPage() {
           onOpenChange={setFormOpen}
           asset={editAsset}
           onSubmit={handleFormSubmit}
-        />
-
-        <AssetViewModal
-          open={!!viewAsset}
-          onOpenChange={(open) => !open && setViewAsset(null)}
-          asset={viewAsset}
         />
 
         <DeleteConfirmModal

@@ -2,9 +2,12 @@ export interface Asset {
   id: string;
   item_id: string | null;
   item_name?: string;
+  item_code?: string;
   item_brand?: string;
   item_model?: string;
+  item_description?: string;
   item_category_name?: string;
+  item_uom?: string;
   barcode: string;
   serial_number: string | null;
   remarks: string | null;

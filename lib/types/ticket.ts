@@ -57,6 +57,7 @@ export interface TicketFilters {
   priority?: string;
   status?: string;
   assigned_to?: string;
+  asset_id?: string;
 }
 
 export interface TicketAdvancedFilter {
