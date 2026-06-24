@@ -26,6 +26,7 @@ const filterFields: { value: keyof Ticket; label: string }[] = [
   { value: "title", label: "Title" },
   { value: "name", label: "Name" },
   { value: "email", label: "Email" },
+  { value: "department_name", label: "Department" },
   { value: "priority", label: "Priority" },
   { value: "status", label: "Status" },
 ];

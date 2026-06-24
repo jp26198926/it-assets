@@ -100,6 +100,10 @@ export function TicketViewModal({
                 <p className="text-sm mt-1">{ticket.asset_name || "N/A"}</p>
               </div>
               <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Department</p>
+                <p className="text-sm mt-1">{ticket.department_name || "N/A"}</p>
+              </div>
+              <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Assigned To</p>
                 <p className="text-sm mt-1">{ticket.assigned_to_name || "Unassigned"}</p>
               </div>

@@ -36,6 +36,7 @@ export async function PUT(
       title: body.title,
       description: body.description,
       category_id: body.category_id,
+      department_id: body.department_id,
       priority: body.priority,
       asset_id: body.asset_id,
       assigned_to: body.assigned_to,

@@ -118,6 +118,15 @@ export function createTicketColumns(
       ),
     },
     {
+      accessorKey: "department_name",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Department" />
+      ),
+      cell: ({ row }) => (
+        <span className="text-sm text-[#1a1f36]">{(row.original as Ticket).department_name || "N/A"}</span>
+      ),
+    },
+    {
       accessorKey: "priority",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Priority" />

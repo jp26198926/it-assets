@@ -27,8 +27,9 @@ interface TicketEditModalProps {
   ticket: Ticket | null;
   selectOptions: {
     categories: { id: string; name: string }[];
+    departments: { id: string; name: string }[];
   };
-  onConfirm: (data: { name: string; category_id: string; priority: string }) => void;
+  onConfirm: (data: { name: string; category_id: string; department_id: string; priority: string }) => void;
 }
 
 export function TicketEditModal({
@@ -40,19 +41,21 @@ export function TicketEditModal({
 }: TicketEditModalProps) {
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
   const [priority, setPriority] = useState("Low");
 
   useEffect(() => {
     if (open && ticket) {
       setName(ticket.name);
       setCategoryId(ticket.category_id);
+      setDepartmentId(ticket.department_id || "");
       setPriority(ticket.priority);
     }
   }, [open, ticket]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onConfirm({ name, category_id: categoryId, priority });
+    onConfirm({ name, category_id: categoryId, department_id: departmentId, priority });
     onOpenChange(false);
   };
 
@@ -89,6 +92,26 @@ export function TicketEditModal({
                   {selectOptions.categories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
                       {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Department (Optional)</Label>
+              <Select
+                value={departmentId || "none"}
+                onValueChange={(value) => setDepartmentId(value === "none" ? "" : value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {selectOptions.departments.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

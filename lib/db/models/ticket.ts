@@ -9,6 +9,7 @@ export interface ITicket extends Document, BaseAuditFields {
   title: string;
   description: string;
   category_id: Types.ObjectId;
+  department_id: Types.ObjectId | null;
   priority: "Low" | "Medium" | "High" | "Critical";
   asset_id: Types.ObjectId | null;
   assigned_to: Types.ObjectId | null;
@@ -48,6 +49,11 @@ const TicketSchema = new Schema<ITicket>({
     ref: "TicketCategory",
     required: true,
   },
+  department_id: {
+    type: Schema.Types.ObjectId,
+    ref: "Department",
+    default: null,
+  },
   priority: {
     type: String,
     required: true,
@@ -83,6 +89,7 @@ TicketSchema.index({ status: 1 });
 TicketSchema.index({ category_id: 1 });
 TicketSchema.index({ priority: 1 });
 TicketSchema.index({ assigned_to: 1 });
+TicketSchema.index({ department_id: 1 });
 
 export const Ticket =
   mongoose.models.Ticket ||

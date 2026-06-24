@@ -29,9 +29,10 @@ export default function TicketsPage() {
   const [activeFilters, setActiveFilters] = useState<TicketFilters>({});
   const [selectOptions, setSelectOptions] = useState<{
     categories: { id: string; name: string }[];
+    departments: { id: string; name: string }[];
     assets: { id: string; barcode: string; itemName: string }[];
     users: { id: string; name: string }[];
-  }>({ categories: [], assets: [], users: [] });
+  }>({ categories: [], departments: [], assets: [], users: [] });
 
   useEffect(() => {
     let cancelled = false;

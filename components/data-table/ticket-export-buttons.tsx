@@ -35,6 +35,7 @@ export function TicketExportButtons({ table }: TicketExportButtonsProps) {
         row.original.ticket_no,
         row.original.title,
         row.original.name,
+        row.original.department_name || "N/A",
         row.original.priority,
         row.original.status,
         row.original.assigned_to_name || "Unassigned",
@@ -43,7 +44,7 @@ export function TicketExportButtons({ table }: TicketExportButtonsProps) {
 
       autoTable(doc, {
         startY: 35,
-        head: [["Ticket No", "Title", "Name", "Priority", "Status", "Assigned To", "Created"]],
+        head: [["Ticket No", "Title", "Name", "Department", "Priority", "Status", "Assigned To", "Created"]],
         body: rows,
         headStyles: { fillColor: [59, 130, 246] },
       });
@@ -66,6 +67,7 @@ export function TicketExportButtons({ table }: TicketExportButtonsProps) {
         Title: row.original.title,
         Name: row.original.name,
         Email: row.original.email,
+        Department: row.original.department_name || "N/A",
         Priority: row.original.priority,
         Status: row.original.status,
         "Assigned To": row.original.assigned_to_name || "Unassigned",

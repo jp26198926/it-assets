@@ -9,6 +9,8 @@ export interface Ticket {
   description: string;
   category_id: string;
   category_name?: string;
+  department_id: string | null;
+  department_name?: string;
   priority: "Low" | "Medium" | "High" | "Critical";
   asset_id: string | null;
   asset_name?: string;
@@ -34,6 +36,7 @@ export interface CreateTicketInput {
   title: string;
   description: string;
   category_id: string;
+  department_id?: string;
   priority?: "Low" | "Medium" | "High" | "Critical";
   asset_id?: string;
   assigned_to?: string;
@@ -50,6 +53,7 @@ export interface TicketFilters {
   email?: string;
   ticket_no?: string;
   category_id?: string;
+  department_id?: string;
   priority?: string;
   status?: string;
   assigned_to?: string;

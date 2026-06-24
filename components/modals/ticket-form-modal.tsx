@@ -32,6 +32,7 @@ interface TicketFormModalProps {
   onSubmit: (data: CreateTicketInput) => Promise<void>;
   selectOptions: {
     categories: { id: string; name: string }[];
+    departments: { id: string; name: string }[];
     assets: { id: string; barcode: string; itemName: string }[];
     users: { id: string; name: string }[];
   };
@@ -44,6 +45,7 @@ const defaultFormData: CreateTicketInput = {
   title: "",
   description: "",
   category_id: "",
+  department_id: "",
   priority: "Low",
   asset_id: "",
   assigned_to: "",
@@ -71,6 +73,7 @@ export function TicketFormModal({
         title: ticket.title,
         description: ticket.description,
         category_id: ticket.category_id,
+        department_id: ticket.department_id || "",
         priority: ticket.priority,
         asset_id: ticket.asset_id || "",
         assigned_to: ticket.assigned_to || "",
@@ -284,6 +287,25 @@ export function TicketFormModal({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Department (Optional)</Label>
+              <Select
+                value={formData.department_id || "none"}
+                onValueChange={(value) => setFormData({ ...formData, department_id: value === "none" ? "" : value })}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {selectOptions.departments.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label>Asset (Optional)</Label>
               <Select

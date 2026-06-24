@@ -1,8 +1,11 @@
 import { connectDB } from "@/lib/db/connection";
 import { Ticket as TicketModel } from "@/lib/db/models/ticket";
+import { TicketCategory as TicketCategoryModel } from "@/lib/db/models/ticket-category";
+import { Department as DepartmentModel } from "@/lib/db/models/department";
 import { Counter as CounterModel } from "@/lib/db/models/counter";
 import { User as UserModel } from "@/lib/db/models/user";
 import { Role as RoleModel } from "@/lib/db/models/role";
+import { Asset as AssetModel } from "@/lib/db/models/asset";
 import { getMailSettings } from "./mail-service";
 import { createTicketStatusLog } from "./ticket-status-log-service";
 import bcrypt from "bcryptjs";
@@ -59,6 +62,16 @@ function toTicket(d: Record<string, unknown>): Ticket {
     category_name = categoryId.name;
   }
 
+  const departmentId = d.department_id as unknown as { _id: { toString(): string }; name: string } | string | null;
+  let department_id: string | null = null;
+  let department_name: string | undefined;
+  if (departmentId && typeof departmentId === "object" && "_id" in departmentId) {
+    department_id = departmentId._id.toString();
+    department_name = departmentId.name;
+  } else if (typeof departmentId === "string") {
+    department_id = departmentId;
+  }
+
   const assetId = d.asset_id as unknown as { _id: { toString(): string }; barcode?: string; item_name?: string } | string | null;
   let asset_id: string | null = null;
   let asset_name: string | undefined;
@@ -100,6 +113,8 @@ function toTicket(d: Record<string, unknown>): Ticket {
     description: d.description as string,
     category_id,
     category_name,
+    department_id,
+    department_name,
     priority: d.priority as "Low" | "Medium" | "High" | "Critical",
     asset_id,
     asset_name,
@@ -522,6 +537,7 @@ async function enrichTicket(d: Record<string, unknown>): Promise<Ticket> {
 function populateQuery(query: ReturnType<typeof TicketModel.find>) {
   return query
     .populate("category_id", "name")
+    .populate("department_id", "name")
     .populate("asset_id", "barcode item_name")
     .populate("assigned_to", "first_name last_name")
     .populate("requestor_id", "first_name last_name")
@@ -572,6 +588,10 @@ export async function getTickets(filters?: TicketFilters): Promise<Ticket[]> {
     query.assigned_to = filters.assigned_to;
   }
 
+  if (filters?.department_id) {
+    query.department_id = filters.department_id;
+  }
+
   const tickets = await populateQuery(
     TicketModel.find(query).sort({ created_at: -1 })
   ).lean();
@@ -603,6 +623,7 @@ export async function createTicket(data: CreateTicketInput, createdByUserId?: st
     title: data.title,
     description: data.description,
     category_id: data.category_id,
+    department_id: data.department_id || null,
     priority: data.priority || "Low",
     asset_id: data.asset_id || null,
     assigned_to: data.assigned_to || null,
@@ -679,6 +700,7 @@ export async function updateTicket(
   if (data.title !== undefined) updateData.title = data.title;
   if (data.description !== undefined) updateData.description = data.description;
   if (data.category_id !== undefined) updateData.category_id = data.category_id;
+  if (data.department_id !== undefined) updateData.department_id = data.department_id || null;
   if (data.priority !== undefined) updateData.priority = data.priority;
   if (data.asset_id !== undefined) updateData.asset_id = data.asset_id || null;
   if (data.assigned_to !== undefined) updateData.assigned_to = data.assigned_to || null;
@@ -733,6 +755,7 @@ export async function updateTicket(
     if (data.title !== undefined) changes.push("Title");
     if (data.description !== undefined) changes.push("Description");
     if (data.category_id !== undefined) changes.push("Category");
+    if (data.department_id !== undefined) changes.push("Department");
     if (data.priority !== undefined) changes.push("Priority");
     if (data.asset_id !== undefined) changes.push("Asset");
     if (data.attachments !== undefined) changes.push("Attachments");
@@ -815,26 +838,27 @@ export async function restoreTicket(id: string): Promise<void> {
 
 export async function getTicketSelectOptions(): Promise<{
   categories: { id: string; name: string }[];
+  departments: { id: string; name: string }[];
   assets: { id: string; barcode: string; itemName: string }[];
   users: { id: string; name: string }[];
 }> {
   await connectDB();
 
-  const { TicketCategory: TicketCategoryModel } = await import("@/lib/db/models/ticket-category");
-  const { Asset: AssetModel } = await import("@/lib/db/models/asset");
   await import("@/lib/db/models/item");
 
   const assignableRoles = await RoleModel.find({ name: { $in: ["Administrator", "Technician"] }, deleted_at: null }).lean();
   const assignableRoleIds = assignableRoles.map((r) => r._id);
 
-  const [categories, rawAssets, users] = await Promise.all([
+  const [categories, departments, rawAssets, users] = await Promise.all([
     TicketCategoryModel.find({ deleted_at: null, status: "Active" }).select("name").sort({ name: 1 }).lean(),
+    DepartmentModel.find({ deleted_at: null, status: "Active" }).select("name").sort({ name: 1 }).lean(),
     AssetModel.find({ deleted_at: null }).populate("item_id", "name").sort({ barcode: 1 }).lean(),
     UserModel.find({ deleted_at: null, status: "Active", role_id: { $in: assignableRoleIds } }).select("first_name last_name").sort({ last_name: 1, first_name: 1 }).lean(),
   ]);
 
   return {
     categories: categories.map((c) => ({ id: (c._id as { toString(): string }).toString(), name: c.name })),
+    departments: departments.map((d) => ({ id: (d._id as { toString(): string }).toString(), name: d.name })),
     assets: rawAssets.map((a) => {
       const item = a.item_id as unknown as { name?: string } | null;
       return {
@@ -849,7 +873,6 @@ export async function getTicketSelectOptions(): Promise<{
 
 export async function getActiveTicketCategories(): Promise<{ id: string; name: string }[]> {
   await connectDB();
-  const { TicketCategory: TicketCategoryModel } = await import("@/lib/db/models/ticket-category");
   const categories = await TicketCategoryModel.find({ deleted_at: null, status: "Active" })
     .select("name")
     .sort({ name: 1 })

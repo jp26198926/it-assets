@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     if (searchParams.get("priority")) filters.priority = searchParams.get("priority")!;
     if (searchParams.get("status")) filters.status = searchParams.get("status")!;
     if (searchParams.get("assigned_to")) filters.assigned_to = searchParams.get("assigned_to")!;
+    if (searchParams.get("department_id")) filters.department_id = searchParams.get("department_id")!;
 
     const hasFilters = Object.keys(filters).length > 0;
     const tickets = await ticketService.getTickets(hasFilters ? filters : undefined);
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest) {
       title: body.title,
       description: body.description,
       category_id: body.category_id,
+      department_id: body.department_id,
       priority: body.priority,
       asset_id: body.asset_id,
       assigned_to: body.assigned_to,

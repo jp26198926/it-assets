@@ -35,6 +35,7 @@ export async function restoreTicket(id: string): Promise<void> {
 
 export async function getTicketSelectOptions(): Promise<{
   categories: { id: string; name: string }[];
+  departments: { id: string; name: string }[];
   assets: { id: string; barcode: string; itemName: string }[];
   users: { id: string; name: string }[];
 }> {

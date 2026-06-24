@@ -35,7 +35,7 @@ import {
 import { PageGuard } from "@/components/auth/page-guard";
 import { TicketUpdateStatusModal } from "@/components/modals/ticket-update-status-modal";
 import { TicketEditModal } from "@/components/modals/ticket-edit-modal";
-import { getTicketById, updateTicket, getActiveTicketCategories, getTicketStatusLogs, getTicketStatusLogTotal, uploadTicketAttachment } from "@/lib/actions/ticket-actions";
+import { getTicketById, updateTicket, getTicketStatusLogs, getTicketStatusLogTotal, uploadTicketAttachment, getTicketSelectOptions } from "@/lib/actions/ticket-actions";
 import { createTicketComment, getTicketComments, getTicketCommentTotal } from "@/lib/actions/ticket-comment-actions";
 import { getAppSettings } from "@/lib/actions/application-actions";
 import { getAssetById } from "@/lib/actions/asset-actions";
@@ -86,7 +86,8 @@ export default function TicketDetailPage() {
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const [selectOptions, setSelectOptions] = useState<{
     categories: { id: string; name: string }[];
-  }>({ categories: [] });
+    departments: { id: string; name: string }[];
+  }>({ categories: [], departments: [] });
   const [appSettings, setAppSettings] = useState<{ app_name: string; tagline: string }>({ app_name: "", tagline: "" });
   const [assetDetails, setAssetDetails] = useState<{ serial_number: string | null; item_brand: string | null; item_model: string | null } | null>(null);
   const { setOverrides: setBreadcrumbOverrides } = useBreadcrumbOverrides();
@@ -95,14 +96,14 @@ export default function TicketDetailPage() {
     const fetchTicket = async () => {
       try {
         const ticketId = params.id as string;
-        const [data, categories, logs, total, commentData, commentCount, settings] = await Promise.all([
+        const [data, logs, total, commentData, commentCount, settings, options] = await Promise.all([
           getTicketById(ticketId),
-          getActiveTicketCategories(),
           getTicketStatusLogs(ticketId, LOG_PAGE_SIZE, 0),
           getTicketStatusLogTotal(ticketId),
           getTicketComments(ticketId, COMMENT_PAGE_SIZE, 0),
           getTicketCommentTotal(ticketId),
           getAppSettings(),
+          getTicketSelectOptions(),
         ]);
         if (data) {
           setTicket(data);
@@ -110,7 +111,7 @@ export default function TicketDetailPage() {
         } else {
           setError(true);
         }
-        setSelectOptions({ categories });
+        setSelectOptions({ categories: options.categories, departments: options.departments });
         setStatusLogs(logs);
         setLogTotal(total);
         setComments(commentData);
@@ -152,12 +153,13 @@ export default function TicketDetailPage() {
     }
   };
 
-  const handleEditConfirm = async (data: { name: string; category_id: string; priority: string }) => {
+  const handleEditConfirm = async (data: { name: string; category_id: string; department_id: string; priority: string }) => {
     if (!ticket) return;
     try {
       await updateTicket(ticket.id, {
         name: data.name,
         category_id: data.category_id,
+        department_id: data.department_id || undefined,
         priority: data.priority as "Low" | "Medium" | "High" | "Critical",
       });
       const refreshed = await getTicketById(ticket.id);
@@ -416,6 +418,9 @@ export default function TicketDetailPage() {
         <td class="field-label">Priority</td><td class="field-value">${ticket.priority}</td>
         <td class="field-label">Category</td><td class="field-value">${ticket.category_name || "N/A"}</td>
       </tr>
+      <tr>
+        <td class="field-label">Department</td><td class="field-value" colspan="3">${ticket.department_name || "N/A"}</td>
+      </tr>
       ${(ticket.status === "Resolved" || ticket.status === "Closed") ? `
       <tr>
         <td class="field-label">Date Closed</td><td class="field-value" colspan="3">${ticket.updated_at ? format(new Date(ticket.updated_at), "dd-MMM-yyyy hh:mm a") : "N/A"}</td>
@@ -548,12 +553,16 @@ export default function TicketDetailPage() {
                 <td className="pf-tl">Time Created</td>
                 <td className="pf-tr">{format(new Date(ticket.created_at), "hh:mm a")}</td>
               </tr>
-              <tr>
-                <td className="pf-tl">Priority</td>
-                <td className="pf-tr">{ticket.priority}</td>
-                <td className="pf-tl">Category</td>
-                <td className="pf-tr">{ticket.category_name || "N/A"}</td>
-              </tr>
+      <tr>
+        <td className="pf-tl">Priority</td>
+        <td className="pf-tr">{ticket.priority}</td>
+        <td className="pf-tl">Category</td>
+        <td className="pf-tr">{ticket.category_name || "N/A"}</td>
+      </tr>
+      <tr>
+        <td className="pf-tl">Department</td>
+        <td className="pf-tr" colSpan={3}>{ticket.department_name || "N/A"}</td>
+      </tr>
               {(ticket.status === "Resolved" || ticket.status === "Closed") && (
                 <tr>
                   <td className="pf-tl">Date Closed</td>
@@ -906,6 +915,10 @@ export default function TicketDetailPage() {
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Category</p>
                 <p className="text-sm font-medium text-[#1a1f36]">{ticket.category_name || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Department</p>
+                <p className="text-sm font-medium text-[#1a1f36]">{ticket.department_name || "N/A"}</p>
               </div>
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Priority</p>

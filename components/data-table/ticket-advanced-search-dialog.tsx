@@ -33,6 +33,7 @@ export function TicketAdvancedSearchDialog({
   const [searchPriority, setSearchPriority] = useState("");
   const [searchCategory, setSearchCategory] = useState("");
   const [searchStatus, setSearchStatus] = useState("");
+  const [searchDepartment, setSearchDepartment] = useState("");
 
   const handleSearch = () => {
     const filters: TicketFilters = {};
@@ -43,6 +44,7 @@ export function TicketAdvancedSearchDialog({
     if (searchPriority) filters.priority = searchPriority;
     if (searchCategory) filters.category_id = searchCategory;
     if (searchStatus) filters.status = searchStatus;
+    if (searchDepartment) filters.department_id = searchDepartment;
 
     onSearch(filters);
     setOpen(false);
@@ -56,6 +58,7 @@ export function TicketAdvancedSearchDialog({
     setSearchPriority("");
     setSearchCategory("");
     setSearchStatus("");
+    setSearchDepartment("");
     onClear();
     setOpen(false);
   };
@@ -160,6 +163,17 @@ export function TicketAdvancedSearchDialog({
                 <option value="Resolved">Resolved</option>
                 <option value="Closed">Closed</option>
               </select>
+            </div>
+          </div>
+          <div className="grid gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="search-department">Department ID</Label>
+              <Input
+                id="search-department"
+                placeholder="Department ID..."
+                value={searchDepartment}
+                onChange={(e) => setSearchDepartment(e.target.value)}
+              />
             </div>
           </div>
         </div>
