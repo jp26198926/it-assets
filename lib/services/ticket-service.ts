@@ -535,6 +535,15 @@ async function enrichTicket(d: Record<string, unknown>): Promise<Ticket> {
   return ticket;
 }
 
+function extractId(val: unknown): string | null {
+  if (!val) return null;
+  if (typeof val === "string") return val;
+  if (typeof val === "object" && val !== null && "_id" in val) {
+    return (val as { _id: { toString(): string } })._id.toString();
+  }
+  return (val as { toString(): string }).toString();
+}
+
 function populateQuery(query: ReturnType<typeof TicketModel.find>) {
   return query
     .populate("category_id", "name")
@@ -633,15 +642,9 @@ export async function getTicketById(
 
   if (user && user.role !== "Administrator") {
     const ticketData = ticket as unknown as Record<string, unknown>;
-    const requestorId = ticketData.requestor_id
-      ? (ticketData.requestor_id as { toString(): string }).toString()
-      : null;
-    const createdBy = ticketData.created_by
-      ? (ticketData.created_by as { toString(): string }).toString()
-      : null;
-    const assignedTo = ticketData.assigned_to
-      ? (ticketData.assigned_to as { toString(): string }).toString()
-      : null;
+    const requestorId = extractId(ticketData.requestor_id);
+    const createdBy = extractId(ticketData.created_by);
+    const assignedTo = extractId(ticketData.assigned_to);
 
     if (user.role === "Viewer") {
       if (requestorId !== user.userId && createdBy !== user.userId) {

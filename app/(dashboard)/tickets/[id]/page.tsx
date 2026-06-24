@@ -34,6 +34,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { PageGuard } from "@/components/auth/page-guard";
+import { useAuthorization } from "@/hooks/use-authorization";
 import { TicketUpdateStatusModal } from "@/components/modals/ticket-update-status-modal";
 import { TicketEditModal } from "@/components/modals/ticket-edit-modal";
 import { TicketAssignModal } from "@/components/modals/ticket-assign-modal";
@@ -126,6 +127,9 @@ export default function TicketDetailPage() {
     item_model: string | null;
   } | null>(null);
   const { setOverrides: setBreadcrumbOverrides } = useBreadcrumbOverrides();
+  const { hasPermission } = useAuthorization();
+  const canEdit = hasPermission("/tickets", "Edit");
+  const canAssign = hasPermission("/tickets", "Assign");
 
   useEffect(() => {
     const fetchTicket = async () => {
@@ -217,7 +221,9 @@ export default function TicketDetailPage() {
       ]);
       setStatusLogs(logs);
       setLogTotal(total);
-      toast.success(userId ? "Ticket assigned successfully" : "Ticket unassigned");
+      toast.success(
+        userId ? "Ticket assigned successfully" : "Ticket unassigned",
+      );
     } catch {
       toast.error("Failed to assign ticket");
     }
@@ -1111,14 +1117,16 @@ export default function TicketDetailPage() {
             {/* Action Buttons */}
             <div className="bg-white shadow-sm rounded-xl p-4">
               <div className="grid grid-cols-2 gap-2">
-                <Button
-                  size="sm"
-                  className="gap-2 bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
-                  onClick={() => setEditModalOpen(true)}
-                >
-                  <Edit className="h-4 w-4" />
-                  Edit
-                </Button>
+                {canEdit && (
+                  <Button
+                    size="sm"
+                    className="gap-2 bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+                    onClick={() => setEditModalOpen(true)}
+                  >
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   className="gap-2 bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
@@ -1127,22 +1135,26 @@ export default function TicketDetailPage() {
                   <Printer className="h-4 w-4" />
                   Print
                 </Button>
-                <Button
-                  size="sm"
-                  className="gap-2 bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200"
-                  onClick={() => setStatusModalOpen(true)}
-                >
-                  <ClipboardCheck className="h-4 w-4" />
-                  Status
-                </Button>
-                <Button
-                  size="sm"
-                  className="gap-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200"
-                  onClick={() => setAssignModalOpen(true)}
-                >
-                  <UserPlus className="h-4 w-4" />
-                  Assign
-                </Button>
+                {canEdit && (
+                  <Button
+                    size="sm"
+                    className="gap-2 bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200"
+                    onClick={() => setStatusModalOpen(true)}
+                  >
+                    <ClipboardCheck className="h-4 w-4" />
+                    Status
+                  </Button>
+                )}
+                {canAssign && (
+                  <Button
+                    size="sm"
+                    className="gap-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200"
+                    onClick={() => setAssignModalOpen(true)}
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    Assign
+                  </Button>
+                )}
               </div>
             </div>
 
