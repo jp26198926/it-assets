@@ -661,7 +661,7 @@ export async function createTicket(data: CreateTicketInput, createdByUserId?: st
 
   createTicketStatusLog({
     ticket_id: ticket.id,
-    old_status: "",
+    old_status: "New",
     new_status: ticket.status,
     remarks: "Ticket created",
     created_by: createdByUserId || null,
@@ -768,13 +768,40 @@ export async function updateTicket(
         updatedByName,
         changes
       ).catch(() => {});
+
+      createTicketStatusLog({
+        ticket_id: id,
+        old_status: oldStatus,
+        new_status: newStatus,
+        remarks: `Ticket updated: ${changes.join(", ")}`,
+        created_by: updatedByUserId || null,
+      }).catch(() => {});
     }
   }
 
-  if (assigneeChanged && newAssignedTo) {
-    const assignee = await UserModel.findById(newAssignedTo).lean();
-    if (assignee) {
-      const assigneeEmail = (assignee as unknown as { email: string }).email;
+  if (assigneeChanged) {
+    let assigneeName: string | null = null;
+    let assigneeEmail: string | null = null;
+
+    if (newAssignedTo) {
+      const assignee = await UserModel.findById(newAssignedTo).lean();
+      if (assignee) {
+        assigneeName = `${(assignee as unknown as { first_name: string }).first_name} ${(assignee as unknown as { last_name: string }).last_name}`.trim();
+        assigneeEmail = (assignee as unknown as { email: string }).email;
+      }
+    }
+
+    createTicketStatusLog({
+      ticket_id: id,
+      old_status: newStatus,
+      new_status: newStatus,
+      remarks: newAssignedTo
+        ? `Assigned to ${assigneeName || "Unknown"}`
+        : "Unassigned",
+      created_by: updatedByUserId || null,
+    }).catch(() => {});
+
+    if (newAssignedTo && assigneeEmail) {
       const requestorName = data.name || oldTicket.name as string;
       sendNewAssigneeEmail(
         ticket_no,
