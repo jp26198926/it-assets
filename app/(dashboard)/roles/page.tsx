@@ -6,10 +6,11 @@ import { createRoleColumns } from "@/components/data-table/role-data-table-colum
 import { RoleFormModal } from "@/components/modals/role-form-modal";
 import { RoleViewModal } from "@/components/modals/role-view-modal";
 import { RolePermissionModal } from "@/components/modals/role-permission-modal";
+import { RoleDuplicateModal } from "@/components/modals/role-duplicate-modal";
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
-import { getRoles, createRole, updateRole, deleteRole, restoreRole } from "@/lib/actions/role-actions";
+import { getRoles, createRole, updateRole, deleteRole, restoreRole, duplicateRole } from "@/lib/actions/role-actions";
 import type { Role, CreateRoleInput, RoleFilters } from "@/lib/types/role";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ export default function RolesPage() {
   const [editRole, setEditRole] = useState<Role | null>(null);
   const [deleteRoleItem, setDeleteRoleItem] = useState<Role | null>(null);
   const [permissionRole, setPermissionRole] = useState<Role | null>(null);
+  const [duplicateRoleItem, setDuplicateRoleItem] = useState<Role | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState<RoleFilters>({});
@@ -69,6 +71,26 @@ export default function RolesPage() {
     setPermissionRole(role);
   };
 
+  const handleDuplicate = (role: Role) => {
+    setDuplicateRoleItem(role);
+  };
+
+  const handleDuplicateSubmit = async (data: CreateRoleInput) => {
+    if (!duplicateRoleItem) return;
+    try {
+      await duplicateRole(duplicateRoleItem.id, {
+        name: data.name,
+        description: data.description,
+      });
+      toast.success(`${data.name} has been created`);
+      setDuplicateRoleItem(null);
+      loadData(activeFilters);
+    } catch {
+      toast.error("Failed to duplicate role");
+      throw new Error("Failed to duplicate role");
+    }
+  };
+
   const handleRestore = async (role: Role) => {
     try {
       await restoreRole(role.id);
@@ -113,7 +135,7 @@ export default function RolesPage() {
     }
   };
 
-  const columns = createRoleColumns(handleView, handleEdit, handleDelete, handleRestore, handlePermission);
+  const columns = createRoleColumns(handleView, handleEdit, handleDelete, handleRestore, handlePermission, handleDuplicate);
 
   if (loading) {
     return (
@@ -153,6 +175,7 @@ export default function RolesPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onRestore={handleRestore}
+            onDuplicate={handleDuplicate}
             onAdd={handleAdd}
             onServerSearch={handleServerSearch}
             onServerSearchClear={handleServerSearchClear}
@@ -183,6 +206,13 @@ export default function RolesPage() {
           open={!!permissionRole}
           onOpenChange={(open) => !open && setPermissionRole(null)}
           role={permissionRole}
+        />
+
+        <RoleDuplicateModal
+          open={!!duplicateRoleItem}
+          onOpenChange={(open) => !open && setDuplicateRoleItem(null)}
+          role={duplicateRoleItem}
+          onSubmit={handleDuplicateSubmit}
         />
       </div>
     </PageGuard>

@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Eye, Edit, Trash2, RotateCcw, Shield } from "lucide-react";
+import { MoreHorizontal, Eye, Edit, Trash2, RotateCcw, Shield, Copy } from "lucide-react";
 import { useAuthorization } from "@/hooks/use-authorization";
 import type { Role } from "@/lib/types/role";
 import { DataTableColumnHeader } from "./data-table-column-header";
@@ -27,9 +27,10 @@ interface ActionsProps {
   onDelete: (role: Role) => void;
   onRestore: (role: Role) => void;
   onPermission: (role: Role) => void;
+  onDuplicate: (role: Role) => void;
 }
 
-function Actions({ role, onView, onEdit, onDelete, onRestore, onPermission }: ActionsProps) {
+function Actions({ role, onView, onEdit, onDelete, onRestore, onPermission, onDuplicate }: ActionsProps) {
   const { hasPermission } = useAuthorization();
   const canEdit = hasPermission("/roles", "Edit");
   const canDelete = hasPermission("/roles", "Delete");
@@ -57,6 +58,10 @@ function Actions({ role, onView, onEdit, onDelete, onRestore, onPermission }: Ac
             <DropdownMenuItem onClick={() => onPermission(role)} className="cursor-pointer gap-2 text-[#1a1f36]">
               <Shield className="h-4 w-4 text-[#64748b]" />
               Permission
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onDuplicate(role)} className="cursor-pointer gap-2 text-[#1a1f36]">
+              <Copy className="h-4 w-4 text-[#64748b]" />
+              Duplicate
             </DropdownMenuItem>
           </>
         )}
@@ -92,7 +97,8 @@ export function createRoleColumns(
   onEdit: (role: Role) => void,
   onDelete: (role: Role) => void,
   onRestore: (role: Role) => void,
-  onPermission: (role: Role) => void
+  onPermission: (role: Role) => void,
+  onDuplicate: (role: Role) => void
 ): ColumnDef<Role>[] {
   return [
     {
@@ -159,6 +165,7 @@ export function createRoleColumns(
           onDelete={onDelete}
           onRestore={onRestore}
           onPermission={onPermission}
+          onDuplicate={onDuplicate}
         />
       ),
     },

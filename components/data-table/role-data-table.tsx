@@ -34,6 +34,7 @@ interface RoleDataTableProps<TData, TValue> {
   onEdit: (role: Role) => void;
   onDelete: (role: Role) => void;
   onRestore: (role: Role) => void;
+  onDuplicate: (role: Role) => void;
   onAdd: () => void;
   onServerSearch?: (filters: RoleFilters) => void;
   onServerSearchClear?: () => void;
@@ -46,6 +47,7 @@ export function RoleDataTable<TData, TValue>({
   onEdit,
   onDelete,
   onRestore,
+  onDuplicate,
   onAdd,
   onServerSearch,
   onServerSearchClear,
@@ -224,6 +226,12 @@ export function RoleDataTable<TData, TValue>({
                       className="p-2 hover:bg-[#f0f4f8] transition-colors"
                     >
                       <span className="text-[#64748b]">✏️</span>
+                    </button>
+                    <button
+                      onClick={() => onDuplicate(role)}
+                      className="p-2 hover:bg-[#f0f4f8] transition-colors"
+                    >
+                      <span className="text-[#64748b]">📋</span>
                     </button>
                     {!role.deleted_at ? (
                       <button

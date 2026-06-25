@@ -26,3 +26,10 @@ export async function deleteRole(id: string, reason?: string): Promise<void> {
 export async function restoreRole(id: string): Promise<void> {
   return roleService.restoreRole(id);
 }
+
+export async function duplicateRole(
+  sourceRoleId: string,
+  data: { name: string; description?: string }
+): Promise<Role> {
+  return roleService.duplicateRole(sourceRoleId, data);
+}

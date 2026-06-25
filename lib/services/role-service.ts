@@ -258,3 +258,43 @@ export async function restoreRole(id: string): Promise<void> {
     updated_at: new Date(),
   });
 }
+
+export async function duplicateRole(
+  sourceRoleId: string,
+  data: CreateRoleInput
+): Promise<Role> {
+  await connectDB();
+
+  const sourceRole = await RoleModel.findById(sourceRoleId).lean();
+  if (!sourceRole) throw new Error("Source role not found");
+
+  const newRole = await RoleModel.create({
+    name: data.name,
+    description: data.description || null,
+    status: "Active",
+  });
+
+  const sourcePerms = await getRolePermissions(sourceRoleId);
+  if (sourcePerms.length > 0) {
+    await RoleModel.findByIdAndUpdate(newRole._id, {
+      $push: {
+        permissions: {
+          $each: sourcePerms.map((p) => ({
+            page_id: p.page_id,
+            permission_id: p.permission_id,
+          })),
+        },
+      },
+    });
+  }
+
+  const created = await RoleModel.findById(newRole._id)
+    .populate("created_by", "first_name last_name")
+    .populate("updated_by", "first_name last_name")
+    .populate("deleted_by", "first_name last_name")
+    .lean();
+
+  if (!created) throw new Error("Failed to duplicate role");
+
+  return toRole(created as unknown as Record<string, unknown>);
+}
