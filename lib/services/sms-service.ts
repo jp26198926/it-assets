@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db/connection";
 import { Sms as SmsModel } from "@/lib/db/models/sms";
 import type { UpdateSmsInput, Sms } from "@/lib/types/sms";
+import { getAppName } from "./application-service";
 
 function toSms(d: Record<string, unknown>): Sms {
   return {
@@ -64,6 +65,8 @@ export async function sendTestSms(phoneNumber: string): Promise<{ success: boole
     return { success: false, message: "Device ID is not configured" };
   }
 
+  const appName = await getAppName();
+
   const response = await fetch(
     `https://api.textbee.dev/api/v1/gateway/devices/${settings.device_id}/send-sms`,
     {
@@ -74,7 +77,7 @@ export async function sendTestSms(phoneNumber: string): Promise<{ success: boole
       },
       body: JSON.stringify({
         recipients: [phoneNumber],
-        message: "Test SMS from IT Asset Manager - Your SMS gateway is configured correctly.",
+        message: `Test SMS from ${appName} - Your SMS gateway is configured correctly.`,
       }),
     }
   );

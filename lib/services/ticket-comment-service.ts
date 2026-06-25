@@ -4,6 +4,7 @@ import { Ticket as TicketModel } from "@/lib/db/models/ticket";
 import { User as UserModel } from "@/lib/db/models/user";
 import { Role as RoleModel } from "@/lib/db/models/role";
 import { getMailSettings } from "./mail-service";
+import { getAppName } from "./application-service";
 import nodemailer from "nodemailer";
 import type { TicketComment, CreateTicketCommentInput } from "@/lib/types/ticket-comment";
 
@@ -90,7 +91,7 @@ async function sendCommentNotificationEmail(
       : undefined,
   });
 
-  const appName = "IT Asset Manager";
+  const appName = await getAppName();
   const truncatedMessage = messagePreview.length > 200
     ? messagePreview.substring(0, 200) + "..."
     : messagePreview;

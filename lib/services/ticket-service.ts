@@ -7,6 +7,7 @@ import { User as UserModel } from "@/lib/db/models/user";
 import { Role as RoleModel } from "@/lib/db/models/role";
 import { Asset as AssetModel } from "@/lib/db/models/asset";
 import { getMailSettings } from "./mail-service";
+import { getAppName } from "./application-service";
 import { createTicketStatusLog } from "./ticket-status-log-service";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
@@ -175,7 +176,7 @@ async function sendWelcomeEmail(email: string, password: string): Promise<void> 
       : undefined,
   });
 
-  const appName = "IT Asset Manager";
+  const appName = await getAppName();
 
   await transporter.sendMail({
     from: `"${settings.sender_name || appName}" <${settings.smtp_from}>`,
@@ -229,7 +230,7 @@ async function sendRequestorEmail(
       : undefined,
   });
 
-  const appName = "IT Asset Manager";
+  const appName = await getAppName();
 
   await transporter.sendMail({
     from: `"${settings.sender_name || appName}" <${settings.smtp_from}>`,
@@ -285,7 +286,7 @@ async function sendAssigneeEmail(
       : undefined,
   });
 
-  const appName = "IT Asset Manager";
+  const appName = await getAppName();
 
   await transporter.sendMail({
     from: `"${settings.sender_name || appName}" <${settings.smtp_from}>`,
@@ -342,7 +343,7 @@ async function sendTicketUpdatedEmail(
       : undefined,
   });
 
-  const appName = "IT Asset Manager";
+  const appName = await getAppName();
 
   await transporter.sendMail({
     from: `"${settings.sender_name || appName}" <${settings.smtp_from}>`,
@@ -396,7 +397,7 @@ async function sendTicketStatusChangedEmail(
       : undefined,
   });
 
-  const appName = "IT Asset Manager";
+  const appName = await getAppName();
 
   const statusColors: Record<string, string> = {
     Open: "#1d4ed8",
@@ -462,7 +463,7 @@ async function sendNewAssigneeEmail(
       : undefined,
   });
 
-  const appName = "IT Asset Manager";
+  const appName = await getAppName();
 
   await transporter.sendMail({
     from: `"${settings.sender_name || appName}" <${settings.smtp_from}>`,

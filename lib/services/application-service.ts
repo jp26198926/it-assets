@@ -25,6 +25,14 @@ function toApplication(d: Record<string, unknown>): Application {
   };
 }
 
+const DEFAULT_APP_NAME = "IT Asset Manager";
+
+export async function getAppName(): Promise<string> {
+  await connectDB();
+  const app = await ApplicationModel.findOne().lean();
+  return (app?.app_name as string) || DEFAULT_APP_NAME;
+}
+
 export async function getAppSettings(): Promise<Application> {
   await connectDB();
 

@@ -34,6 +34,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getSidebarPages } from "@/lib/actions/page-actions";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import { logout } from "@/lib/actions/auth-actions";
 import { getIcon } from "@/lib/icon-map";
 import { useAuthorization } from "@/hooks/use-authorization";
@@ -92,10 +93,14 @@ export function AppSidebar() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [appName, setAppName] = useState("IT Asset Manager");
 
   useEffect(() => {
     getSidebarPages().then((pages) => {
       setAllPages(pages);
+    });
+    getAppSettings().then((settings) => {
+      if (settings.app_name) setAppName(settings.app_name);
     });
   }, []);
 
@@ -139,7 +144,7 @@ export function AppSidebar() {
                   <Server className="size-5" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-bold text-white text-base">IT Asset Manager</span>
+                  <span className="truncate font-bold text-white text-base">{appName}</span>
                 </div>
               </Link>
             </SidebarMenuButton>

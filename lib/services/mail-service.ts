@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db/connection";
 import { Mail as MailModel } from "@/lib/db/models/mail";
 import type { UpdateMailInput, Mail } from "@/lib/types/mail";
+import { getAppName } from "./application-service";
 import nodemailer from "nodemailer";
 
 function toMail(d: Record<string, unknown>): Mail {
@@ -88,7 +89,7 @@ export async function sendTestEmail(recipientEmail: string): Promise<{ success: 
       : undefined,
   });
 
-  const appName = "IT Asset Manager";
+  const appName = await getAppName();
 
   await transporter.sendMail({
     from: `"${settings.sender_name || appName}" <${settings.smtp_from}>`,

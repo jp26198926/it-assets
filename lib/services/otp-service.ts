@@ -3,6 +3,7 @@ import { UserOtpLog as OtpLogModel } from "@/lib/db/models/user-otp-log";
 import { Application as AppModel } from "@/lib/db/models/application";
 import { User as UserModel } from "@/lib/db/models/user";
 import { getMailSettings } from "./mail-service";
+import { getAppName } from "./application-service";
 import { sendSms } from "./sms-service";
 import nodemailer from "nodemailer";
 import { Types } from "mongoose";
@@ -45,7 +46,7 @@ export async function sendOtp(
   });
 
   if (purpose === "PHONE_CHANGE" && recipientPhone) {
-    const appName = "IT Asset Manager";
+    const appName = await getAppName();
     const smsMessage = `[${appName}] Your verification code is: ${otpCode}. It expires in ${expiryMinutes} minutes. Do not share this code with anyone.`;
 
     const smsResult = await sendSms(recipientPhone, smsMessage);
@@ -68,7 +69,7 @@ export async function sendOtp(
   const user = await UserModel.findById(userId).lean();
   if (!user) return { success: false, message: "User not found" };
 
-  const appName = "IT Asset Manager";
+  const appName = await getAppName();
   let subject: string;
   let htmlContent: string;
 
