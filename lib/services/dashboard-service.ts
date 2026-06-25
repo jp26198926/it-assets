@@ -33,6 +33,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   await connectDB();
   await import("@/lib/db/models/category");
   await import("@/lib/db/models/uom");
+  await import("@/lib/db/models/item");
+  await import("@/lib/db/models/location");
+  await import("@/lib/db/models/employee");
+  await import("@/lib/db/models/user");
 
   const notDeleted = { deleted_at: null };
 
