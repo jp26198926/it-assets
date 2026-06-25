@@ -812,6 +812,21 @@ export async function updateTicket(
       updatedByName
     ).catch(() => {});
 
+    if (oldAssignedTo && updatedByUserId !== oldAssignedTo) {
+      const technician = await UserModel.findById(oldAssignedTo).lean();
+      if (technician) {
+        const techEmail = (technician as unknown as { email: string }).email;
+        sendTicketStatusChangedEmail(
+          ticket_no,
+          ticketTitle,
+          techEmail,
+          oldStatus,
+          newStatus!,
+          updatedByName
+        ).catch(() => {});
+      }
+    }
+
     createTicketStatusLog({
       ticket_id: id,
       old_status: oldStatus,
@@ -839,6 +854,20 @@ export async function updateTicket(
         updatedByName,
         changes
       ).catch(() => {});
+
+      if (oldAssignedTo && updatedByUserId !== oldAssignedTo) {
+        const technician = await UserModel.findById(oldAssignedTo).lean();
+        if (technician) {
+          const techEmail = (technician as unknown as { email: string }).email;
+          sendTicketUpdatedEmail(
+            ticket_no,
+            ticketTitle,
+            techEmail,
+            updatedByName,
+            changes
+          ).catch(() => {});
+        }
+      }
 
       createTicketStatusLog({
         ticket_id: id,

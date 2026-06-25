@@ -1,5 +1,10 @@
 import { connectDB } from "@/lib/db/connection";
 import { TicketComment as TicketCommentModel } from "@/lib/db/models/ticket-comment";
+import { Ticket as TicketModel } from "@/lib/db/models/ticket";
+import { User as UserModel } from "@/lib/db/models/user";
+import { Role as RoleModel } from "@/lib/db/models/role";
+import { getMailSettings } from "./mail-service";
+import nodemailer from "nodemailer";
 import type { TicketComment, CreateTicketCommentInput } from "@/lib/types/ticket-comment";
 
 function toTicketComment(d: Record<string, unknown>): TicketComment {
@@ -61,6 +66,67 @@ function toTicketComment(d: Record<string, unknown>): TicketComment {
   };
 }
 
+async function sendCommentNotificationEmail(
+  ticket_no: string,
+  title: string,
+  recipientEmail: string,
+  recipientName: string,
+  commenterName: string,
+  messagePreview: string
+): Promise<void> {
+  const settings = await getMailSettings();
+
+  if (!settings.smtp_host) {
+    console.log(`[TICKET] Comment notification - To: ${recipientEmail}, Ticket: ${ticket_no}`);
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: settings.smtp_host,
+    port: settings.smtp_port,
+    secure: settings.smtp_secure,
+    auth: settings.smtp_user
+      ? { user: settings.smtp_user, pass: settings.smtp_pass }
+      : undefined,
+  });
+
+  const appName = "IT Asset Manager";
+  const truncatedMessage = messagePreview.length > 200
+    ? messagePreview.substring(0, 200) + "..."
+    : messagePreview;
+
+  await transporter.sendMail({
+    from: `"${settings.sender_name || appName}" <${settings.smtp_from}>`,
+    to: recipientEmail,
+    subject: `[${ticket_no}] New Reply on Your Ticket`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: #3b82f6; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0; font-size: 24px;">${appName}</h1>
+        </div>
+        <div style="padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0;">
+          <h2 style="color: #1a1f36; margin-top: 0;">New Reply on Ticket</h2>
+          <p style="color: #475569; line-height: 1.6;">
+            <strong>${commenterName}</strong> has replied to support ticket <strong>${ticket_no}</strong>.
+          </p>
+          <div style="background: #f0f4f8; padding: 15px; border-radius: 4px; margin: 20px 0;">
+            <p style="margin: 5px 0; color: #475569;"><strong>Ticket No:</strong> ${ticket_no}</p>
+            <p style="margin: 5px 0; color: #475569;"><strong>Title:</strong> ${title}</p>
+            <p style="margin: 5px 0; color: #475569;"><strong>Reply:</strong></p>
+            <p style="margin: 5px 0; color: #475569; font-style: italic; padding-left: 10px; border-left: 3px solid #3b82f6;">${truncatedMessage}</p>
+          </div>
+          <p style="color: #475569; line-height: 1.6;">
+            Please log in to view the full reply and respond if needed.
+          </p>
+          <p style="color: #94a3b8; font-size: 12px; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+            Sent at ${new Date().toLocaleString()}
+          </p>
+        </div>
+      </div>
+    `,
+  });
+}
+
 export async function createTicketComment(
   data: CreateTicketCommentInput,
   createdByUserId?: string | null
@@ -80,6 +146,59 @@ export async function createTicketComment(
     .lean();
 
   if (!populated) throw new Error("Failed to create comment");
+
+  if (createdByUserId) {
+    try {
+      const ticket = await TicketModel.findById(data.ticket_id).lean();
+      if (ticket) {
+        const commenter = await UserModel.findById(createdByUserId).lean();
+        if (commenter) {
+          const commenterRole = await RoleModel.findById(
+            (commenter as unknown as { role_id: { toString(): string } }).role_id
+          ).lean();
+
+          const roleName = (commenterRole as unknown as { name: string })?.name;
+          const commenterName = `${(commenter as unknown as { first_name: string }).first_name} ${(commenter as unknown as { last_name: string }).last_name}`.trim();
+          const ticket_no = (ticket as unknown as { ticket_no: string }).ticket_no;
+          const title = (ticket as unknown as { title: string }).title;
+          const ticketEmail = (ticket as unknown as { email: string }).email;
+          const ticketName = (ticket as unknown as { name: string }).name;
+
+          const htmlMessage = data.message.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+
+          if (roleName === "Administrator" || roleName === "Technician") {
+            sendCommentNotificationEmail(
+              ticket_no,
+              title,
+              ticketEmail,
+              ticketName,
+              commenterName,
+              htmlMessage
+            ).catch(() => {});
+          } else {
+            const assignedTo = (ticket as unknown as { assigned_to: { toString(): string } | null }).assigned_to;
+            if (assignedTo) {
+              const technician = await UserModel.findById(assignedTo).lean();
+              if (technician) {
+                const techEmail = (technician as unknown as { email: string }).email;
+                const techName = `${(technician as unknown as { first_name: string }).first_name} ${(technician as unknown as { last_name: string }).last_name}`.trim();
+                sendCommentNotificationEmail(
+                  ticket_no,
+                  title,
+                  techEmail,
+                  techName,
+                  commenterName,
+                  htmlMessage
+                ).catch(() => {});
+              }
+            }
+          }
+        }
+      }
+    } catch {
+      // Silent fail for notification
+    }
+  }
 
   return toTicketComment(populated as unknown as Record<string, unknown>);
 }
