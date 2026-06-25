@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { Suspense, useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,14 @@ import { verifyOtp, resetPassword } from "@/lib/actions/auth-actions";
 import { toast } from "sonner";
 
 export default function VerifyOtpPage() {
+  return (
+    <Suspense>
+      <VerifyOtpForm />
+    </Suspense>
+  );
+}
+
+function VerifyOtpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";

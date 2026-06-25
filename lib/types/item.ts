@@ -34,11 +34,11 @@ export interface CreateItemInput {
   uom_id?: string;
   minimum_stock?: number;
   image_url?: string;
-  created_by?: string;
+  created_by?: string | null;
 }
 
 export interface UpdateItemInput extends Partial<CreateItemInput> {
-  updated_by?: string;
+  updated_by?: string | null;
 }
 
 export interface ItemFilters {
