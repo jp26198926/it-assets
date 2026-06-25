@@ -78,7 +78,8 @@ export function AssignmentFormModal({
   useEffect(() => {
     if (open) {
       setOptionsLoading(true);
-      getAssignmentSelectOptions()
+      const currentAssetId = assignment?.asset_id;
+      getAssignmentSelectOptions(currentAssetId)
         .then((options) => {
           setAssets(options.assets);
           setEmployees(options.employees);
@@ -88,7 +89,7 @@ export function AssignmentFormModal({
         .catch(() => {})
         .finally(() => setOptionsLoading(false));
     }
-  }, [open]);
+  }, [open, assignment?.asset_id]);
 
   useEffect(() => {
     if (assignment) {
@@ -130,7 +131,6 @@ export function AssignmentFormModal({
   }, [assets, assetSearch]);
 
   const selectedAsset = assets.find((a) => a.id === formData.asset_id);
-  const isAssetLocked = !!defaultAssetId && !assignment;
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -197,62 +197,70 @@ export function AssignmentFormModal({
           {/* Asset - Full Width */}
           <div className="space-y-2">
             <Label>Asset *</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#94a3b8] z-10" />
-              <Input
-                value={
-                  assetDropdownOpen && !isAssetLocked
-                    ? assetSearch
-                    : selectedAsset
-                      ? `${selectedAsset.barcode} — ${selectedAsset.itemName}`
-                      : ""
-                }
-                onChange={(e) => {
-                  if (isAssetLocked) return;
-                  setAssetSearch(e.target.value);
-                  setAssetDropdownOpen(true);
-                }}
-                onFocus={() => {
-                  if (isAssetLocked) return;
-                  setAssetDropdownOpen(true);
-                  setAssetSearch("");
-                }}
-                placeholder={isAssetLocked ? "" : "Search by barcode or item name..."}
-                className={`pl-9 ${errors.asset_id ? "border-red-500" : ""}`}
-                disabled={optionsLoading || isAssetLocked}
-              />
-              {assetDropdownOpen && (
-                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-[#e2e8f0] shadow-lg max-h-60 overflow-y-auto">
-                  {filteredAssets.length === 0 ? (
-                    <div className="px-3 py-2 text-sm text-[#64748b]">
-                      No assets available
+            {assignment ? (
+              <div className="flex items-center h-10 px-3 rounded-md border border-input bg-muted text-sm">
+                {selectedAsset
+                  ? `${selectedAsset.barcode} — ${selectedAsset.itemName}`
+                  : assignment.asset_id}
+              </div>
+            ) : (
+              <>
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#94a3b8] z-10" />
+                  <Input
+                    value={
+                      assetDropdownOpen
+                        ? assetSearch
+                        : selectedAsset
+                          ? `${selectedAsset.barcode} — ${selectedAsset.itemName}`
+                          : ""
+                    }
+                    onChange={(e) => {
+                      setAssetSearch(e.target.value);
+                      setAssetDropdownOpen(true);
+                    }}
+                    onFocus={() => {
+                      setAssetDropdownOpen(true);
+                      setAssetSearch("");
+                    }}
+                    placeholder="Search by barcode or item name..."
+                    className={`pl-9 ${errors.asset_id ? "border-red-500" : ""}`}
+                    disabled={optionsLoading}
+                  />
+                  {assetDropdownOpen && (
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-[#e2e8f0] shadow-lg max-h-60 overflow-y-auto">
+                      {filteredAssets.length === 0 ? (
+                        <div className="px-3 py-2 text-sm text-[#64748b]">
+                          No assets available
+                        </div>
+                      ) : (
+                        filteredAssets.map((asset) => (
+                          <div
+                            key={asset.id}
+                            className={`px-3 py-2 cursor-pointer hover:bg-[#f0f4f8] text-sm flex items-center justify-between ${
+                              formData.asset_id === asset.id ? "bg-[#eff6ff]" : ""
+                            }`}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setFormData({ ...formData, asset_id: asset.id });
+                              setAssetDropdownOpen(false);
+                              setAssetSearch("");
+                            }}
+                          >
+                            <span className="font-medium text-[#1a1f36]">
+                              {asset.barcode}
+                            </span>
+                            <span className="text-[#64748b]">{asset.itemName}</span>
+                          </div>
+                        ))
+                      )}
                     </div>
-                  ) : (
-                    filteredAssets.map((asset) => (
-                      <div
-                        key={asset.id}
-                        className={`px-3 py-2 cursor-pointer hover:bg-[#f0f4f8] text-sm flex items-center justify-between ${
-                          formData.asset_id === asset.id ? "bg-[#eff6ff]" : ""
-                        }`}
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          setFormData({ ...formData, asset_id: asset.id });
-                          setAssetDropdownOpen(false);
-                          setAssetSearch("");
-                        }}
-                      >
-                        <span className="font-medium text-[#1a1f36]">
-                          {asset.barcode}
-                        </span>
-                        <span className="text-[#64748b]">{asset.itemName}</span>
-                      </div>
-                    ))
                   )}
                 </div>
-              )}
-            </div>
-            {errors.asset_id && (
-              <p className="text-xs text-red-500">{errors.asset_id}</p>
+                {errors.asset_id && (
+                  <p className="text-xs text-red-500">{errors.asset_id}</p>
+                )}
+              </>
             )}
           </div>
 

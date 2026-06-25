@@ -4,13 +4,13 @@ import * as assignmentService from "@/lib/services/assignment-service";
 import { getAuthFromRequest } from "@/lib/services/api-auth";
 import type { CreateAssignmentInput, UpdateAssignmentInput, ReturnAssignmentInput, MarkAsLostInput, AssignmentFilters, Assignment } from "@/lib/types/assignment";
 
-export async function getAssignmentSelectOptions(): Promise<{
+export async function getAssignmentSelectOptions(currentAssetId?: string): Promise<{
   assets: { id: string; barcode: string; itemName: string }[];
   employees: { id: string; name: string; departmentId: string | null }[];
   departments: { id: string; name: string }[];
   locations: { id: string; name: string }[];
 }> {
-  return assignmentService.getAssignmentSelectOptions();
+  return assignmentService.getAssignmentSelectOptions(currentAssetId);
 }
 
 export async function getAssignments(filters?: AssignmentFilters): Promise<Assignment[]> {

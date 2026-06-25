@@ -120,7 +120,7 @@ async function enrichAssignment(d: Record<string, unknown>): Promise<Assignment>
   return assignment;
 }
 
-export async function getAssignmentSelectOptions(): Promise<{
+export async function getAssignmentSelectOptions(currentAssetId?: string): Promise<{
   assets: { id: string; barcode: string; itemName: string }[];
   employees: { id: string; name: string; departmentId: string | null }[];
   departments: { id: string; name: string }[];
@@ -134,7 +134,14 @@ export async function getAssignmentSelectOptions(): Promise<{
   const { Department } = await import("@/lib/db/models/department");
   const { Location } = await import("@/lib/db/models/location");
 
-  const availableAssets = await Asset.find({ deleted_at: null, status: "Available" })
+  const assetQuery: Record<string, unknown> = { deleted_at: null };
+  if (currentAssetId) {
+    assetQuery.$or = [{ status: "Available" }, { _id: currentAssetId }];
+  } else {
+    assetQuery.status = "Available";
+  }
+
+  const availableAssets = await Asset.find(assetQuery)
     .populate("item_id", "name")
     .sort({ barcode: 1 })
     .lean();

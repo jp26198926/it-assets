@@ -12,7 +12,15 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { usePathname } from "next/navigation";
-import { Search, Bell, MessageSquare, User, LogOut, KeyRound, ChevronDown } from "lucide-react";
+import {
+  Search,
+  Bell,
+  MessageSquare,
+  User,
+  LogOut,
+  KeyRound,
+  ChevronDown,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -49,7 +57,8 @@ export function Header() {
 
   const breadcrumbItems = segments.map((segment, index) => {
     const href = "/" + segments.slice(0, index + 1).join("/");
-    const defaultLabel = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ");
+    const defaultLabel =
+      segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ");
     const label = overrides[segment] || defaultLabel;
     const isLast = index === segments.length - 1;
 
@@ -95,16 +104,18 @@ export function Header() {
               <React.Fragment key={item.href}>
                 <BreadcrumbSeparator className="text-[#cbd5e1]" />
                 <BreadcrumbItem>
-                {item.isLast ? (
-                  <BreadcrumbPage className="font-semibold text-[#1a1f36]">{item.label}</BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink
-                    href={item.href}
-                    className="text-[#64748b] transition-colors hover:text-[#1a1f36]"
-                  >
-                    {item.label}
-                  </BreadcrumbLink>
-                )}
+                  {item.isLast ? (
+                    <BreadcrumbPage className="font-semibold text-[#1a1f36]">
+                      {item.label}
+                    </BreadcrumbPage>
+                  ) : (
+                    <BreadcrumbLink
+                      href={item.href}
+                      className="text-[#64748b] transition-colors hover:text-[#1a1f36]"
+                    >
+                      {item.label}
+                    </BreadcrumbLink>
+                  )}
                 </BreadcrumbItem>
               </React.Fragment>
             ))}
@@ -113,6 +124,8 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-1 sm:gap-3">
+        {/*
+
         <div className="relative hidden md:block">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
           <Input
@@ -130,6 +143,8 @@ export function Header() {
           <MessageSquare className="size-5" />
           <span className="absolute right-1.5 sm:right-2 top-1.5 sm:top-2 size-2 bg-[#3b82f6] ring-2 ring-white" />
         </button>
+        
+              */}
 
         <div className="hidden sm:block h-8 w-px bg-[#e2e8f0] mx-1" />
 
@@ -144,7 +159,11 @@ export function Header() {
               </div>
               <div className="flex size-8 sm:size-9 items-center justify-center bg-gradient-to-br from-[#3b82f6] to-[#2563eb] text-white text-xs font-bold shadow-md shadow-[#3b82f6]/20 overflow-hidden">
                 {user?.avatar_url ? (
-                  <img src={user.avatar_url} alt="Avatar" className="size-full object-cover" />
+                  <img
+                    src={user.avatar_url}
+                    alt="Avatar"
+                    className="size-full object-cover"
+                  />
                 ) : user ? (
                   getInitials(user.firstName, user.lastName)
                 ) : (
@@ -155,16 +174,25 @@ export function Header() {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={() => setProfileOpen(true)} className="cursor-pointer">
+            <DropdownMenuItem
+              onClick={() => setProfileOpen(true)}
+              className="cursor-pointer"
+            >
               <User className="size-4 mr-2" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setChangePasswordOpen(true)} className="cursor-pointer">
+            <DropdownMenuItem
+              onClick={() => setChangePasswordOpen(true)}
+              className="cursor-pointer"
+            >
               <KeyRound className="size-4 mr-2" />
               Change Password
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600">
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="cursor-pointer text-red-600 focus:text-red-600"
+            >
               <LogOut className="size-4 mr-2" />
               Logout
             </DropdownMenuItem>
