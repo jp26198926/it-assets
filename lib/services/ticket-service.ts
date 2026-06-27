@@ -11,7 +11,15 @@ import { getAppName } from "./application-service";
 import { createTicketStatusLog } from "./ticket-status-log-service";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
+import { headers } from "next/headers";
 import type { CreateTicketInput, UpdateTicketInput, TicketFilters, Ticket } from "@/lib/types/ticket";
+
+async function getBaseUrl(): Promise<string> {
+  const h = await headers();
+  const host = h.get("host") || "localhost:3000";
+  const protocol = h.get("x-forwarded-proto") || "http";
+  return `${protocol}://${host}`;
+}
 
 function toTicket(d: Record<string, unknown>): Ticket {
   const createdByVal = d.created_by as unknown as
@@ -212,7 +220,9 @@ async function sendRequestorEmail(
   ticket_no: string,
   title: string,
   priority: string,
-  email: string
+  email: string,
+  ticketId: string,
+  baseUrl: string
 ): Promise<void> {
   const settings = await getMailSettings();
 
@@ -254,6 +264,14 @@ async function sendRequestorEmail(
           <p style="color: #475569; line-height: 1.6;">
             Our team will review your ticket and get back to you as soon as possible.
           </p>
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="${baseUrl}/tickets/${ticketId}"
+               style="display: inline-block; background: #3b82f6; color: white;
+                      padding: 12px 24px; text-decoration: none; border-radius: 6px;
+                      font-weight: bold; font-size: 14px;">
+              View Ticket
+            </a>
+          </div>
           <p style="color: #94a3b8; font-size: 12px; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
             Sent at ${new Date().toLocaleString()}
           </p>
@@ -268,7 +286,9 @@ async function sendAssigneeEmail(
   title: string,
   priority: string,
   assigneeEmail: string,
-  requestorName: string
+  requestorName: string,
+  ticketId: string,
+  baseUrl: string
 ): Promise<void> {
   const settings = await getMailSettings();
 
@@ -311,6 +331,14 @@ async function sendAssigneeEmail(
           <p style="color: #475569; line-height: 1.6;">
             Please review and address this ticket promptly.
           </p>
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="${baseUrl}/tickets/${ticketId}"
+               style="display: inline-block; background: #3b82f6; color: white;
+                      padding: 12px 24px; text-decoration: none; border-radius: 6px;
+                      font-weight: bold; font-size: 14px;">
+              View Ticket
+            </a>
+          </div>
           <p style="color: #94a3b8; font-size: 12px; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
             Sent at ${new Date().toLocaleString()}
           </p>
@@ -325,7 +353,9 @@ async function sendTicketUpdatedEmail(
   title: string,
   email: string,
   updatedBy: string,
-  changes: string[]
+  changes: string[],
+  ticketId: string,
+  baseUrl: string
 ): Promise<void> {
   const settings = await getMailSettings();
 
@@ -364,6 +394,14 @@ async function sendTicketUpdatedEmail(
             <p style="margin: 5px 0; color: #475569;"><strong>Title:</strong> ${title}</p>
             <p style="margin: 5px 0; color: #475569;"><strong>Changes:</strong> ${changes.join(", ")}</p>
           </div>
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="${baseUrl}/tickets/${ticketId}"
+               style="display: inline-block; background: #3b82f6; color: white;
+                      padding: 12px 24px; text-decoration: none; border-radius: 6px;
+                      font-weight: bold; font-size: 14px;">
+              View Ticket
+            </a>
+          </div>
           <p style="color: #94a3b8; font-size: 12px; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
             Sent at ${new Date().toLocaleString()}
           </p>
@@ -379,7 +417,9 @@ async function sendTicketStatusChangedEmail(
   email: string,
   oldStatus: string,
   newStatus: string,
-  updatedBy: string
+  updatedBy: string,
+  ticketId: string,
+  baseUrl: string
 ): Promise<void> {
   const settings = await getMailSettings();
 
@@ -430,6 +470,14 @@ async function sendTicketStatusChangedEmail(
               <span style="color: ${statusColors[newStatus] || "#475569"}; font-weight: bold;">${newStatus}</span>
             </p>
           </div>
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="${baseUrl}/tickets/${ticketId}"
+               style="display: inline-block; background: #3b82f6; color: white;
+                      padding: 12px 24px; text-decoration: none; border-radius: 6px;
+                      font-weight: bold; font-size: 14px;">
+              View Ticket
+            </a>
+          </div>
           <p style="color: #94a3b8; font-size: 12px; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
             Sent at ${new Date().toLocaleString()}
           </p>
@@ -445,7 +493,9 @@ async function sendNewAssigneeEmail(
   priority: string,
   assigneeEmail: string,
   requestorName: string,
-  assignedBy: string
+  assignedBy: string,
+  ticketId: string,
+  baseUrl: string
 ): Promise<void> {
   const settings = await getMailSettings();
 
@@ -488,6 +538,14 @@ async function sendNewAssigneeEmail(
           <p style="color: #475569; line-height: 1.6;">
             Please review and address this ticket promptly.
           </p>
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="${baseUrl}/tickets/${ticketId}"
+               style="display: inline-block; background: #3b82f6; color: white;
+                      padding: 12px 24px; text-decoration: none; border-radius: 6px;
+                      font-weight: bold; font-size: 14px;">
+              View Ticket
+            </a>
+          </div>
           <p style="color: #94a3b8; font-size: 12px; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
             Sent at ${new Date().toLocaleString()}
           </p>
@@ -700,11 +758,16 @@ export async function createTicket(data: CreateTicketInput, createdByUserId?: st
 
   const ticketData = enrichTicket(created as unknown as Record<string, unknown>);
 
+  const baseUrl = await getBaseUrl();
+  const ticketId = ticket.id;
+
   sendRequestorEmail(
     ticket_no,
     data.title,
     data.priority || "Low",
-    data.email
+    data.email,
+    ticketId,
+    baseUrl
   ).catch(() => {});
 
   if (data.assigned_to) {
@@ -716,7 +779,9 @@ export async function createTicket(data: CreateTicketInput, createdByUserId?: st
         data.title,
         data.priority || "Low",
         assigneeEmail,
-        data.name
+        data.name,
+        ticketId,
+        baseUrl
       ).catch(() => {});
     }
   }
@@ -793,6 +858,8 @@ export async function updateTicket(
   const ticketTitle = data.title || oldTitle;
   const ticketPriority = data.priority || (oldTicket.priority as string);
 
+  const baseUrl = await getBaseUrl();
+
   if (statusChanged) {
     if (
       (newStatus === "Resolved" || newStatus === "Closed") &&
@@ -810,7 +877,9 @@ export async function updateTicket(
       requestorEmail,
       oldStatus,
       newStatus!,
-      updatedByName
+      updatedByName,
+      id,
+      baseUrl
     ).catch(() => {});
 
     if (oldAssignedTo && updatedByUserId !== oldAssignedTo) {
@@ -823,7 +892,9 @@ export async function updateTicket(
           techEmail,
           oldStatus,
           newStatus!,
-          updatedByName
+          updatedByName,
+          id,
+          baseUrl
         ).catch(() => {});
       }
     }
@@ -853,7 +924,9 @@ export async function updateTicket(
         ticketTitle,
         requestorEmail,
         updatedByName,
-        changes
+        changes,
+        id,
+        baseUrl
       ).catch(() => {});
 
       if (oldAssignedTo && updatedByUserId !== oldAssignedTo) {
@@ -865,7 +938,9 @@ export async function updateTicket(
             ticketTitle,
             techEmail,
             updatedByName,
-            changes
+            changes,
+            id,
+            baseUrl
           ).catch(() => {});
         }
       }
@@ -910,7 +985,9 @@ export async function updateTicket(
         ticketPriority,
         assigneeEmail,
         requestorName,
-        updatedByName
+        updatedByName,
+        id,
+        baseUrl
       ).catch(() => {});
     }
   }

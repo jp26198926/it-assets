@@ -6,7 +6,15 @@ import { Role as RoleModel } from "@/lib/db/models/role";
 import { getMailSettings } from "./mail-service";
 import { getAppName } from "./application-service";
 import nodemailer from "nodemailer";
+import { headers } from "next/headers";
 import type { TicketComment, CreateTicketCommentInput } from "@/lib/types/ticket-comment";
+
+async function getBaseUrl(): Promise<string> {
+  const h = await headers();
+  const host = h.get("host") || "localhost:3000";
+  const protocol = h.get("x-forwarded-proto") || "http";
+  return `${protocol}://${host}`;
+}
 
 function toTicketComment(d: Record<string, unknown>): TicketComment {
   const createdByVal = d.created_by as unknown as
@@ -73,7 +81,9 @@ async function sendCommentNotificationEmail(
   recipientEmail: string,
   recipientName: string,
   commenterName: string,
-  messagePreview: string
+  messagePreview: string,
+  ticketId: string,
+  baseUrl: string
 ): Promise<void> {
   const settings = await getMailSettings();
 
@@ -119,6 +129,14 @@ async function sendCommentNotificationEmail(
           <p style="color: #475569; line-height: 1.6;">
             Please log in to view the full reply and respond if needed.
           </p>
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="${baseUrl}/tickets/${ticketId}"
+               style="display: inline-block; background: #3b82f6; color: white;
+                      padding: 12px 24px; text-decoration: none; border-radius: 6px;
+                      font-weight: bold; font-size: 14px;">
+              View Ticket
+            </a>
+          </div>
           <p style="color: #94a3b8; font-size: 12px; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
             Sent at ${new Date().toLocaleString()}
           </p>
@@ -167,6 +185,8 @@ export async function createTicketComment(
 
           const htmlMessage = data.message.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 
+          const baseUrl = await getBaseUrl();
+
           if (roleName === "Administrator" || roleName === "Technician") {
             sendCommentNotificationEmail(
               ticket_no,
@@ -174,7 +194,9 @@ export async function createTicketComment(
               ticketEmail,
               ticketName,
               commenterName,
-              htmlMessage
+              htmlMessage,
+              data.ticket_id,
+              baseUrl
             ).catch(() => {});
           } else {
             const assignedTo = (ticket as unknown as { assigned_to: { toString(): string } | null }).assigned_to;
@@ -189,7 +211,9 @@ export async function createTicketComment(
                   techEmail,
                   techName,
                   commenterName,
-                  htmlMessage
+                  htmlMessage,
+                  data.ticket_id,
+                  baseUrl
                 ).catch(() => {});
               }
             }
