@@ -680,15 +680,16 @@ export async function getTickets(
   }
 
   if (filters?.date_from || filters?.date_to) {
-    query.created_at = {};
+    const dateQuery: Record<string, Date> = {};
     if (filters.date_from) {
-      query.created_at.$gte = new Date(filters.date_from);
+      dateQuery.$gte = new Date(filters.date_from);
     }
     if (filters.date_to) {
       const endDate = new Date(filters.date_to);
       endDate.setHours(23, 59, 59, 999);
-      query.created_at.$lte = endDate;
+      dateQuery.$lte = endDate;
     }
+    query.created_at = dateQuery;
   }
 
   if (filters?.status_in && filters.status_in.length > 0) {
