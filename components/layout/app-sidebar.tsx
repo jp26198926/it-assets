@@ -94,6 +94,7 @@ export function AppSidebar() {
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [appName, setAppName] = useState("IT Asset Manager");
+  const [appLogo, setAppLogo] = useState<string | null>(null);
 
   useEffect(() => {
     getSidebarPages().then((pages) => {
@@ -101,6 +102,7 @@ export function AppSidebar() {
     });
     getAppSettings().then((settings) => {
       if (settings.app_name) setAppName(settings.app_name);
+      if (settings.app_logo) setAppLogo(settings.app_logo);
     });
   }, []);
 
@@ -140,9 +142,13 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild className="hover:bg-transparent">
               <Link href="/dashboard">
-                <div className="flex size-9 items-center justify-center bg-[#3b82f6] text-white shadow-lg shadow-[#3b82f6]/30">
-                  <Server className="size-5" />
-                </div>
+                {appLogo ? (
+                  <img src={appLogo} alt="Logo" className="size-9 rounded-lg object-contain" />
+                ) : (
+                  <div className="flex size-9 items-center justify-center bg-[#3b82f6] text-white shadow-lg shadow-[#3b82f6]/30">
+                    <Server className="size-5" />
+                  </div>
+                )}
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-bold text-white text-base">{appName}</span>
                 </div>

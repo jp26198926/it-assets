@@ -12,6 +12,8 @@ export interface Application {
   facebook_link: string | null;
   x_link: string | null;
   instagram_link: string | null;
+  app_logo: string | null;
+  app_favicon: string | null;
   created_at: Date;
   created_by: string | null;
   updated_at: Date | null;
@@ -32,4 +34,6 @@ export interface UpdateApplicationInput {
   facebook_link?: string;
   x_link?: string;
   instagram_link?: string;
+  app_logo?: string;
+  app_favicon?: string;
 }

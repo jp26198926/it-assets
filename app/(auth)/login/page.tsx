@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { login } from "@/lib/actions/auth-actions";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import { toast } from "sonner";
 
 export default function LoginPage() {
@@ -29,6 +30,13 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [appLogo, setAppLogo] = useState<string | null>(null);
+
+  useEffect(() => {
+    getAppSettings().then((settings) => {
+      if (settings.app_logo) setAppLogo(settings.app_logo);
+    });
+  }, []);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -61,9 +69,13 @@ function LoginForm() {
   return (
     <Card className="border-0 shadow-lg">
       <CardHeader className="text-center pb-2">
-        <div className="mx-auto w-12 h-12 bg-[#3b82f6] rounded-lg flex items-center justify-center mb-4">
-          <span className="text-white font-bold text-xl">IT</span>
-        </div>
+        {appLogo ? (
+          <img src={appLogo} alt="Logo" className="mx-auto h-12 w-auto rounded-lg object-contain mb-4" />
+        ) : (
+          <div className="mx-auto w-12 h-12 bg-[#3b82f6] rounded-lg flex items-center justify-center mb-4">
+            <span className="text-white font-bold text-xl">IT</span>
+          </div>
+        )}
         <h1 className="text-2xl font-bold text-[#1a1f36]">Welcome Back</h1>
         <p className="text-sm text-[#64748b]">Sign in to your account</p>
       </CardHeader>

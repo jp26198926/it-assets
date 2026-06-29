@@ -14,6 +14,8 @@ export interface IApplication extends Document, BaseAuditFields {
   facebook_link: string | null;
   x_link: string | null;
   instagram_link: string | null;
+  app_logo: string | null;
+  app_favicon: string | null;
 }
 
 const ApplicationSchema = new Schema<IApplication>({
@@ -62,6 +64,14 @@ const ApplicationSchema = new Schema<IApplication>({
     default: null,
   },
   instagram_link: {
+    type: String,
+    default: null,
+  },
+  app_logo: {
+    type: String,
+    default: null,
+  },
+  app_favicon: {
     type: String,
     default: null,
   },

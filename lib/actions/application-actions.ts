@@ -10,3 +10,15 @@ export async function getAppSettings(): Promise<Application> {
 export async function updateAppSettings(data: UpdateApplicationInput): Promise<Application> {
   return applicationService.updateAppSettings(data);
 }
+
+export async function uploadAppImage(
+  fileBase64: string,
+  fileName: string,
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  const { uploadToCloudinary } = await import("@/lib/services/cloudinary-service");
+  const result = await uploadToCloudinary(fileBase64, fileName, "it-assets/branding", "branding");
+  if (result.success && result.url) {
+    return { success: true, url: result.url };
+  }
+  return { success: false, error: result.message };
+}

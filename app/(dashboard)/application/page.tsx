@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,10 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
-import { getAppSettings, updateAppSettings } from "@/lib/actions/application-actions";
+import { getAppSettings, updateAppSettings, uploadAppImage } from "@/lib/actions/application-actions";
 import type { Application, UpdateApplicationInput } from "@/lib/types/application";
 import { toast } from "sonner";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, Upload, X } from "lucide-react";
 
 export default function ApplicationPage() {
   const [settings, setSettings] = useState<Application | null>(null);
@@ -19,6 +19,10 @@ export default function ApplicationPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const faviconInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     getAppSettings().then((data) => {
@@ -36,6 +40,8 @@ export default function ApplicationPage() {
         facebook_link: data.facebook_link || "",
         x_link: data.x_link || "",
         instagram_link: data.instagram_link || "",
+        app_logo: data.app_logo || "",
+        app_favicon: data.app_favicon || "",
       });
       setLoading(false);
     });
@@ -74,6 +80,52 @@ export default function ApplicationPage() {
         return next;
       });
     }
+  };
+
+  const handleImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "app_logo" | "app_favicon",
+    setUploading: (v: boolean) => void,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const result = await uploadAppImage(base64, file.name);
+      if (result.success && result.url) {
+        updateField(field, result.url);
+        toast.success("Image uploaded successfully");
+      } else {
+        toast.error(result.error || "Failed to upload image");
+      }
+    } catch {
+      toast.error("Failed to upload image");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleRemoveImage = (field: "app_logo" | "app_favicon", ref: React.RefObject<HTMLInputElement | null>) => {
+    updateField(field, "");
+    if (ref.current) ref.current.value = "";
   };
 
   if (loading) {
@@ -115,6 +167,110 @@ export default function ApplicationPage() {
 
         <form id="application-form" onSubmit={handleSubmit}>
         <div className="grid gap-6 lg:grid-cols-2">
+          {/* Branding */}
+          <ScrollReveal>
+            <Card className="border-0 bg-white shadow-sm rounded-xl">
+              <CardHeader className="border-b border-[#f0f4f8] px-6 py-4">
+                <CardTitle className="text-lg font-semibold text-[#1a1f36]">Branding</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-6">
+                {/* App Logo */}
+                <div className="space-y-2">
+                  <Label>App Logo</Label>
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleImageUpload(e, "app_logo", setUploadingLogo)}
+                  />
+                  {formData.app_logo ? (
+                    <div className="relative inline-block">
+                      <img
+                        src={formData.app_logo}
+                        alt="App Logo"
+                        className="h-20 w-auto rounded-lg border border-[#e2e8f0] object-contain"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                        onClick={() => handleRemoveImage("app_logo", logoInputRef)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => logoInputRef.current?.click()}
+                      disabled={uploadingLogo}
+                      className="flex h-24 w-full items-center justify-center rounded-lg border-2 border-dashed border-[#e2e8f0] text-[#64748b] hover:border-[#3b82f6] hover:text-[#3b82f6] transition-colors"
+                    >
+                      {uploadingLogo ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <div className="flex flex-col items-center gap-1">
+                          <Upload className="h-5 w-5" />
+                          <span className="text-xs">Upload Logo</span>
+                        </div>
+                      )}
+                    </button>
+                  )}
+                  <p className="text-xs text-[#64748b]">Recommended: Square image, at least 128x128px</p>
+                </div>
+
+                {/* Favicon */}
+                <div className="space-y-2">
+                  <Label>Favicon</Label>
+                  <input
+                    ref={faviconInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleImageUpload(e, "app_favicon", setUploadingFavicon)}
+                  />
+                  {formData.app_favicon ? (
+                    <div className="relative inline-block">
+                      <img
+                        src={formData.app_favicon}
+                        alt="Favicon"
+                        className="h-10 w-10 rounded border border-[#e2e8f0] object-contain"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                        onClick={() => handleRemoveImage("app_favicon", faviconInputRef)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => faviconInputRef.current?.click()}
+                      disabled={uploadingFavicon}
+                      className="flex h-24 w-full items-center justify-center rounded-lg border-2 border-dashed border-[#e2e8f0] text-[#64748b] hover:border-[#3b82f6] hover:text-[#3b82f6] transition-colors"
+                    >
+                      {uploadingFavicon ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <div className="flex flex-col items-center gap-1">
+                          <Upload className="h-5 w-5" />
+                          <span className="text-xs">Upload Favicon</span>
+                        </div>
+                      )}
+                    </button>
+                  )}
+                  <p className="text-xs text-[#64748b]">Recommended: 32x32 or 64x64px square image</p>
+                </div>
+              </CardContent>
+            </Card>
+          </ScrollReveal>
+
           {/* App Info */}
           <ScrollReveal>
             <Card className="border-0 bg-white shadow-sm rounded-xl">
