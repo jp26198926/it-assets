@@ -203,6 +203,17 @@ export default function TrackTicketPage() {
                     </div>
                   )}
                 </div>
+
+                <div className="border-t pt-4">
+                  <div className="bg-[#f8fafc] rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <p className="text-sm text-[#64748b]">
+                      Need to reply or update this ticket?
+                    </p>
+                    <Link href="/login">
+                      <Button size="sm">Login to Reply</Button>
+                    </Link>
+                  </div>
+                </div>
               </div>
             </ScrollReveal>
           )}
