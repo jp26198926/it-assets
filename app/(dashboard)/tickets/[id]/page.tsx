@@ -43,7 +43,6 @@ import {
   updateTicket,
   getTicketStatusLogs,
   getTicketStatusLogTotal,
-  uploadTicketAttachment,
   getTicketSelectOptions,
 } from "@/lib/actions/ticket-actions";
 import {
@@ -52,6 +51,7 @@ import {
   getTicketCommentTotal,
 } from "@/lib/actions/ticket-comment-actions";
 import { getAppSettings } from "@/lib/actions/application-actions";
+import { getCloudinarySettings } from "@/lib/actions/cloudinary-actions";
 import { getAssetById } from "@/lib/actions/asset-actions";
 import type { Ticket } from "@/lib/types/ticket";
 import type { TicketStatusLog } from "@/lib/types/ticket-status-log";
@@ -110,6 +110,7 @@ export default function TicketDetailPage() {
   const COMMENT_PAGE_SIZE = 20;
   const [attachments, setAttachments] = useState<File[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [maxFileSize, setMaxFileSize] = useState(10);
   const [editorKey, setEditorKey] = useState(0);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const [selectOptions, setSelectOptions] = useState<{
@@ -143,6 +144,7 @@ export default function TicketDetailPage() {
           commentCount,
           settings,
           options,
+          cloudinarySettings,
         ] = await Promise.all([
           getTicketById(ticketId),
           getTicketStatusLogs(ticketId, LOG_PAGE_SIZE, 0),
@@ -151,6 +153,7 @@ export default function TicketDetailPage() {
           getTicketCommentTotal(ticketId),
           getAppSettings(),
           getTicketSelectOptions(),
+          getCloudinarySettings(),
         ]);
         if (data) {
           setTicket(data);
@@ -171,6 +174,7 @@ export default function TicketDetailPage() {
           app_name: settings.app_name,
           tagline: settings.tagline,
         });
+        setMaxFileSize(cloudinarySettings.max_file_size || 10);
         if (data?.asset_id) {
           const asset = await getAssetById(data.asset_id);
           if (asset) {
@@ -291,6 +295,18 @@ export default function TicketDetailPage() {
     }
   };
 
+  const uploadFile = async (file: File): Promise<{ success: boolean; url?: string; error?: string }> => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("fileName", file.name);
+    const res = await fetch("/api/tickets/upload", { method: "POST", body: fd, credentials: "include" });
+    const data = await res.json();
+    if (data.success && data.url) {
+      return { success: true, url: data.url };
+    }
+    return { success: false, error: data.error || "Upload failed" };
+  };
+
   const handleSubmitComment = async (resolveAfter?: boolean) => {
     if (!ticket || (!replyContent.trim() && attachments.length === 0)) return;
     setSubmitting(true);
@@ -298,13 +314,13 @@ export default function TicketDetailPage() {
       let uploadedUrls: string[] = [];
       if (attachments.length > 0) {
         setUploadingFiles(true);
+        const maxBytes = maxFileSize * 1024 * 1024;
         for (const file of attachments) {
-          const reader = new FileReader();
-          const base64 = await new Promise<string>((resolve) => {
-            reader.onload = () => resolve(reader.result as string);
-            reader.readAsDataURL(file);
-          });
-          const result = await uploadTicketAttachment(base64, file.name);
+          if (file.size > maxBytes) {
+            toast.error(`"${file.name}" exceeds the ${maxFileSize} MB limit. Please choose a smaller file.`);
+            continue;
+          }
+          const result = await uploadFile(file);
           if (result.success && result.url) {
             uploadedUrls.push(result.url);
           } else {
@@ -353,13 +369,13 @@ export default function TicketDetailPage() {
     file: File,
   ): Promise<string | null> => {
     try {
-      const reader = new FileReader();
-      const base64 = await new Promise<string>((resolve) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
-      });
+      const maxBytes = maxFileSize * 1024 * 1024;
+      if (file.size > maxBytes) {
+        toast.error(`"${file.name}" exceeds the ${maxFileSize} MB limit. Please choose a smaller file.`);
+        return null;
+      }
 
-      const result = await uploadTicketAttachment(base64, file.name);
+      const result = await uploadFile(file);
       if (result.success && result.url) {
         return result.url;
       }
@@ -375,7 +391,14 @@ export default function TicketDetailPage() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const newFiles = Array.from(files);
+    const maxBytes = maxFileSize * 1024 * 1024;
+    const newFiles = Array.from(files).filter((file) => {
+      if (file.size > maxBytes) {
+        toast.error(`"${file.name}" exceeds the ${maxFileSize} MB limit. Please choose a smaller file.`);
+        return false;
+      }
+      return true;
+    });
     setAttachments((prev) => [...prev, ...newFiles]);
     e.target.value = "";
   };

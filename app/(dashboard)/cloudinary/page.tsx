@@ -31,6 +31,7 @@ export default function CloudinaryPage() {
         cloud_name: data.cloud_name || "",
         api_key: data.api_key || "",
         api_secret: data.api_secret || "",
+        max_file_size: data.max_file_size || 10,
       });
       setLoading(false);
     });
@@ -41,6 +42,11 @@ export default function CloudinaryPage() {
     if (!formData.cloud_name) newErrors.cloud_name = "Cloud Name is required";
     if (!formData.api_key) newErrors.api_key = "API Key is required";
     if (!formData.api_secret) newErrors.api_secret = "API Secret is required";
+    if (!formData.max_file_size || formData.max_file_size < 1) {
+      newErrors.max_file_size = "Maximum file size must be at least 1 MB";
+    } else if (formData.max_file_size > 100) {
+      newErrors.max_file_size = "Maximum file size cannot exceed 100 MB";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -93,7 +99,8 @@ export default function CloudinaryPage() {
   };
 
   const updateField = (field: keyof UpdateCloudinaryInput, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    const parsed = field === "max_file_size" ? Number(value) : value;
+    setFormData((prev) => ({ ...prev, [field]: parsed }));
     if (errors[field]) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -190,6 +197,23 @@ export default function CloudinaryPage() {
                     />
                     {errors.api_secret && (
                       <p className="text-xs text-red-500">{errors.api_secret}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="max_file_size">Maximum File Size (MB) *</Label>
+                    <Input
+                      id="max_file_size"
+                      type="number"
+                      min={1}
+                      max={100}
+                      step={1}
+                      value={formData.max_file_size ?? 10}
+                      onChange={(e) => updateField("max_file_size", e.target.value)}
+                      placeholder="e.g., 10"
+                      className={errors.max_file_size ? "border-red-500" : ""}
+                    />
+                    {errors.max_file_size && (
+                      <p className="text-xs text-red-500">{errors.max_file_size}</p>
                     )}
                   </div>
                 </div>

@@ -5,6 +5,7 @@ export interface ICloudinary extends Document, BaseAuditFields {
   cloud_name: string;
   api_key: string;
   api_secret: string;
+  max_file_size: number;
 }
 
 const CloudinarySchema = new Schema<ICloudinary>({
@@ -19,6 +20,10 @@ const CloudinarySchema = new Schema<ICloudinary>({
   api_secret: {
     type: String,
     default: "",
+  },
+  max_file_size: {
+    type: Number,
+    default: 10,
   },
   ...BaseAuditSchemaDefinition,
 });

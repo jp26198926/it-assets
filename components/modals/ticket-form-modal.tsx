@@ -20,9 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Upload, X, FileText, ImageIcon } from "lucide-react";
+import { Upload, X, FileText, ImageIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { uploadTicketAttachment } from "@/lib/actions/ticket-actions";
+import { getCloudinarySettings } from "@/lib/actions/cloudinary-actions";
 import type { Ticket, CreateTicketInput } from "@/lib/types/ticket";
 
 interface TicketFormModalProps {
@@ -63,7 +63,13 @@ export function TicketFormModal({
   const [formData, setFormData] = useState<CreateTicketInput>(defaultFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [maxFileSize, setMaxFileSize] = useState(10);
+
+  useEffect(() => {
+    getCloudinarySettings().then((s) => setMaxFileSize(s.max_file_size || 10));
+  }, []);
 
   useEffect(() => {
     if (ticket) {
@@ -89,6 +95,7 @@ export function TicketFormModal({
       setFormData(defaultFormData);
     }
     setErrors({});
+    setPendingFiles([]);
   }, [ticket, open, currentUser]);
 
   const validate = () => {
@@ -102,53 +109,71 @@ export function TicketFormModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const uploadFile = async (file: File): Promise<{ success: boolean; url?: string; error?: string }> => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("fileName", file.name);
+    const res = await fetch("/api/tickets/upload", { method: "POST", body: fd, credentials: "include" });
+    const data = await res.json();
+    if (data.success && data.url) {
+      return { success: true, url: data.url };
+    }
+    return { success: false, error: data.error || "Upload failed" };
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    setUploadingFiles(true);
-    try {
-      const newAttachments = [...(formData.attachments || [])];
-
-      for (const file of Array.from(files)) {
-        const reader = new FileReader();
-        const base64 = await new Promise<string>((resolve) => {
-          reader.onload = () => resolve(reader.result as string);
-          reader.readAsDataURL(file);
-        });
-
-        const result = await uploadTicketAttachment(base64, file.name);
-        if (result.success && result.url) {
-          newAttachments.push(result.url);
-        } else {
-          toast.error(result.error || "Failed to upload file");
-        }
+    const maxBytes = maxFileSize * 1024 * 1024;
+    const valid: File[] = [];
+    for (const file of Array.from(files)) {
+      if (file.size > maxBytes) {
+        toast.error(`"${file.name}" exceeds the ${maxFileSize} MB limit. Please choose a smaller file.`);
+        continue;
       }
-
-      setFormData({ ...formData, attachments: newAttachments });
-      toast.success("Files uploaded successfully");
-    } catch {
-      toast.error("Failed to upload files");
-    } finally {
-      setUploadingFiles(false);
-      e.target.value = "";
+      valid.push(file);
     }
+    setPendingFiles((prev) => [...prev, ...valid]);
+    e.target.value = "";
   };
 
-  const removeAttachment = (index: number) => {
-    const newAttachments = (formData.attachments || []).filter((_, i) => i !== index);
-    setFormData({ ...formData, attachments: newAttachments });
+  const removePendingFile = (index: number) => {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingAttachment = (index: number) => {
+    setFormData({
+      ...formData,
+      attachments: (formData.attachments || []).filter((_, i) => i !== index),
+    });
+  };
+
+  const uploadPendingFiles = async (): Promise<string[]> => {
+    if (pendingFiles.length === 0) return [];
+    setUploadingFiles(true);
+    const urls: string[] = [];
+    for (const file of pendingFiles) {
+      const result = await uploadFile(file);
+      if (result.success && result.url) {
+        urls.push(result.url);
+      } else {
+        toast.error(result.error || `Failed to upload ${file.name}`);
+      }
+    }
+    setUploadingFiles(false);
+    return urls;
   };
 
   const handleRichTextImageUpload = async (file: File): Promise<string | null> => {
     try {
-      const reader = new FileReader();
-      const base64 = await new Promise<string>((resolve) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
-      });
+      const maxBytes = maxFileSize * 1024 * 1024;
+      if (file.size > maxBytes) {
+        toast.error(`"${file.name}" exceeds the ${maxFileSize} MB limit. Please choose a smaller file.`);
+        return null;
+      }
 
-      const result = await uploadTicketAttachment(base64, file.name);
+      const result = await uploadFile(file);
       if (result.success && result.url) {
         return result.url;
       }
@@ -162,21 +187,31 @@ export function TicketFormModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validate()) {
-      setLoading(true);
-      try {
-        await onSubmit({
-          ...formData,
-          asset_id: formData.asset_id || undefined,
-          assigned_to: formData.assigned_to || undefined,
-        });
-        onOpenChange(false);
-      } catch {
-        setErrors({ submit: "Failed to save ticket" });
-      } finally {
-        setLoading(false);
-      }
+    if (!validate()) return;
+
+    setLoading(true);
+    try {
+      const uploadedUrls = await uploadPendingFiles();
+      const allAttachments = [...(formData.attachments || []), ...uploadedUrls];
+
+      await onSubmit({
+        ...formData,
+        attachments: allAttachments,
+        asset_id: formData.asset_id || undefined,
+        assigned_to: formData.assigned_to || undefined,
+      });
+      onOpenChange(false);
+    } catch {
+      setErrors({ submit: "Failed to save ticket" });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
@@ -357,12 +392,38 @@ export function TicketFormModal({
                     type="file"
                     multiple
                     className="hidden"
-                    onChange={handleFileUpload}
+                    onChange={handleFileSelect}
                     disabled={uploadingFiles}
                     accept="image/*,.pdf,.doc,.docx,.txt"
                   />
                 </label>
               </div>
+              {pendingFiles.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {pendingFiles.map((file, index) => (
+                    <div key={`pending-${index}`} className="flex items-center justify-between bg-[#fffbeb] p-2 rounded border border-[#fde68a]">
+                      <div className="flex items-center gap-2">
+                        {file.type.startsWith("image/") ? (
+                          <ImageIcon className="h-4 w-4 text-[#d97706]" />
+                        ) : (
+                          <FileText className="h-4 w-4 text-[#92400e]" />
+                        )}
+                        <span className="text-sm text-[#92400e] truncate max-w-[300px]">{file.name}</span>
+                        <span className="text-xs text-[#b45309]">({formatFileSize(file.size)}) — will upload on submit</span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 text-[#dc2626] hover:text-[#dc2626]"
+                        onClick={() => removePendingFile(index)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
               {formData.attachments && formData.attachments.length > 0 && (
                 <div className="mt-3 space-y-2">
                   {formData.attachments.map((url, index) => (
@@ -382,7 +443,7 @@ export function TicketFormModal({
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0 text-[#dc2626] hover:text-[#dc2626]"
-                        onClick={() => removeAttachment(index)}
+                        onClick={() => removeExistingAttachment(index)}
                       >
                         <X className="h-3 w-3" />
                       </Button>
@@ -406,8 +467,15 @@ export function TicketFormModal({
           >
             Cancel
           </Button>
-          <Button type="submit" form="ticket-form" disabled={loading}>
-            {loading ? "Saving..." : ticket ? "Save Changes" : "Create Ticket"}
+          <Button type="submit" form="ticket-form" disabled={loading || uploadingFiles}>
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {uploadingFiles ? "Uploading files..." : "Saving..."}
+              </>
+            ) : (
+              ticket ? "Save Changes" : "Create Ticket"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
