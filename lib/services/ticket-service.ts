@@ -1112,3 +1112,32 @@ export async function getActiveTicketCategories(): Promise<{ id: string; name: s
     .lean();
   return categories.map((c) => ({ id: (c._id as { toString(): string }).toString(), name: c.name }));
 }
+
+export async function getPublicTicketByNoAndEmail(
+  ticketNo: string,
+  email: string
+): Promise<Ticket | null> {
+  await connectDB();
+  const ticket = await populateQuery(
+    TicketModel.findOne({ ticket_no: ticketNo, email: email })
+  ).lean();
+  if (!ticket) return null;
+  return enrichTicket(ticket as unknown as Record<string, unknown>);
+}
+
+export async function lookupAssetByBarcode(
+  barcode: string
+): Promise<{ id: string; barcode: string; itemName: string } | null> {
+  await connectDB();
+  await import("@/lib/db/models/item");
+  const asset = await AssetModel.findOne({ barcode, deleted_at: null })
+    .populate("item_id", "name")
+    .lean();
+  if (!asset) return null;
+  const item = asset.item_id as unknown as { name?: string } | null;
+  return {
+    id: (asset._id as { toString(): string }).toString(),
+    barcode: asset.barcode,
+    itemName: item?.name ?? "Unknown Item",
+  };
+}
