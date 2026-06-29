@@ -36,6 +36,10 @@ interface TicketDataTableProps<TData, TValue> {
   onAdd: () => void;
   onServerSearch?: (filters: TicketFilters) => void;
   onServerSearchClear?: () => void;
+  selectOptions?: {
+    categories: { id: string; name: string }[];
+    departments: { id: string; name: string }[];
+  };
 }
 
 export function TicketDataTable<TData, TValue>({
@@ -47,6 +51,7 @@ export function TicketDataTable<TData, TValue>({
   onAdd,
   onServerSearch,
   onServerSearchClear,
+  selectOptions,
 }: TicketDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -128,6 +133,7 @@ export function TicketDataTable<TData, TValue>({
         advancedFilters={advancedFilters}
         onAdvancedFiltersChange={setAdvancedFilters}
         allData={data}
+        selectOptions={selectOptions}
       />
 
       {/* Desktop Table View */}

@@ -19,11 +19,16 @@ import type { TicketFilters } from "@/lib/types/ticket";
 interface TicketAdvancedSearchDialogProps {
   onSearch: (filters: TicketFilters) => void;
   onClear: () => void;
+  selectOptions?: {
+    categories: { id: string; name: string }[];
+    departments: { id: string; name: string }[];
+  };
 }
 
 export function TicketAdvancedSearchDialog({
   onSearch,
   onClear,
+  selectOptions,
 }: TicketAdvancedSearchDialogProps) {
   const [open, setOpen] = useState(false);
   const [searchTicketNo, setSearchTicketNo] = useState("");
@@ -147,15 +152,6 @@ export function TicketAdvancedSearchDialog({
               </select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="search-category">Category ID</Label>
-              <Input
-                id="search-category"
-                placeholder="Category ID..."
-                value={searchCategory}
-                onChange={(e) => setSearchCategory(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="search-status">Status</Label>
               <select
                 id="search-status"
@@ -171,15 +167,34 @@ export function TicketAdvancedSearchDialog({
               </select>
             </div>
           </div>
-          <div className="grid gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="search-department">Department ID</Label>
-              <Input
+              <Label htmlFor="search-category">Category</Label>
+              <select
+                id="search-category"
+                value={searchCategory}
+                onChange={(e) => setSearchCategory(e.target.value)}
+                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="">All</option>
+                {selectOptions?.categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="search-department">Department</Label>
+              <select
                 id="search-department"
-                placeholder="Department ID..."
                 value={searchDepartment}
                 onChange={(e) => setSearchDepartment(e.target.value)}
-              />
+                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="">All</option>
+                {selectOptions?.departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>{dept.name}</option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">

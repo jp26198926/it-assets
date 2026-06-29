@@ -22,6 +22,10 @@ interface TicketDataTableToolbarProps<TData> {
   advancedFilters: TicketAdvancedFilter[];
   onAdvancedFiltersChange: (filters: TicketAdvancedFilter[]) => void;
   allData: TData[];
+  selectOptions?: {
+    categories: { id: string; name: string }[];
+    departments: { id: string; name: string }[];
+  };
 }
 
 export function TicketDataTableToolbar<TData>({
@@ -32,6 +36,7 @@ export function TicketDataTableToolbar<TData>({
   advancedFilters,
   onAdvancedFiltersChange,
   allData,
+  selectOptions,
 }: TicketDataTableToolbarProps<TData>) {
   const { hasPermission } = useAuthorization();
   const filteredCount = table.getFilteredRowModel().rows.length;
@@ -81,6 +86,7 @@ export function TicketDataTableToolbar<TData>({
             <TicketAdvancedSearchDialog
               onSearch={onServerSearch}
               onClear={onServerSearchClear || (() => {})}
+              selectOptions={selectOptions}
             />
           )}
           <TicketAdvancedFilterDialog

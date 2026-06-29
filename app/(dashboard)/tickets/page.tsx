@@ -179,6 +179,7 @@ export default function TicketsPage() {
             onAdd={handleAdd}
             onServerSearch={handleServerSearch}
             onServerSearchClear={handleServerSearchClear}
+            selectOptions={selectOptions}
           />
         </ScrollReveal>
 
