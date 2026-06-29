@@ -34,6 +34,8 @@ export function TicketAdvancedSearchDialog({
   const [searchCategory, setSearchCategory] = useState("");
   const [searchStatus, setSearchStatus] = useState("");
   const [searchDepartment, setSearchDepartment] = useState("");
+  const [searchDateFrom, setSearchDateFrom] = useState("");
+  const [searchDateTo, setSearchDateTo] = useState("");
 
   const handleSearch = () => {
     const filters: TicketFilters = {};
@@ -45,6 +47,8 @@ export function TicketAdvancedSearchDialog({
     if (searchCategory) filters.category_id = searchCategory;
     if (searchStatus) filters.status = searchStatus;
     if (searchDepartment) filters.department_id = searchDepartment;
+    if (searchDateFrom) filters.date_from = searchDateFrom;
+    if (searchDateTo) filters.date_to = searchDateTo;
 
     onSearch(filters);
     setOpen(false);
@@ -59,6 +63,8 @@ export function TicketAdvancedSearchDialog({
     setSearchCategory("");
     setSearchStatus("");
     setSearchDepartment("");
+    setSearchDateFrom("");
+    setSearchDateTo("");
     onClear();
     setOpen(false);
   };
@@ -176,6 +182,29 @@ export function TicketAdvancedSearchDialog({
               />
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="search-date-from">Date From</Label>
+              <Input
+                id="search-date-from"
+                type="date"
+                value={searchDateFrom}
+                onChange={(e) => setSearchDateFrom(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="search-date-to">Date To</Label>
+              <Input
+                id="search-date-to"
+                type="date"
+                value={searchDateTo}
+                onChange={(e) => setSearchDateTo(e.target.value)}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Non-today dates will only show Open &amp; In Progress tickets.
+          </p>
         </div>
         <DialogFooter className="flex justify-between">
           <Button variant="outline" onClick={handleClear}>

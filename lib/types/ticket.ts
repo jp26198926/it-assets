@@ -59,6 +59,10 @@ export interface TicketFilters {
   status?: string;
   assigned_to?: string;
   asset_id?: string;
+  date_from?: string;
+  date_to?: string;
+  status_in?: string[];
+  default_view?: boolean;
 }
 
 export interface TicketAdvancedFilter {

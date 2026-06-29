@@ -19,6 +19,21 @@ import {
 import type { Ticket, TicketFilters } from "@/lib/types/ticket";
 import { toast } from "sonner";
 
+function enrichFiltersWithStatusLogic(filters: TicketFilters): TicketFilters {
+  const today = new Date().toISOString().split("T")[0];
+  const hasDateFilter = filters.date_from || filters.date_to;
+  if (!hasDateFilter) return filters;
+
+  const isNonTodayDate =
+    (filters.date_from && filters.date_from < today) ||
+    (filters.date_to && filters.date_to < today);
+
+  if (isNonTodayDate) {
+    return { ...filters, status_in: ["Open", "In Progress"] };
+  }
+  return filters;
+}
+
 export default function TicketsPage() {
   const router = useRouter();
   const { user: authUser } = useAuthorization();
@@ -39,7 +54,7 @@ export default function TicketsPage() {
     const load = async () => {
       try {
         const [ticketsData, options] = await Promise.all([
-          getTickets(),
+          getTickets({ default_view: true }),
           getTicketSelectOptions(),
         ]);
         if (!cancelled) {
@@ -59,8 +74,9 @@ export default function TicketsPage() {
   }, []);
 
   const handleServerSearch = useCallback((filters: TicketFilters) => {
-    setActiveFilters(filters);
-    getTickets(filters)
+    const enriched = enrichFiltersWithStatusLogic(filters);
+    setActiveFilters(enriched);
+    getTickets(enriched)
       .then((data) => setTickets(data))
       .catch(() => {
         toast.error("Failed to search tickets");
@@ -68,8 +84,8 @@ export default function TicketsPage() {
   }, []);
 
   const handleServerSearchClear = useCallback(() => {
-    setActiveFilters({});
-    getTickets()
+    setActiveFilters({ default_view: true });
+    getTickets({ default_view: true })
       .then((data) => setTickets(data))
       .catch(() => {
         toast.error("Failed to load tickets");

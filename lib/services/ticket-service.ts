@@ -623,6 +623,17 @@ export async function getTickets(
 
   const query: Record<string, unknown> = {};
 
+  if (filters?.default_view) {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+    query.$or = [
+      { status: { $in: ["Open", "In Progress"] } },
+      { created_at: { $gte: todayStart, $lte: todayEnd } },
+    ];
+  }
+
   if (filters?.search) {
     query.$or = [
       { ticket_no: { $regex: filters.search, $options: "i" } },
@@ -666,6 +677,22 @@ export async function getTickets(
 
   if (filters?.asset_id) {
     query.asset_id = filters.asset_id;
+  }
+
+  if (filters?.date_from || filters?.date_to) {
+    query.created_at = {};
+    if (filters.date_from) {
+      query.created_at.$gte = new Date(filters.date_from);
+    }
+    if (filters.date_to) {
+      const endDate = new Date(filters.date_to);
+      endDate.setHours(23, 59, 59, 999);
+      query.created_at.$lte = endDate;
+    }
+  }
+
+  if (filters?.status_in && filters.status_in.length > 0) {
+    query.status = { $in: filters.status_in };
   }
 
   if (user && user.role !== "Administrator") {
