@@ -28,8 +28,9 @@ interface TicketEditModalProps {
   selectOptions: {
     categories: { id: string; name: string }[];
     departments: { id: string; name: string }[];
+    assets: { id: string; barcode: string; itemName: string }[];
   };
-  onConfirm: (data: { name: string; category_id: string; department_id: string; priority: string }) => void;
+  onConfirm: (data: { name: string; category_id: string; department_id: string; priority: string; asset_id: string }) => void;
 }
 
 export function TicketEditModal({
@@ -43,6 +44,7 @@ export function TicketEditModal({
   const [categoryId, setCategoryId] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [priority, setPriority] = useState("Low");
+  const [assetId, setAssetId] = useState("");
 
   useEffect(() => {
     if (open && ticket) {
@@ -50,12 +52,13 @@ export function TicketEditModal({
       setCategoryId(ticket.category_id);
       setDepartmentId(ticket.department_id || "");
       setPriority(ticket.priority);
+      setAssetId(ticket.asset_id || "");
     }
   }, [open, ticket]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onConfirm({ name, category_id: categoryId, department_id: departmentId, priority });
+    onConfirm({ name, category_id: categoryId, department_id: departmentId, priority, asset_id: assetId });
     onOpenChange(false);
   };
 
@@ -112,6 +115,26 @@ export function TicketEditModal({
                   {selectOptions.departments.map((dept) => (
                     <SelectItem key={dept.id} value={dept.id}>
                       {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Asset (Optional)</Label>
+              <Select
+                value={assetId || "none"}
+                onValueChange={(value) => setAssetId(value === "none" ? "" : value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select asset" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {selectOptions.assets.map((asset) => (
+                    <SelectItem key={asset.id} value={asset.id}>
+                      {asset.itemName} ({asset.barcode})
                     </SelectItem>
                   ))}
                 </SelectContent>

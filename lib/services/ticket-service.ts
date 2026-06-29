@@ -1057,7 +1057,7 @@ export async function getTicketSelectOptions(): Promise<{
   const [categories, departments, rawAssets, users] = await Promise.all([
     TicketCategoryModel.find({ deleted_at: null, status: "Active" }).select("name").sort({ name: 1 }).lean(),
     DepartmentModel.find({ deleted_at: null, status: "Active" }).select("name").sort({ name: 1 }).lean(),
-    AssetModel.find({ deleted_at: null, status: { $ne: "Repair" } }).populate("item_id", "name").sort({ barcode: 1 }).lean(),
+    AssetModel.find({ deleted_at: null }).populate("item_id", "name").sort({ barcode: 1 }).lean(),
     UserModel.find({ deleted_at: null, status: "Active", role_id: { $in: assignableRoleIds } }).select("first_name last_name").sort({ last_name: 1, first_name: 1 }).lean(),
   ]);
 

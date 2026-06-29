@@ -95,6 +95,7 @@ export default function TicketDetailPage() {
   const [error, setError] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(true);
+  const [assetDetailsOpen, setAssetDetailsOpen] = useState(true);
   const [replyContent, setReplyContent] = useState("");
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
@@ -117,7 +118,8 @@ export default function TicketDetailPage() {
     categories: { id: string; name: string }[];
     departments: { id: string; name: string }[];
     users: { id: string; name: string }[];
-  }>({ categories: [], departments: [], users: [] });
+    assets: { id: string; barcode: string; itemName: string }[];
+  }>({ categories: [], departments: [], users: [], assets: [] });
   const [appSettings, setAppSettings] = useState<{
     app_name: string;
     tagline: string;
@@ -165,6 +167,7 @@ export default function TicketDetailPage() {
           categories: options.categories,
           departments: options.departments,
           users: options.users || [],
+          assets: options.assets || [],
         });
         setStatusLogs(logs);
         setLogTotal(total);
@@ -238,6 +241,7 @@ export default function TicketDetailPage() {
     category_id: string;
     department_id: string;
     priority: string;
+    asset_id: string;
   }) => {
     if (!ticket) return;
     try {
@@ -246,6 +250,7 @@ export default function TicketDetailPage() {
         category_id: data.category_id,
         department_id: data.department_id || undefined,
         priority: data.priority as "Low" | "Medium" | "High" | "Critical",
+        asset_id: data.asset_id || undefined,
       });
       const refreshed = await getTicketById(ticket.id);
       if (refreshed) setTicket(refreshed);
@@ -1242,6 +1247,60 @@ export default function TicketDetailPage() {
                 </p>
               </div>
             </div>
+
+            {/* Asset Details (Collapsible) */}
+            {ticket.asset_id && (
+              <Collapsible open={assetDetailsOpen} onOpenChange={setAssetDetailsOpen}>
+                <div className="bg-white shadow-sm rounded-xl">
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 text-left">
+                    <h3 className="text-sm font-semibold text-[#1a1f36]">
+                      Asset Details
+                    </h3>
+                    {assetDetailsOpen ? (
+                      <ChevronDown className="h-4 w-4 text-[#64748b]" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-[#64748b]" />
+                    )}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-4 pb-4 space-y-3">
+                      <div className="flex items-start justify-between">
+                        <span className="text-xs text-[#64748b]">
+                          Asset name
+                        </span>
+                        <span className="text-sm font-medium text-[#1a1f36]">
+                          {ticket.asset_name || "N/A"}
+                        </span>
+                      </div>
+                      <div className="flex items-start justify-between">
+                        <span className="text-xs text-[#64748b]">
+                          Serial number
+                        </span>
+                        <span className="text-sm font-medium text-[#1a1f36]">
+                          {assetDetails?.serial_number || "N/A"}
+                        </span>
+                      </div>
+                      <div className="flex items-start justify-between">
+                        <span className="text-xs text-[#64748b]">
+                          Brand
+                        </span>
+                        <span className="text-sm font-medium text-[#1a1f36]">
+                          {assetDetails?.item_brand || "N/A"}
+                        </span>
+                      </div>
+                      <div className="flex items-start justify-between">
+                        <span className="text-xs text-[#64748b]">
+                          Model
+                        </span>
+                        <span className="text-sm font-medium text-[#1a1f36]">
+                          {assetDetails?.item_model || "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+            )}
 
             {/* Ticket Details (Collapsible) */}
             <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
