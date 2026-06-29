@@ -911,7 +911,7 @@ export default function TicketDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
           {/* Left — Main Content */}
           <div className="space-y-6">
-            {/* Ticket Header */}
+            {/* Ticket Header + Description */}
             <div className="bg-white shadow-sm rounded-xl p-6">
               <h2 className="text-lg font-semibold text-[#1a1f36]">
                 {ticket.title}
@@ -928,14 +928,12 @@ export default function TicketDetailPage() {
                 <span>&middot;</span>
                 <span>{timeAgo}</span>
               </div>
-            </div>
-
-            {/* Description + Attachments */}
-            <div className="bg-white shadow-sm rounded-xl p-6">
-              <div
-                className="prose prose-sm max-w-none text-sm"
-                dangerouslySetInnerHTML={{ __html: ticket.description }}
-              />
+              <div className="mt-4 pt-4 border-t border-[#e2e8f0]">
+                <div
+                  className="prose prose-sm max-w-none text-sm"
+                  dangerouslySetInnerHTML={{ __html: ticket.description }}
+                />
+              </div>
               {ticket.attachments && ticket.attachments.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-[#e2e8f0]">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
