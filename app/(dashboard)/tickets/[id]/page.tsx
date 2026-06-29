@@ -14,6 +14,7 @@ import {
   Paperclip,
   Send,
   Upload,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -908,6 +909,15 @@ export default function TicketDetailPage() {
 
       {/* ===== SCREEN-ONLY LAYOUT ===== */}
       <div className="space-y-4 sm:space-y-6 hide-print">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="lg:hidden gap-1 mb-4"
+          onClick={() => router.push("/tickets")}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
           {/* Left — Main Content */}
           <div className="space-y-6">
@@ -916,16 +926,16 @@ export default function TicketDetailPage() {
               <h2 className="text-lg font-semibold text-[#1a1f36]">
                 {ticket.title}
               </h2>
-              <div className="flex items-center gap-2 mt-1 text-sm text-[#64748b]">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-1 text-sm text-[#64748b]">
                 <span>
                   Contact:{" "}
                   <span className="font-medium text-[#1a1f36]">
                     {ticket.name}
                   </span>
                 </span>
-                <span>&middot;</span>
+                <span className="hidden sm:inline">&middot;</span>
                 <span>{ticket.email}</span>
-                <span>&middot;</span>
+                <span className="hidden sm:inline">&middot;</span>
                 <span>{timeAgo}</span>
               </div>
               <div className="mt-4 pt-4 border-t border-[#e2e8f0]">
@@ -1085,7 +1095,7 @@ export default function TicketDetailPage() {
                     ))}
                   </div>
                 )}
-                <div className="mt-4 flex items-center justify-between">
+                <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
                   <div
                     className="flex items-center gap-2 text-sm text-[#64748b] cursor-pointer hover:text-[#1a1f36]"
                     onClick={() => attachmentInputRef.current?.click()}
@@ -1093,10 +1103,10 @@ export default function TicketDetailPage() {
                     <Upload className="h-4 w-4" />
                     <span>Upload Attachment</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <Button
                       size="sm"
-                      className="gap-2"
+                      className="gap-2 w-full sm:w-auto"
                       onClick={() => handleSubmitComment()}
                       disabled={
                         submitting ||
@@ -1114,7 +1124,7 @@ export default function TicketDetailPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="gap-2"
+                      className="gap-2 w-full sm:w-auto"
                       onClick={() => handleSubmitComment(true)}
                       disabled={
                         submitting ||
