@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import {
@@ -96,7 +97,13 @@ export function createTicketColumns(
         <DataTableColumnHeader column={column} title="Ticket No" />
       ),
       cell: ({ row }) => (
-        <span className="font-mono font-medium text-[#1a1f36]">{row.getValue("ticket_no")}</span>
+        <Link
+          href={`/tickets/${row.original.id}`}
+          className="font-mono font-medium text-blue-600 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {row.getValue("ticket_no")}
+        </Link>
       ),
     },
     {
