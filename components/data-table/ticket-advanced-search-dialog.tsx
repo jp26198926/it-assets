@@ -23,12 +23,14 @@ interface TicketAdvancedSearchDialogProps {
     categories: { id: string; name: string }[];
     departments: { id: string; name: string }[];
   };
+  buttonLabel?: string;
 }
 
 export function TicketAdvancedSearchDialog({
   onSearch,
   onClear,
   selectOptions,
+  buttonLabel,
 }: TicketAdvancedSearchDialogProps) {
   const [open, setOpen] = useState(false);
   const [searchTicketNo, setSearchTicketNo] = useState("");
@@ -84,7 +86,7 @@ export function TicketAdvancedSearchDialog({
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-8">
           <Search className="mr-1 h-4 w-4" />
-          Advanced Search
+          {buttonLabel || "Advanced Search"}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl">

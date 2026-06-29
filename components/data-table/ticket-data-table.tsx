@@ -22,9 +22,11 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { FileStack } from "lucide-react";
 import { TicketDataTableToolbar } from "./ticket-data-table-toolbar";
 import { DataTablePagination } from "./data-table-pagination";
+import { Actions } from "./ticket-data-table-columns";
 import type { Ticket, TicketAdvancedFilter, TicketFilters } from "@/lib/types/ticket";
 
 interface TicketDataTableProps<TData, TValue> {
@@ -53,6 +55,7 @@ export function TicketDataTable<TData, TValue>({
   onServerSearchClear,
   selectOptions,
 }: TicketDataTableProps<TData, TValue>) {
+  const router = useRouter();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -203,7 +206,8 @@ export function TicketDataTable<TData, TValue>({
             return (
               <div
                 key={row.id}
-                className="bg-white shadow-sm p-4 border border-[#f0f4f8]"
+                className="bg-white shadow-sm p-4 border border-[#f0f4f8] cursor-pointer"
+                onClick={() => router.push(`/tickets/${ticket.id}`)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -215,28 +219,8 @@ export function TicketDataTable<TData, TValue>({
                       <p className="text-xs text-[#64748b]">{ticket.title}</p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => onView(ticket)}
-                      className="p-2 hover:bg-[#f0f4f8] transition-colors"
-                    >
-                      <span className="text-[#64748b]">👁️</span>
-                    </button>
-                    {!ticket.deleted_at ? (
-                      <button
-                        onClick={() => onDelete(ticket)}
-                        className="p-2 hover:bg-red-50 transition-colors"
-                      >
-                        <span className="text-[#dc2626]">🗑️</span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => onRestore(ticket)}
-                        className="p-2 hover:bg-green-50 transition-colors"
-                      >
-                        <span className="text-[#059669]">♻️</span>
-                      </button>
-                    )}
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <Actions ticket={ticket} onView={onView} onDelete={onDelete} onRestore={onRestore} />
                   </div>
                 </div>
               </div>

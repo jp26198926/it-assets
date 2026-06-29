@@ -31,14 +31,14 @@ const statusConfig: Record<string, { color: string; dot: string }> = {
   Deleted: { color: "bg-[#fee2e2] text-[#dc2626]", dot: "bg-[#dc2626]" },
 };
 
-interface ActionsProps {
+export interface ActionsProps {
   ticket: Ticket;
   onView: (ticket: Ticket) => void;
   onDelete: (ticket: Ticket) => void;
   onRestore: (ticket: Ticket) => void;
 }
 
-function Actions({ ticket, onView, onDelete, onRestore }: ActionsProps) {
+export function Actions({ ticket, onView, onDelete, onRestore }: ActionsProps) {
   const { hasPermission } = useAuthorization();
   const canDelete = hasPermission("/tickets", "Delete");
   const canRestore = hasPermission("/tickets", "Restore");

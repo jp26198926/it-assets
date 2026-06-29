@@ -140,12 +140,12 @@ export default function TicketsPage() {
       <div className="space-y-4 sm:space-y-6">
         <ScrollReveal>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">
-              Tickets
-            </h1>
-            <p className="text-sm sm:text-base text-[#64748b] mt-1">
-              Manage support tickets
-            </p>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">
+                Tickets
+              </h1>
+              <p className="text-sm sm:text-base text-[#64748b] mt-1 hidden sm:block">
+                Manage support tickets
+              </p>
           </div>
         </ScrollReveal>
         <div className="flex items-center justify-center h-64">
@@ -160,12 +160,12 @@ export default function TicketsPage() {
       <div className="space-y-4 sm:space-y-6">
         <ScrollReveal>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">
-              Tickets
-            </h1>
-            <p className="text-sm sm:text-base text-[#64748b] mt-1">
-              Manage support tickets
-            </p>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">
+                Tickets
+              </h1>
+              <p className="text-sm sm:text-base text-[#64748b] mt-1 hidden sm:block">
+                Manage support tickets
+              </p>
           </div>
         </ScrollReveal>
 

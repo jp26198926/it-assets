@@ -81,30 +81,36 @@ export function TicketDataTableToolbar<TData>({
           />
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          {onServerSearch && (
-            <TicketAdvancedSearchDialog
-              onSearch={onServerSearch}
-              onClear={onServerSearchClear || (() => {})}
-              selectOptions={selectOptions}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2 sm:flex-wrap">
+            {onServerSearch && (
+              <TicketAdvancedSearchDialog
+                onSearch={onServerSearch}
+                onClear={onServerSearchClear || (() => {})}
+                selectOptions={selectOptions}
+                buttonLabel="Adv Search"
+              />
+            )}
+            <TicketAdvancedFilterDialog
+              filters={advancedFilters}
+              onFiltersChange={onAdvancedFiltersChange}
+              buttonLabel="Adv Filter"
             />
-          )}
-          <TicketAdvancedFilterDialog
-            filters={advancedFilters}
-            onFiltersChange={onAdvancedFiltersChange}
-          />
-          {advancedFilters.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onAdvancedFiltersChange([])}
-              className="h-8 text-xs text-[#64748b] hover:text-[#1a1f36]"
-            >
-              Clear ({advancedFilters.length})
-            </Button>
-          )}
-          <DataTableViewOptions table={table} />
-          {canExport && <TicketExportButtons table={table as unknown as Table<Ticket>} />}
+            {advancedFilters.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onAdvancedFiltersChange([])}
+                className="h-8 text-xs text-[#64748b] hover:text-[#1a1f36]"
+              >
+                Clear ({advancedFilters.length})
+              </Button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2">
+            <DataTableViewOptions table={table} />
+            {canExport && <TicketExportButtons table={table as unknown as Table<Ticket>} />}
+          </div>
         </div>
       </div>
     </div>

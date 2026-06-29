@@ -14,9 +14,10 @@ import type { Ticket } from "@/lib/types/ticket";
 
 interface TicketExportButtonsProps {
   table: Table<Ticket>;
+  label?: string;
 }
 
-export function TicketExportButtons({ table }: TicketExportButtonsProps) {
+export function TicketExportButtons({ table, label }: TicketExportButtonsProps) {
   const [exporting, setExporting] = useState<string | null>(null);
 
   const exportPDF = async () => {
@@ -102,7 +103,7 @@ export function TicketExportButtons({ table }: TicketExportButtonsProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="h-8" disabled={!!exporting}>
           <Download className="mr-1 h-4 w-4" />
-          {exporting ? "Exporting..." : "Export"}
+          {exporting ? "Exporting..." : (label || "Export")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

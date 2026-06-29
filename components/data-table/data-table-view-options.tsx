@@ -14,17 +14,19 @@ import {
 
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>;
+  label?: string;
 }
 
 export function DataTableViewOptions<TData>({
   table,
+  label,
 }: DataTableViewOptionsProps<TData>) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="ml-auto h-8">
+        <Button variant="outline" size="sm" className="h-8">
           <Settings2 className="mr-2 h-4 w-4" />
-          Columns
+          {label || "Columns"}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

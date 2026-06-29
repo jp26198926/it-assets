@@ -19,6 +19,7 @@ import type { Ticket, TicketAdvancedFilter } from "@/lib/types/ticket";
 interface TicketAdvancedFilterDialogProps {
   filters: TicketAdvancedFilter[];
   onFiltersChange: (filters: TicketAdvancedFilter[]) => void;
+  buttonLabel?: string;
 }
 
 const filterFields: { value: keyof Ticket; label: string }[] = [
@@ -40,6 +41,7 @@ const filterOperators: { value: TicketAdvancedFilter["operator"]; label: string 
 export function TicketAdvancedFilterDialog({
   filters,
   onFiltersChange,
+  buttonLabel,
 }: TicketAdvancedFilterDialogProps) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<TicketAdvancedFilter[]>(filters);
@@ -80,7 +82,7 @@ export function TicketAdvancedFilterDialog({
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-8">
           <Filter className="mr-1 h-4 w-4" />
-          Advanced Filter
+          {buttonLabel || "Advanced Filter"}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
