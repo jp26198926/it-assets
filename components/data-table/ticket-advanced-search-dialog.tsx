@@ -82,7 +82,7 @@ export function TicketAdvancedSearchDialog({
           Advanced Search
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Advanced Search</DialogTitle>
           <DialogDescription>
@@ -202,9 +202,6 @@ export function TicketAdvancedSearchDialog({
               />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Non-today dates will only show Open &amp; In Progress tickets.
-          </p>
         </div>
         <DialogFooter className="flex justify-between">
           <Button variant="outline" onClick={handleClear}>

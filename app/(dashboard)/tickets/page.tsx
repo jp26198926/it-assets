@@ -19,21 +19,6 @@ import {
 import type { Ticket, TicketFilters } from "@/lib/types/ticket";
 import { toast } from "sonner";
 
-function enrichFiltersWithStatusLogic(filters: TicketFilters): TicketFilters {
-  const today = new Date().toISOString().split("T")[0];
-  const hasDateFilter = filters.date_from || filters.date_to;
-  if (!hasDateFilter) return filters;
-
-  const isNonTodayDate =
-    (filters.date_from && filters.date_from < today) ||
-    (filters.date_to && filters.date_to < today);
-
-  if (isNonTodayDate) {
-    return { ...filters, status_in: ["Open", "In Progress"] };
-  }
-  return filters;
-}
-
 export default function TicketsPage() {
   const router = useRouter();
   const { user: authUser } = useAuthorization();
@@ -74,9 +59,8 @@ export default function TicketsPage() {
   }, []);
 
   const handleServerSearch = useCallback((filters: TicketFilters) => {
-    const enriched = enrichFiltersWithStatusLogic(filters);
-    setActiveFilters(enriched);
-    getTickets(enriched)
+    setActiveFilters(filters);
+    getTickets(filters)
       .then((data) => setTickets(data))
       .catch(() => {
         toast.error("Failed to search tickets");
