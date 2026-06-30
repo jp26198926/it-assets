@@ -134,12 +134,12 @@ export function createTicketColumns(
       ),
     },
     {
-      accessorKey: "requestor_name",
+      accessorKey: "name",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Requestor" />
       ),
       cell: ({ row }) => (
-        <span className="text-sm text-[#1a1f36]">{(row.original as Ticket).requestor_name || "N/A"}</span>
+        <span className="text-sm text-[#1a1f36]">{row.getValue("name") || "N/A"}</span>
       ),
     },
     {
