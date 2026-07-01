@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
-import { DynamicFavicon } from "@/components/layout/dynamic-favicon";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import "./globals.css";
 
 const inter = Inter({
@@ -15,10 +15,23 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "IT Asset Management System",
-  description: "Track and manage IT inventory across your organization",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getAppSettings();
+
+  return {
+    title: "IT Asset Management System",
+    description: "Track and manage IT inventory across your organization",
+    ...(settings.app_favicon
+      ? {
+          icons: {
+            icon: [
+              { url: settings.app_favicon, type: "image/png" },
+            ],
+          },
+        }
+      : {}),
+  };
+}
 
 export default function RootLayout({
   children,
@@ -31,7 +44,6 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col overflow-x-hidden">
-        <DynamicFavicon />
         {children}
       </body>
     </html>
