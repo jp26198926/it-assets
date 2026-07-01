@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { type ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,7 +88,8 @@ export function Actions({ ticket, onView, onDelete, onRestore }: ActionsProps) {
 export function createTicketColumns(
   onView: (ticket: Ticket) => void,
   onDelete: (ticket: Ticket) => void,
-  onRestore: (ticket: Ticket) => void
+  onRestore: (ticket: Ticket) => void,
+  timezone?: string | null,
 ): ColumnDef<Ticket>[] {
   return [
     {
@@ -191,7 +192,7 @@ export function createTicketColumns(
         const date = row.getValue("created_at") as Date;
         return (
           <span className="text-sm tabular-nums text-[#1a1f36]">
-            {format(new Date(date), "MMM dd, yyyy")}
+            {formatInAppTimezone(date, "MMM dd, yyyy", timezone)}
           </span>
         );
       },

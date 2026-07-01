@@ -16,6 +16,7 @@ import {
   restoreTicket,
   getTicketSelectOptions,
 } from "@/lib/actions/ticket-actions";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import type { Ticket, TicketFilters } from "@/lib/types/ticket";
 import { toast } from "sonner";
 
@@ -33,18 +34,21 @@ export default function TicketsPage() {
     assets: { id: string; barcode: string; itemName: string }[];
     users: { id: string; name: string }[];
   }>({ categories: [], departments: [], assets: [], users: [] });
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
-        const [ticketsData, options] = await Promise.all([
+        const [ticketsData, options, appSettings] = await Promise.all([
           getTickets({ default_view: true }),
           getTicketSelectOptions(),
+          getAppSettings(),
         ]);
         if (!cancelled) {
           setTickets(ticketsData);
           setSelectOptions(options);
+          setAppTimezone(appSettings.timezone);
         }
       } catch {
         if (!cancelled) toast.error("Failed to load tickets");
@@ -125,7 +129,7 @@ export default function TicketsPage() {
     }
   };
 
-  const columns = createTicketColumns(handleView, handleDelete, handleRestore);
+  const columns = createTicketColumns(handleView, handleDelete, handleRestore, appTimezone);
 
   const currentUser = authUser
     ? {

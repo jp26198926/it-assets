@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   ImageIcon,
   ChevronDown,
@@ -124,7 +125,8 @@ export default function TicketDetailPage() {
   const [appSettings, setAppSettings] = useState<{
     app_name: string;
     tagline: string;
-  }>({ app_name: "", tagline: "" });
+    timezone: string | null;
+  }>({ app_name: "", tagline: "", timezone: null });
   const [assetDetails, setAssetDetails] = useState<{
     serial_number: string | null;
     item_brand: string | null;
@@ -177,6 +179,7 @@ export default function TicketDetailPage() {
         setAppSettings({
           app_name: settings.app_name,
           tagline: settings.tagline,
+          timezone: settings.timezone,
         });
         setMaxFileSize(cloudinarySettings.max_file_size || 10);
         if (data?.asset_id) {
@@ -454,7 +457,7 @@ export default function TicketDetailPage() {
           <div class="comment-block">
             <div class="comment-header">
               <span class="comment-author">${c.created_by_name || "Unknown"}</span>
-              <span class="comment-date">${format(new Date(c.created_at), "dd-MMM-yyyy hh:mm a")}</span>
+              <span class="comment-date">${formatInAppTimezone(c.created_at, "dd-MMM-yyyy hh:mm a", appSettings.timezone)}</span>
             </div>
             <div class="comment-body">
               <p>${text}</p>
@@ -542,11 +545,11 @@ export default function TicketDetailPage() {
     <table class="field-table"><tbody>
       <tr>
         <td class="field-label">Ticket Number</td><td class="field-value">${ticket.ticket_no}</td>
-        <td class="field-label">Date Created</td><td class="field-value">${format(new Date(ticket.created_at), "dd-MMM-yyyy")}</td>
+        <td class="field-label">Date Created</td><td class="field-value">${formatInAppTimezone(ticket.created_at, "dd-MMM-yyyy", appSettings.timezone)}</td>
       </tr>
       <tr>
         <td class="field-label">Status</td><td class="field-value">${ticket.status}</td>
-        <td class="field-label">Time Created</td><td class="field-value">${format(new Date(ticket.created_at), "hh:mm a")}</td>
+        <td class="field-label">Time Created</td><td class="field-value">${formatInAppTimezone(ticket.created_at, "hh:mm a", appSettings.timezone)}</td>
       </tr>
       <tr>
         <td class="field-label">Priority</td><td class="field-value">${ticket.priority}</td>
@@ -559,7 +562,7 @@ export default function TicketDetailPage() {
         ticket.status === "Resolved" || ticket.status === "Closed"
           ? `
       <tr>
-        <td class="field-label">Date Closed</td><td class="field-value" colspan="3">${ticket.updated_at ? format(new Date(ticket.updated_at), "dd-MMM-yyyy hh:mm a") : "N/A"}</td>
+        <td class="field-label">Date Closed</td><td class="field-value" colspan="3">${ticket.updated_at ? formatInAppTimezone(ticket.updated_at, "dd-MMM-yyyy hh:mm a", appSettings.timezone) : "N/A"}</td>
       </tr>`
           : ""
       }
@@ -597,7 +600,7 @@ export default function TicketDetailPage() {
   ${conversationHtml}
 
   <div class="footer">
-    <span>Printed: ${format(new Date(), "dd-MMM-yyyy h:mm a")}</span>
+    <span>Printed: ${formatInAppTimezone(new Date(), "dd-MMM-yyyy h:mm a", appSettings.timezone)}</span>
     <span class="footer-center">CONFIDENTIAL — For Internal Use Only</span>
   </div>
   <hr class="double-hr" />
@@ -699,7 +702,7 @@ export default function TicketDetailPage() {
                 <td className="pf-tr">{ticket.ticket_no}</td>
                 <td className="pf-tl">Date Created</td>
                 <td className="pf-tr">
-                  {format(new Date(ticket.created_at), "dd-MMM-yyyy")}
+                  {formatInAppTimezone(ticket.created_at, "dd-MMM-yyyy", appSettings.timezone)}
                 </td>
               </tr>
               <tr>
@@ -707,7 +710,7 @@ export default function TicketDetailPage() {
                 <td className="pf-tr">{ticket.status}</td>
                 <td className="pf-tl">Time Created</td>
                 <td className="pf-tr">
-                  {format(new Date(ticket.created_at), "hh:mm a")}
+                  {formatInAppTimezone(ticket.created_at, "hh:mm a", appSettings.timezone)}
                 </td>
               </tr>
               <tr>
@@ -727,9 +730,10 @@ export default function TicketDetailPage() {
                   <td className="pf-tl">Date Closed</td>
                   <td className="pf-tr">
                     {ticket.updated_at
-                      ? format(
-                          new Date(ticket.updated_at),
+                      ? formatInAppTimezone(
+                          ticket.updated_at,
                           "dd-MMM-yyyy hh:mm a",
+                          appSettings.timezone,
                         )
                       : "N/A"}
                   </td>
@@ -843,9 +847,10 @@ export default function TicketDetailPage() {
                 {comments.map((comment) => (
                   <tr key={comment.id}>
                     <td className="pf-td">
-                      {format(
-                        new Date(comment.created_at),
+                      {formatInAppTimezone(
+                        comment.created_at,
                         "dd-MMM-yyyy hh:mm a",
+                        appSettings.timezone,
                       )}
                     </td>
                     <td className="pf-td">
@@ -897,7 +902,7 @@ export default function TicketDetailPage() {
         <div className="pf-footer">
           <div className="pf-footer-left">
             <span className="pf-footer-label">Printed:</span>{" "}
-            {format(new Date(), "dd-MMM-yyyy h:mm a")}
+            {formatInAppTimezone(new Date(), "dd-MMM-yyyy h:mm a", appSettings.timezone)}
           </div>
           <div className="pf-footer-center">
             CONFIDENTIAL — For Internal Use Only
@@ -1011,9 +1016,10 @@ export default function TicketDetailPage() {
                           {comment.created_by_name || "Unknown"}
                         </p>
                         <p className="text-xs text-[#64748b]">
-                          {format(
-                            new Date(comment.created_at),
+                          {formatInAppTimezone(
+                            comment.created_at,
                             "MMM dd, yyyy 'at' h:mm a",
+                            appSettings.timezone,
                           )}
                         </p>
                       </div>
@@ -1336,9 +1342,10 @@ export default function TicketDetailPage() {
                     <div className="flex items-start justify-between">
                       <span className="text-xs text-[#64748b]">Created on</span>
                       <span className="text-sm text-[#1a1f36]">
-                        {format(
-                          new Date(ticket.created_at),
+                        {formatInAppTimezone(
+                          ticket.created_at,
                           "yyyy-MM-dd HH:mm:ss",
+                          appSettings.timezone,
                         )}
                       </span>
                     </div>
@@ -1352,9 +1359,10 @@ export default function TicketDetailPage() {
                       <span className="text-xs text-[#64748b]">Updated</span>
                       <span className="text-sm text-[#1a1f36]">
                         {ticket.updated_at
-                          ? format(
-                              new Date(ticket.updated_at),
+                          ? formatInAppTimezone(
+                              ticket.updated_at,
                               "yyyy-MM-dd HH:mm:ss",
+                              appSettings.timezone,
                             )
                           : "Never"}
                       </span>
@@ -1452,9 +1460,10 @@ export default function TicketDetailPage() {
                               <div className="min-w-0">
                                 <p className="text-[#1a1f36]">{log.remarks}</p>
                                 <p className="text-xs text-[#64748b] mt-0.5">
-                                  {format(
-                                    new Date(log.created_at),
+                                  {formatInAppTimezone(
+                                    log.created_at,
                                     "MMM dd, yyyy HH:mm",
+                                    appSettings.timezone,
                                   )}
                                   {log.created_by_name &&
                                     ` by ${log.created_by_name}`}

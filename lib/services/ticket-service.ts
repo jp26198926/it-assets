@@ -7,7 +7,8 @@ import { User as UserModel } from "@/lib/db/models/user";
 import { Role as RoleModel } from "@/lib/db/models/role";
 import { Asset as AssetModel } from "@/lib/db/models/asset";
 import { getMailSettings } from "./mail-service";
-import { getAppName } from "./application-service";
+import { getAppName, getAppSettings } from "./application-service";
+import { startOfDayInTimezone, endOfDayInTimezone } from "@/lib/utils/timezone";
 import { createTicketStatusLog } from "./ticket-status-log-service";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
@@ -621,16 +622,15 @@ export async function getTickets(
 ): Promise<Ticket[]> {
   await connectDB();
 
+  const appSettings = await getAppSettings();
+  const tz = appSettings.timezone;
   const query: Record<string, unknown> = {};
 
   if (filters?.default_view) {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
+    const now = new Date();
     query.$or = [
       { status: { $in: ["Open", "In Progress"] } },
-      { created_at: { $gte: todayStart, $lte: todayEnd } },
+      { created_at: { $gte: startOfDayInTimezone(now, tz), $lte: endOfDayInTimezone(now, tz) } },
     ];
   }
 
@@ -682,12 +682,10 @@ export async function getTickets(
   if (filters?.date_from || filters?.date_to) {
     const dateQuery: Record<string, Date> = {};
     if (filters.date_from) {
-      dateQuery.$gte = new Date(filters.date_from);
+      dateQuery.$gte = startOfDayInTimezone(new Date(filters.date_from), tz);
     }
     if (filters.date_to) {
-      const endDate = new Date(filters.date_to);
-      endDate.setHours(23, 59, 59, 999);
-      dateQuery.$lte = endDate;
+      dateQuery.$lte = endOfDayInTimezone(new Date(filters.date_to), tz);
     }
     query.created_at = dateQuery;
   }

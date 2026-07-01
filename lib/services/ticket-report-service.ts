@@ -1,5 +1,7 @@
 import { connectDB } from "@/lib/db/connection";
 import { Ticket as TicketModel } from "@/lib/db/models/ticket";
+import { getAppSettings } from "./application-service";
+import { startOfDayInTimezone, endOfDayInTimezone } from "@/lib/utils/timezone";
 import type {
   TicketReportFilters,
   TicketTotalItem,
@@ -8,7 +10,7 @@ import type {
 } from "@/lib/types/ticket-report";
 import type { Ticket } from "@/lib/types/ticket";
 
-function buildDateFilter(filters: TicketReportFilters): Record<string, unknown> {
+function buildDateFilter(filters: TicketReportFilters, timezone?: string | null): Record<string, unknown> {
   const match: Record<string, unknown> = {};
 
   if (filters.status && filters.status.length > 0) {
@@ -19,12 +21,8 @@ function buildDateFilter(filters: TicketReportFilters): Record<string, unknown> 
 
   if (filters.date_from || filters.date_to) {
     const dateRange: Record<string, Date> = {};
-    if (filters.date_from) dateRange.$gte = new Date(filters.date_from);
-    if (filters.date_to) {
-      const to = new Date(filters.date_to);
-      to.setHours(23, 59, 59, 999);
-      dateRange.$lte = to;
-    }
+    if (filters.date_from) dateRange.$gte = startOfDayInTimezone(new Date(filters.date_from), timezone);
+    if (filters.date_to) dateRange.$lte = endOfDayInTimezone(new Date(filters.date_to), timezone);
     match.created_at = dateRange;
   }
 
@@ -174,7 +172,8 @@ function populateQuery(query: ReturnType<typeof TicketModel.find>) {
 export async function getFilteredTickets(filters: TicketReportFilters): Promise<Ticket[]> {
   await connectDB();
 
-  const match = buildDateFilter(filters);
+  const { timezone } = await getAppSettings();
+  const match = buildDateFilter(filters, timezone);
   const tickets = await populateQuery(
     TicketModel.find(match).sort({ created_at: -1 })
   ).lean();
@@ -185,7 +184,8 @@ export async function getFilteredTickets(filters: TicketReportFilters): Promise<
 export async function getTicketSummary(filters: TicketReportFilters): Promise<TicketReportSummary> {
   await connectDB();
 
-  const match = buildDateFilter(filters);
+  const { timezone } = await getAppSettings();
+  const match = buildDateFilter(filters, timezone);
 
   const [daily, weekly, monthly] = await Promise.all([
     TicketModel.aggregate([
@@ -266,7 +266,8 @@ export async function getTicketSummary(filters: TicketReportFilters): Promise<Ti
 export async function getTicketTotals(filters: TicketReportFilters): Promise<TicketReportTotals> {
   await connectDB();
 
-  const match = buildDateFilter(filters);
+  const { timezone } = await getAppSettings();
+  const match = buildDateFilter(filters, timezone);
 
   const [byRequestor, byTechnician, byDepartment, byAsset, byCategory] = await Promise.all([
     TicketModel.aggregate([

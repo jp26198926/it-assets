@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,7 @@ interface TicketViewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   ticket: Ticket | null;
+  timezone?: string | null;
 }
 
 const priorityConfig: Record<string, { bg: string; text: string }> = {
@@ -37,6 +38,7 @@ export function TicketViewModal({
   open,
   onOpenChange,
   ticket,
+  timezone,
 }: TicketViewModalProps) {
   if (!ticket) return null;
 
@@ -145,7 +147,7 @@ export function TicketViewModal({
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(ticket.created_at), "MMMM dd, yyyy")}
+                  {formatInAppTimezone(ticket.created_at, "MMMM dd, yyyy", timezone)}
                 </p>
               </div>
               <div>
@@ -157,7 +159,7 @@ export function TicketViewModal({
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
                     <p className="text-sm mt-1 tabular-nums text-rose-600">
-                      {format(new Date(ticket.deleted_at), "MMMM dd, yyyy")}
+                      {formatInAppTimezone(ticket.deleted_at, "MMMM dd, yyyy", timezone)}
                     </p>
                   </div>
                   {ticket.deleted_reason && (
@@ -174,7 +176,7 @@ export function TicketViewModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {ticket.updated_at
-                    ? format(new Date(ticket.updated_at), "MMMM dd, yyyy")
+                    ? formatInAppTimezone(ticket.updated_at, "MMMM dd, yyyy", timezone)
                     : "Never"}
                 </p>
               </div>
