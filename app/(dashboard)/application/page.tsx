@@ -9,9 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
 import { getAppSettings, updateAppSettings, uploadAppImage } from "@/lib/actions/application-actions";
+import { getTimezoneSelectOptions } from "@/lib/actions/timezone-actions";
 import type { Application, UpdateApplicationInput } from "@/lib/types/application";
+import type { TimezoneSelectOption } from "@/lib/types/timezone";
 import { toast } from "sonner";
 import { Loader2, Save, Upload, X } from "lucide-react";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 export default function ApplicationPage() {
   const [settings, setSettings] = useState<Application | null>(null);
@@ -21,27 +24,33 @@ export default function ApplicationPage() {
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const [timezoneOptions, setTimezoneOptions] = useState<TimezoneSelectOption[]>([]);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    getAppSettings().then((data) => {
-      setSettings(data);
+    Promise.all([
+      getAppSettings(),
+      getTimezoneSelectOptions(),
+    ]).then(([appData, tzOptions]) => {
+      setSettings(appData);
+      setTimezoneOptions(tzOptions);
       setFormData({
-        app_name: data.app_name,
-        tagline: data.tagline,
-        email: data.email || "",
-        phone: data.phone || "",
-        address: data.address || "",
-        tin_number: data.tin_number || "",
-        otp_expiry_duration: data.otp_expiry_duration,
-        android_download_link: data.android_download_link || "",
-        ios_download_link: data.ios_download_link || "",
-        facebook_link: data.facebook_link || "",
-        x_link: data.x_link || "",
-        instagram_link: data.instagram_link || "",
-        app_logo: data.app_logo || "",
-        app_favicon: data.app_favicon || "",
+        app_name: appData.app_name,
+        tagline: appData.tagline,
+        timezone: appData.timezone || "",
+        email: appData.email || "",
+        phone: appData.phone || "",
+        address: appData.address || "",
+        tin_number: appData.tin_number || "",
+        otp_expiry_duration: appData.otp_expiry_duration,
+        android_download_link: appData.android_download_link || "",
+        ios_download_link: appData.ios_download_link || "",
+        facebook_link: appData.facebook_link || "",
+        x_link: appData.x_link || "",
+        instagram_link: appData.instagram_link || "",
+        app_logo: appData.app_logo || "",
+        app_favicon: appData.app_favicon || "",
       });
       setLoading(false);
     });
@@ -303,6 +312,26 @@ export default function ApplicationPage() {
                   {errors.tagline && (
                     <p className="text-xs text-red-500">{errors.tagline}</p>
                   )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Timezone</Label>
+                  <Select
+                    value={formData.timezone || "none"}
+                    onValueChange={(v) => updateField("timezone", v === "none" ? "" : v)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select timezone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {timezoneOptions.map((tz) => (
+                        <SelectItem key={tz.id} value={tz.id}>
+                          {tz.display_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-[#64748b]">Default timezone for the application</p>
                 </div>
               </CardContent>
             </Card>

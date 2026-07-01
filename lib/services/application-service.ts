@@ -17,6 +17,7 @@ function toApplication(d: Record<string, unknown>): Application {
     facebook_link: (d.facebook_link as string) ?? null,
     x_link: (d.x_link as string) ?? null,
     instagram_link: (d.instagram_link as string) ?? null,
+    timezone: (d.timezone as string) ?? null,
     app_logo: (d.app_logo as string) ?? null,
     app_favicon: (d.app_favicon as string) ?? null,
     created_at: d.created_at as Date,
@@ -71,6 +72,7 @@ export async function updateAppSettings(data: UpdateApplicationInput): Promise<A
   if (data.facebook_link !== undefined) updateData.facebook_link = data.facebook_link || null;
   if (data.x_link !== undefined) updateData.x_link = data.x_link || null;
   if (data.instagram_link !== undefined) updateData.instagram_link = data.instagram_link || null;
+  if (data.timezone !== undefined) updateData.timezone = data.timezone || null;
   if (data.app_logo !== undefined) updateData.app_logo = data.app_logo || null;
   if (data.app_favicon !== undefined) updateData.app_favicon = data.app_favicon || null;
   updateData.updated_at = new Date();

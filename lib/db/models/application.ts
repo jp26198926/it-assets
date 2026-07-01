@@ -14,6 +14,7 @@ export interface IApplication extends Document, BaseAuditFields {
   facebook_link: string | null;
   x_link: string | null;
   instagram_link: string | null;
+  timezone: string | null;
   app_logo: string | null;
   app_favicon: string | null;
 }
@@ -64,6 +65,10 @@ const ApplicationSchema = new Schema<IApplication>({
     default: null,
   },
   instagram_link: {
+    type: String,
+    default: null,
+  },
+  timezone: {
     type: String,
     default: null,
   },
