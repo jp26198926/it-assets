@@ -27,7 +27,7 @@ export default function TicketsPage() {
   const [deleteTicketItem, setDeleteTicketItem] = useState<Ticket | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeFilters, setActiveFilters] = useState<TicketFilters>({});
+  const [activeFilters, setActiveFilters] = useState<TicketFilters>({ default_view: true });
   const [selectOptions, setSelectOptions] = useState<{
     categories: { id: string; name: string }[];
     departments: { id: string; name: string }[];
