@@ -45,6 +45,8 @@ import {
   Download,
   Upload,
   RefreshCw,
+  ClipboardList,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -95,6 +97,8 @@ const iconMap: Record<string, LucideIcon> = {
   Download,
   Upload,
   RefreshCw,
+  ClipboardList,
+  UsersRound,
 };
 
 export function getIcon(name: string): LucideIcon {

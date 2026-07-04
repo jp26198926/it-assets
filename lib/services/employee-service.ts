@@ -236,3 +236,17 @@ export async function restoreEmployee(id: string): Promise<void> {
     updated_at: new Date(),
   });
 }
+
+export async function getEmployeeList(): Promise<{ id: string; name: string }[]> {
+  await connectDB();
+
+  const employees = await EmployeeModel.find({ deleted_at: null })
+    .select("firstname lastname")
+    .sort({ lastname: 1, firstname: 1 })
+    .lean();
+
+  return employees.map((e) => ({
+    id: (e._id as { toString(): string }).toString(),
+    name: `${e.firstname} ${e.lastname}`.trim(),
+  }));
+}

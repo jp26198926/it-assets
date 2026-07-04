@@ -30,3 +30,7 @@ export async function deleteEmployee(id: string, reason?: string): Promise<void>
 export async function restoreEmployee(id: string): Promise<void> {
   return employeeService.restoreEmployee(id);
 }
+
+export async function getEmployeeList(): Promise<{ id: string; name: string }[]> {
+  return employeeService.getEmployeeList();
+}

@@ -49,3 +49,8 @@ export interface EmployeeAdvancedFilter {
   operator: "equals" | "contains" | "greaterThan" | "lessThan" | "startsWith";
   value: string;
 }
+
+export interface EmployeeSelectOption {
+  id: string;
+  name: string;
+}
