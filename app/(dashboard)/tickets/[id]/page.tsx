@@ -94,12 +94,12 @@ export default function TicketDetailPage() {
   const router = useRouter();
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<boolean>(false);
   const [detailsOpen, setDetailsOpen] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(true);
   const [assetDetailsOpen, setAssetDetailsOpen] = useState(true);
   const [replyContent, setReplyContent] = useState("");
-  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [statusModalOpen, setStatusModalOpen] = useState<boolean>(false);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [statusLogs, setStatusLogs] = useState<TicketStatusLog[]>([]);
@@ -258,6 +258,20 @@ export default function TicketDetailPage() {
       });
       const refreshed = await getTicketById(ticket.id);
       if (refreshed) setTicket(refreshed);
+      if (data.asset_id !== ticket.asset_id) {
+        if (data.asset_id) {
+          const asset = await getAssetById(data.asset_id);
+          if (asset) {
+            setAssetDetails({
+              serial_number: asset.serial_number || null,
+              item_brand: asset.item_brand || null,
+              item_model: asset.item_model || null,
+            });
+          }
+        } else {
+          setAssetDetails(null);
+        }
+      }
       const [logs, total] = await Promise.all([
         getTicketStatusLogs(ticket.id, LOG_PAGE_SIZE, 0),
         getTicketStatusLogTotal(ticket.id),
@@ -450,9 +464,6 @@ export default function TicketDetailPage() {
             const logSectionNum = ticket.asset_name ? "Section 5" : "Section 4";
             const commentBlocks = comments
               .map((c) => {
-                const text = (c.message.replace(/<[^>]*>/g, "") || "(no text)")
-                  .replace(/</g, "&lt;")
-                  .replace(/>/g, "&gt;");
                 return `
           <div class="comment-block">
             <div class="comment-header">
@@ -460,7 +471,6 @@ export default function TicketDetailPage() {
               <span class="comment-date">${formatInAppTimezone(c.created_at, "dd-MMM-yyyy hh:mm a", appSettings.timezone)}</span>
             </div>
             <div class="comment-body">
-              <p>${text}</p>
               ${c.message.replace(/<img[^>]*src="([^"]*)"[^>]*>/gi, '<div class="comment-img"><img src="$1" /></div>')}
             </div>
           </div>`;
@@ -550,13 +560,6 @@ export default function TicketDetailPage() {
       <tr>
         <td class="field-label">Status</td><td class="field-value">${ticket.status}</td>
         <td class="field-label">Time Created</td><td class="field-value">${formatInAppTimezone(ticket.created_at, "hh:mm a", appSettings.timezone)}</td>
-      </tr>
-      <tr>
-        <td class="field-label">Priority</td><td class="field-value">${ticket.priority}</td>
-        <td class="field-label">Category</td><td class="field-value">${ticket.category_name || "N/A"}</td>
-      </tr>
-      <tr>
-        <td class="field-label">Department</td><td class="field-value" colspan="3">${ticket.department_name || "N/A"}</td>
       </tr>
       ${
         ticket.status === "Resolved" || ticket.status === "Closed"
