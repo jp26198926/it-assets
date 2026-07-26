@@ -9,6 +9,7 @@ import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
 import { getCategories, createCategory, updateCategory, deleteCategory, restoreCategory } from "@/lib/actions/category-actions";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import type { Category, CreateCategoryInput, CategoryFilters } from "@/lib/types/category";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ export default function CategoriesPage() {
   const [deleteCategoryItem, setDeleteCategoryItem] = useState<Category | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<CategoryFilters>({});
 
   useEffect(() => {
@@ -111,7 +113,7 @@ export default function CategoriesPage() {
     }
   };
 
-  const columns = createCategoryColumns(handleView, handleEdit, handleDelete, handleRestore);
+  const columns = createCategoryColumns(handleView, handleEdit, handleDelete, handleRestore, appTimezone);
 
   if (loading) {
     return (
@@ -166,8 +168,10 @@ export default function CategoriesPage() {
 
         <CategoryViewModal
           open={!!viewCategory}
-          onOpenChange={(open) => !open && setViewCategory(null)}
+          onOpenChange={(open) =>
+          !open && setViewCategory(null)}
           category={viewCategory}
+          timezone={appTimezone}
         />
 
         <DeleteConfirmModal

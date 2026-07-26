@@ -11,6 +11,7 @@ import { TicketSummaryTab } from "@/components/reports/ticket-summary-tab";
 import { TicketTotalsTab } from "@/components/reports/ticket-totals-tab";
 import { TicketCategoryTab } from "@/components/reports/ticket-category-tab";
 import { BarChart3, List, PieChart, Tag } from "lucide-react";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import type { TicketReportFilters } from "@/lib/types/ticket-report";
 import type { Ticket } from "@/lib/types/ticket";
 import type { TicketReportSummary, TicketReportTotals } from "@/lib/types/ticket-report";
@@ -41,6 +42,11 @@ export default function TicketReportPage() {
     by_asset: [],
     by_category: [],
   });
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
+
+  useEffect(() => {
+    getAppSettings().then((s) => setAppTimezone(s.timezone)).catch(() => {});
+  }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -125,7 +131,7 @@ export default function TicketReportPage() {
                     Loading...
                   </div>
                 ) : (
-                  <TicketListTab tickets={tickets} dateRange={{ from: filters.date_from, to: filters.date_to }} />
+                  <TicketListTab tickets={tickets} dateRange={{ from: filters.date_from, to: filters.date_to }} timezone={appTimezone} />
                 )}
               </TabsContent>
 

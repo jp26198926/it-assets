@@ -8,6 +8,7 @@ import { AssetFormModal } from "@/components/modals/asset-form-modal";
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import {
   getAssets,
   createAsset,
@@ -25,6 +26,7 @@ export default function AssetsPage() {
   const [deleteAssetItem, setDeleteAssetItem] = useState<Asset | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<AssetFilters>({});
 
   useEffect(() => {

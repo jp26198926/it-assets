@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ interface UserViewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: User | null;
+  timezone?: string | null;
 }
 
 const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
@@ -26,6 +27,7 @@ export function UserViewModal({
   open,
   onOpenChange,
   user,
+  timezone,
 }: UserViewModalProps) {
   if (!user) return null;
 
@@ -86,7 +88,7 @@ export function UserViewModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Email Verified At</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {user.email_verified_at
-                    ? format(new Date(user.email_verified_at), "MMMM dd, yyyy")
+                    ? formatInAppTimezone(user.email_verified_at, "MMMM dd, yyyy", timezone)
                     : "Not verified"}
                 </p>
               </div>
@@ -100,7 +102,7 @@ export function UserViewModal({
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(user.created_at), "MMMM dd, yyyy")}
+                  {formatInAppTimezone(user.created_at, "MMMM dd, yyyy", timezone)}
                 </p>
               </div>
               <div>
@@ -112,7 +114,7 @@ export function UserViewModal({
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
                     <p className="text-sm mt-1 tabular-nums text-rose-600">
-                      {format(new Date(user.deleted_at), "MMMM dd, yyyy")}
+                      {formatInAppTimezone(user.deleted_at, "MMMM dd, yyyy", timezone)}
                     </p>
                   </div>
                   {user.deleted_reason && (
@@ -129,7 +131,7 @@ export function UserViewModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {user.updated_at
-                    ? format(new Date(user.updated_at), "MMMM dd, yyyy")
+                    ? formatInAppTimezone(user.updated_at, "MMMM dd, yyyy", timezone)
                     : "Never"}
                 </p>
               </div>

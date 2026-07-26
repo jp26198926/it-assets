@@ -10,16 +10,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 
 interface AssignmentExportButtonsProps<TData> {
+  timezone?: string | null;
   table: Table<TData>;
 }
 
-export function AssignmentExportButtons<TData>({ table }: AssignmentExportButtonsProps<TData>) {
+export function AssignmentExportButtons<TData>({ table, timezone }: AssignmentExportButtonsProps<TData>) {
   const formatDate = (date: unknown) => {
     if (!date) return "";
-    return format(new Date(date as string), "MMM dd, yyyy");
+    return formatInAppTimezone(date as string, "MMM dd, yyyy", timezone);
   };
 
   const exportToPDF = async () => {

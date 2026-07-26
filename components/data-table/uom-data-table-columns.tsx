@@ -1,7 +1,7 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,7 +84,8 @@ export function createUOMColumns(
   onView: (uom: UOM) => void,
   onEdit: (uom: UOM) => void,
   onDelete: (uom: UOM) => void,
-  onRestore: (uom: UOM) => void
+  onRestore: (uom: UOM) => void,
+  timezone?: string | null
 ): ColumnDef<UOM>[] {
   return [
     {
@@ -130,7 +131,7 @@ export function createUOMColumns(
         const date = row.getValue("created_at") as Date;
         return (
           <span className="text-sm tabular-nums text-[#1a1f36]">
-            {format(new Date(date), "MMM dd, yyyy")}
+            {formatInAppTimezone(date, "MMM dd, yyyy", timezone)}
           </span>
         );
       },

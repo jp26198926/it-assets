@@ -9,6 +9,7 @@ import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
 import { getPermissions, createPermission, updatePermission, deletePermission, restorePermission } from "@/lib/actions/permission-actions";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import type { Permission, CreatePermissionInput, PermissionFilters } from "@/lib/types/permission";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ export default function PermissionsPage() {
   const [deletePermissionItem, setDeletePermissionItem] = useState<Permission | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<PermissionFilters>({});
 
   const loadData = useCallback(async (filters?: PermissionFilters) => {
@@ -34,6 +36,7 @@ export default function PermissionsPage() {
 
   useEffect(() => {
     loadData();
+  getAppSettings().then(s => setAppTimezone(s.timezone)).catch(() => {});
   }, [loadData]);
 
   const handleServerSearch = useCallback((filters: PermissionFilters) => {
@@ -107,7 +110,7 @@ export default function PermissionsPage() {
     }
   };
 
-  const columns = createPermissionColumns(handleView, handleEdit, handleDelete, handleRestore);
+  const columns = createPermissionColumns(handleView, handleEdit, handleDelete, handleRestore, appTimezone);
 
   if (loading) {
     return (
@@ -162,8 +165,10 @@ export default function PermissionsPage() {
 
         <PermissionViewModal
           open={!!viewPermission}
-          onOpenChange={(open) => !open && setViewPermission(null)}
+          onOpenChange={(open) =>
+          !open && setViewPermission(null)}
           permission={viewPermission}
+          timezone={appTimezone}
         />
 
         <DeleteConfirmModal

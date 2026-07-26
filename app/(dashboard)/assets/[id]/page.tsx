@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   ArrowLeft,
   ChevronDown,
@@ -22,6 +23,7 @@ import { AssignmentFormModal } from "@/components/modals/assignment-form-modal";
 import { getAssetById } from "@/lib/actions/asset-actions";
 import { getAssignments, createAssignment } from "@/lib/actions/assignment-actions";
 import { getTickets } from "@/lib/actions/ticket-actions";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import { useBreadcrumbOverrides } from "@/components/layout/breadcrumb-override-context";
 import type { Asset } from "@/lib/types/asset";
 import type { Assignment, CreateAssignmentInput } from "@/lib/types/assignment";
@@ -71,15 +73,17 @@ export default function AssetDetailPage() {
   const [assignmentsOpen, setAssignmentsOpen] = useState(true);
   const [ticketsOpen, setTicketsOpen] = useState(true);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const assetId = params.id as string;
-        const [assetData, assignmentData, ticketData] = await Promise.all([
+        const [assetData, assignmentData, ticketData, appSettings] = await Promise.all([
           getAssetById(assetId),
           getAssignments({ asset_id: assetId }),
           getTickets({ asset_id: assetId }),
+          getAppSettings(),
         ]);
 
         if (assetData) {
@@ -91,6 +95,7 @@ export default function AssetDetailPage() {
 
         setAssignments(assignmentData);
         setTickets(ticketData);
+        setAppTimezone(appSettings.timezone);
       } catch {
         setError(true);
       } finally {
@@ -247,7 +252,7 @@ export default function AssetDetailPage() {
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Date Received</p>
                     <p className="text-sm mt-1 tabular-nums">
                       {asset.date_received
-                        ? format(new Date(asset.date_received), "MMMM dd, yyyy")
+                        ? formatInAppTimezone(asset.date_received, "MMMM dd, yyyy", appTimezone)
                         : "N/A"}
                     </p>
                   </div>
@@ -273,7 +278,7 @@ export default function AssetDetailPage() {
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Purchase Date</p>
                     <p className="text-sm mt-1 tabular-nums">
                       {asset.purchase_date
-                        ? format(new Date(asset.purchase_date), "MMMM dd, yyyy")
+                        ? formatInAppTimezone(asset.purchase_date, "MMMM dd, yyyy", appTimezone)
                         : "N/A"}
                     </p>
                   </div>
@@ -292,7 +297,7 @@ export default function AssetDetailPage() {
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Warranty Expiry</p>
                     <p className="text-sm mt-1 tabular-nums">
                       {asset.warranty_expiry
-                        ? format(new Date(asset.warranty_expiry), "MMMM dd, yyyy")
+                        ? formatInAppTimezone(asset.warranty_expiry, "MMMM dd, yyyy", appTimezone)
                         : "N/A"}
                     </p>
                   </div>
@@ -311,7 +316,7 @@ export default function AssetDetailPage() {
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
                     <p className="text-sm mt-1 tabular-nums">
-                      {format(new Date(asset.created_at), "MMMM dd, yyyy")}
+                      {formatInAppTimezone(asset.created_at, "MMMM dd, yyyy", appTimezone)}
                     </p>
                   </div>
                   <div>
@@ -323,7 +328,7 @@ export default function AssetDetailPage() {
                       <div>
                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
                         <p className="text-sm mt-1 tabular-nums text-rose-600">
-                          {format(new Date(asset.deleted_at), "MMMM dd, yyyy")}
+                          {formatInAppTimezone(asset.deleted_at, "MMMM dd, yyyy", appTimezone)}
                         </p>
                       </div>
                       {asset.deleted_reason && (
@@ -340,7 +345,7 @@ export default function AssetDetailPage() {
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                     <p className="text-sm mt-1 tabular-nums">
                       {asset.updated_at
-                        ? format(new Date(asset.updated_at), "MMMM dd, yyyy")
+                        ? formatInAppTimezone(asset.updated_at, "MMMM dd, yyyy", appTimezone)
                         : "Never"}
                     </p>
                   </div>
@@ -468,11 +473,11 @@ export default function AssetDetailPage() {
                                   <p>Dept: {a.department_name}</p>
                                 )}
                                 <p>
-                                  Assigned: {format(new Date(a.assigned_date), "MMM dd, yyyy")}
+                                  Assigned: {formatInAppTimezone(a.assigned_date, "MMM dd, yyyy", appTimezone)}
                                 </p>
                                 {a.returned_date && (
                                   <p>
-                                    Returned: {format(new Date(a.returned_date), "MMM dd, yyyy")}
+                                    Returned: {formatInAppTimezone(a.returned_date, "MMM dd, yyyy", appTimezone)}
                                   </p>
                                 )}
                                 {a.condition_on_issue && (
@@ -482,7 +487,7 @@ export default function AssetDetailPage() {
                                   <p>Condition on return: {a.condition_on_return}</p>
                                 )}
                                 {a.status === "Lost" && a.date_lost && (
-                                  <p>Date lost: {format(new Date(a.date_lost), "MMM dd, yyyy")}</p>
+                                  <p>Date lost: {formatInAppTimezone(a.date_lost, "MMM dd, yyyy", appTimezone)}</p>
                                 )}
                                 {a.status === "Lost" && a.lost_reason && (
                                   <p className="text-rose-600">Lost reason: {a.lost_reason}</p>
@@ -547,7 +552,7 @@ export default function AssetDetailPage() {
                                   {t.priority}
                                 </span>
                                 <span className="text-xs text-[#64748b]">
-                                  {format(new Date(t.created_at), "MMM dd, yyyy")}
+                                  {formatInAppTimezone(t.created_at, "MMM dd, yyyy", appTimezone)}
                                 </span>
                               </div>
                             </div>

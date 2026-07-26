@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Server, ChevronRight, User, LogOut, KeyRound, ChevronDown } from "lucide-react";
+import { Server, ChevronRight, User, LogOut, KeyRound, ChevronDown, Clock } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getSidebarPages } from "@/lib/actions/page-actions";
 import { getAppSettings } from "@/lib/actions/application-actions";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import { logout } from "@/lib/actions/auth-actions";
 import { getIcon } from "@/lib/icon-map";
 import { useAuthorization } from "@/hooks/use-authorization";
@@ -43,6 +44,8 @@ import { ProfileModal } from "@/components/modals/profile-modal";
 import { toast } from "sonner";
 import type { Page } from "@/lib/types/page";
 import type { AuthUser } from "@/lib/types/auth";
+
+const CLOCK_STORAGE_KEY = "clock-timezone";
 
 interface MenuItem {
   title: string;
@@ -95,6 +98,9 @@ export function AppSidebar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [appName, setAppName] = useState("IT Asset Manager");
   const [appLogo, setAppLogo] = useState<string | null>(null);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
+  const [clockTz, setClockTz] = useState<string>("system");
+  const [now, setNow] = useState(new Date());
 
   useEffect(() => {
     getSidebarPages().then((pages) => {
@@ -103,8 +109,21 @@ export function AppSidebar() {
     getAppSettings().then((settings) => {
       if (settings.app_name) setAppName(settings.app_name);
       if (settings.app_logo) setAppLogo(settings.app_logo);
+      if (settings.timezone) setAppTimezone(settings.timezone);
     });
   }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(CLOCK_STORAGE_KEY);
+    if (saved) setClockTz(saved);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const displayTimezone = clockTz === "system" ? appTimezone : clockTz;
 
   useEffect(() => {
     if (authUser) setUser(authUser);
@@ -151,6 +170,10 @@ export function AppSidebar() {
                 )}
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-bold text-white text-base">{appName}</span>
+                  <span className="flex items-center gap-1 text-[10px] text-[#6b7ba3] mt-0.5 tabular-nums">
+                    <Clock className="size-2.5" />
+                    {formatInAppTimezone(now, "MMM dd, yyyy · hh:mm:ss a XXX", displayTimezone)}
+                  </span>
                 </div>
               </Link>
             </SidebarMenuButton>

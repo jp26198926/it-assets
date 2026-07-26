@@ -36,6 +36,7 @@ interface DataTableProps<TData, TValue> {
   onDelete: (asset: ITAsset) => void;
   onRestore: (asset: ITAsset) => void;
   onAdd: () => void;
+  timezone?: string | null;
 }
 
 export function DataTable<TData, TValue>({
@@ -46,6 +47,7 @@ export function DataTable<TData, TValue>({
   onDelete,
   onRestore,
   onAdd,
+  timezone,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -191,7 +193,7 @@ export function DataTable<TData, TValue>({
       <div className="lg:hidden space-y-3">
         {table.getRowModel().rows?.length ? (
           table.getRowModel().rows.map((row) => (
-            <AssetMobileCard
+            <AssetMobileCard timezone={timezone}
               key={row.id}
               asset={row.original as ITAsset}
               onView={onView}

@@ -9,6 +9,7 @@ import { UserChangePasswordModal } from "@/components/modals/user-change-passwor
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import { getUsers, createUser, updateUser, deleteUser, restoreUser, changePassword } from "@/lib/actions/user-actions";
 import type { User, CreateUserInput, UserFilters } from "@/lib/types/user";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ export default function UsersPage() {
   const [changePasswordUser, setChangePasswordUser] = useState<User | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<UserFilters>({});
 
   const loadData = useCallback(async (filters?: UserFilters) => {
@@ -36,6 +38,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     loadData();
+  getAppSettings().then(s => setAppTimezone(s.timezone)).catch(() => {});
   }, [loadData]);
 
   const handleServerSearch = useCallback((filters: UserFilters) => {
@@ -131,7 +134,7 @@ export default function UsersPage() {
     }
   };
 
-  const columns = createUserColumns(handleView, handleEdit, handleDelete, handleRestore, handleChangePassword);
+  const columns = createUserColumns(handleView, handleEdit, handleDelete, handleRestore, handleChangePassword, appTimezone);
 
   if (loading) {
     return (
@@ -187,8 +190,10 @@ export default function UsersPage() {
 
         <UserViewModal
           open={!!viewUser}
-          onOpenChange={(open) => !open && setViewUser(null)}
+          onOpenChange={(open) =>
+          !open && setViewUser(null)}
           user={viewUser}
+          timezone={appTimezone}
         />
 
         <UserChangePasswordModal

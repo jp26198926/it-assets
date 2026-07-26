@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ interface TicketCategoryViewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   ticketCategory: TicketCategory | null;
+  timezone?: string | null;
 }
 
 const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
@@ -26,6 +27,7 @@ export function TicketCategoryViewModal({
   open,
   onOpenChange,
   ticketCategory,
+  timezone,
 }: TicketCategoryViewModalProps) {
   if (!ticketCategory) return null;
 
@@ -73,7 +75,7 @@ export function TicketCategoryViewModal({
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(ticketCategory.created_at), "MMMM dd, yyyy")}
+                  {formatInAppTimezone(ticketCategory.created_at, "MMMM dd, yyyy", timezone)}
                 </p>
               </div>
               <div>
@@ -85,7 +87,7 @@ export function TicketCategoryViewModal({
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
                     <p className="text-sm mt-1 tabular-nums text-rose-600">
-                      {format(new Date(ticketCategory.deleted_at), "MMMM dd, yyyy")}
+                      {formatInAppTimezone(ticketCategory.deleted_at, "MMMM dd, yyyy", timezone)}
                     </p>
                   </div>
                   {ticketCategory.deleted_reason && (
@@ -102,7 +104,7 @@ export function TicketCategoryViewModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {ticketCategory.updated_at
-                    ? format(new Date(ticketCategory.updated_at), "MMMM dd, yyyy")
+                    ? formatInAppTimezone(ticketCategory.updated_at, "MMMM dd, yyyy", timezone)
                     : "Never"}
                 </p>
               </div>

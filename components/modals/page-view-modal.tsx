@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   Dialog,
   DialogContent,
@@ -69,6 +69,7 @@ interface PageViewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   page: Page | null;
+  timezone?: string | null;
 }
 
 const iconMap: Record<string, LucideIcon> = {
@@ -133,6 +134,7 @@ export function PageViewModal({
   open,
   onOpenChange,
   page,
+  timezone,
 }: PageViewModalProps) {
   if (!page) return null;
 
@@ -206,7 +208,7 @@ export function PageViewModal({
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(page.created_at), "MMMM dd, yyyy")}
+                  {formatInAppTimezone(page.created_at, "MMMM dd, yyyy", timezone)}
                 </p>
               </div>
               <div>
@@ -218,7 +220,7 @@ export function PageViewModal({
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
                     <p className="text-sm mt-1 tabular-nums text-rose-600">
-                      {format(new Date(page.deleted_at), "MMMM dd, yyyy")}
+                      {formatInAppTimezone(page.deleted_at, "MMMM dd, yyyy", timezone)}
                     </p>
                   </div>
                   {page.deleted_reason && (
@@ -235,7 +237,7 @@ export function PageViewModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {page.updated_at
-                    ? format(new Date(page.updated_at), "MMMM dd, yyyy")
+                    ? formatInAppTimezone(page.updated_at, "MMMM dd, yyyy", timezone)
                     : "Never"}
                 </p>
               </div>

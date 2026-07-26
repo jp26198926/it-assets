@@ -1,7 +1,7 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,7 +84,8 @@ export function createPermissionColumns(
   onView: (permission: Permission) => void,
   onEdit: (permission: Permission) => void,
   onDelete: (permission: Permission) => void,
-  onRestore: (permission: Permission) => void
+  onRestore: (permission: Permission) => void,
+  timezone?: string | null
 ): ColumnDef<Permission>[] {
   return [
     {
@@ -135,7 +136,7 @@ export function createPermissionColumns(
         const date = row.getValue("created_at") as Date;
         return (
           <span className="text-sm tabular-nums text-[#1a1f36]">
-            {format(new Date(date), "MMM dd, yyyy")}
+            {formatInAppTimezone(date, "MMM dd, yyyy", timezone)}
           </span>
         );
       },

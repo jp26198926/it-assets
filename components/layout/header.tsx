@@ -20,6 +20,8 @@ import {
   LogOut,
   KeyRound,
   ChevronDown,
+  Clock,
+  Check,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,11 +32,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getCurrentUser, logout } from "@/lib/actions/auth-actions";
+import { getAppSettings } from "@/lib/actions/application-actions";
+import { getTimezoneSelectOptions } from "@/lib/actions/timezone-actions";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import { UserChangePasswordModal } from "@/components/modals/user-change-password-modal";
 import { ProfileModal } from "@/components/modals/profile-modal";
 import { toast } from "sonner";
 import type { AuthUser } from "@/lib/types/auth";
+import type { TimezoneSelectOption } from "@/lib/types/timezone";
 import { useBreadcrumbOverrides } from "@/components/layout/breadcrumb-override-context";
+
+const CLOCK_STORAGE_KEY = "clock-timezone";
 
 export function Header() {
   const pathname = usePathname();
@@ -44,7 +52,28 @@ export function Header() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
+  const [clockTz, setClockTz] = useState<string>("system");
+  const [clockTimezones, setClockTimezones] = useState<TimezoneSelectOption[]>([]);
+  const [now, setNow] = useState(new Date());
   const { overrides } = useBreadcrumbOverrides();
+
+  useEffect(() => {
+    const saved = localStorage.getItem(CLOCK_STORAGE_KEY);
+    if (saved) setClockTz(saved);
+  }, []);
+
+  useEffect(() => {
+    getAppSettings().then((s) => setAppTimezone(s.timezone)).catch(() => {});
+    getTimezoneSelectOptions().then(setClockTimezones).catch(() => {});
+  }, []);
+
+  const displayTimezone = clockTz === "system" ? appTimezone : clockTz;
+
+  const handleClockTzChange = (tz: string) => {
+    setClockTz(tz);
+    localStorage.setItem(CLOCK_STORAGE_KEY, tz);
+  };
 
   const fetchUser = useCallback(async () => {
     const currentUser = await getCurrentUser();
@@ -54,6 +83,11 @@ export function Header() {
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const breadcrumbItems = segments.map((segment, index) => {
     const href = "/" + segments.slice(0, index + 1).join("/");
@@ -124,6 +158,34 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-1 sm:gap-3">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#f0f4f8] text-sm text-[#64748b] hover:bg-[#e2e8f0] hover:text-[#1a1f36] transition-colors cursor-pointer tabular-nums">
+              <Clock className="size-3.5" />
+              <span>{formatInAppTimezone(now, "hh:mm:ss a XXX", displayTimezone)}</span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center" className="w-64" style={{ maxHeight: "320px" }}>
+            <DropdownMenuItem
+              onClick={() => handleClockTzChange("system")}
+              className="cursor-pointer text-sm"
+            >
+              <Check className={`size-3.5 mr-2 ${clockTz === "system" ? "opacity-100" : "opacity-0"}`} />
+              System Default
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {clockTimezones.map((tz) => (
+              <DropdownMenuItem
+                key={tz.id}
+                onClick={() => handleClockTzChange(tz.id)}
+                className="cursor-pointer text-sm"
+              >
+                <Check className={`size-3.5 mr-2 ${clockTz === tz.id ? "opacity-100" : "opacity-0"}`} />
+                {tz.display_name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         {/*
 
         <div className="relative hidden md:block">

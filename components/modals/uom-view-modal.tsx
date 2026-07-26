@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ interface UOMViewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   uom: UOM | null;
+  timezone?: string | null;
 }
 
 const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
@@ -26,6 +27,7 @@ export function UOMViewModal({
   open,
   onOpenChange,
   uom,
+  timezone,
 }: UOMViewModalProps) {
   if (!uom) return null;
 
@@ -75,7 +77,7 @@ export function UOMViewModal({
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(uom.created_at), "MMMM dd, yyyy")}
+                  {formatInAppTimezone(uom.created_at, "MMMM dd, yyyy", timezone)}
                 </p>
               </div>
               <div>
@@ -87,7 +89,7 @@ export function UOMViewModal({
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
                     <p className="text-sm mt-1 tabular-nums text-rose-600">
-                      {format(new Date(uom.deleted_at), "MMMM dd, yyyy")}
+                      {formatInAppTimezone(uom.deleted_at, "MMMM dd, yyyy", timezone)}
                     </p>
                   </div>
                   {uom.deleted_reason && (
@@ -104,7 +106,7 @@ export function UOMViewModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {uom.updated_at
-                    ? format(new Date(uom.updated_at), "MMMM dd, yyyy")
+                    ? formatInAppTimezone(uom.updated_at, "MMMM dd, yyyy", timezone)
                     : "Never"}
                 </p>
               </div>

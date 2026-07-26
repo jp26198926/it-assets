@@ -13,11 +13,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Download } from "lucide-react";
 import { exportToExcel, exportToPDF } from "@/lib/utils/report-export";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import type { Ticket } from "@/lib/types/ticket";
 
 interface TicketListTabProps {
   tickets: Ticket[];
   dateRange: { from?: string; to?: string };
+  timezone?: string | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -34,7 +36,7 @@ const priorityColors: Record<string, string> = {
   Critical: "bg-red-100 text-red-800",
 };
 
-export function TicketListTab({ tickets, dateRange }: TicketListTabProps) {
+export function TicketListTab({ tickets, dateRange, timezone }: TicketListTabProps) {
   const [page, setPage] = useState(1);
   const perPage = 20;
   const totalPages = Math.ceil(tickets.length / perPage);
@@ -51,7 +53,7 @@ export function TicketListTab({ tickets, dateRange }: TicketListTabProps) {
       category_name: t.category_name || "N/A",
       priority: t.priority,
       status: t.status,
-      created_at: new Date(t.created_at).toLocaleDateString(),
+      created_at: formatInAppTimezone(t.created_at, "MMM dd, yyyy", timezone),
     }));
     exportToExcel(data, [
       { header: "Ticket No", key: "ticket_no" },
@@ -77,7 +79,7 @@ export function TicketListTab({ tickets, dateRange }: TicketListTabProps) {
       category_name: t.category_name || "N/A",
       priority: t.priority,
       status: t.status,
-      created_at: new Date(t.created_at).toLocaleDateString(),
+      created_at: formatInAppTimezone(t.created_at, "MMM dd, yyyy", timezone),
     }));
     exportToPDF(data, [
       { header: "Ticket No", key: "ticket_no" },
@@ -151,7 +153,7 @@ export function TicketListTab({ tickets, dateRange }: TicketListTabProps) {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {new Date(ticket.created_at).toLocaleDateString()}
+                    {formatInAppTimezone(ticket.created_at, "MMM dd, yyyy", timezone)}
                   </TableCell>
                 </TableRow>
               ))

@@ -9,6 +9,7 @@ import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
 import { getDepartments, createDepartment, updateDepartment, deleteDepartment, restoreDepartment } from "@/lib/actions/department-actions";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import type { Department, CreateDepartmentInput, DepartmentFilters } from "@/lib/types/department";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ export default function DepartmentsPage() {
   const [deleteDepartmentItem, setDeleteDepartmentItem] = useState<Department | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<DepartmentFilters>({});
 
   const loadData = useCallback(async (filters?: DepartmentFilters) => {
@@ -34,6 +36,7 @@ export default function DepartmentsPage() {
 
   useEffect(() => {
     loadData();
+  getAppSettings().then(s => setAppTimezone(s.timezone)).catch(() => {});
   }, [loadData]);
 
   const handleServerSearch = useCallback((filters: DepartmentFilters) => {
@@ -107,7 +110,7 @@ export default function DepartmentsPage() {
     }
   };
 
-  const columns = createDepartmentColumns(handleView, handleEdit, handleDelete, handleRestore);
+  const columns = createDepartmentColumns(handleView, handleEdit, handleDelete, handleRestore, appTimezone);
 
   if (loading) {
     return (
@@ -162,8 +165,10 @@ export default function DepartmentsPage() {
 
         <DepartmentViewModal
           open={!!viewDepartment}
-          onOpenChange={(open) => !open && setViewDepartment(null)}
+          onOpenChange={(open) =>
+          !open && setViewDepartment(null)}
           department={viewDepartment}
+          timezone={appTimezone}
         />
 
         <DeleteConfirmModal

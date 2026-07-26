@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,12 +15,14 @@ interface MeetingActionItemViewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item: MeetingActionItem | null;
+  timezone?: string | null;
 }
 
 export function MeetingActionItemViewModal({
   open,
   onOpenChange,
   item,
+  timezone,
 }: MeetingActionItemViewModalProps) {
   if (!item) return null;
 
@@ -97,7 +99,7 @@ export function MeetingActionItemViewModal({
               </p>
               <p className="text-sm mt-1">
                 {item.due_date
-                  ? format(new Date(item.due_date), "MMMM dd, yyyy")
+                  ? formatInAppTimezone(item.due_date, "MMMM dd, yyyy", timezone)
                   : "N/A"}
               </p>
             </div>
@@ -107,7 +109,7 @@ export function MeetingActionItemViewModal({
                   Completed At
                 </p>
                 <p className="text-sm mt-1">
-                  {format(new Date(item.completed_at), "MMMM dd, yyyy")}
+                  {formatInAppTimezone(item.completed_at, "MMMM dd, yyyy", timezone)}
                 </p>
               </div>
             )}
@@ -135,7 +137,7 @@ export function MeetingActionItemViewModal({
                   Created At
                 </p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(item.created_at), "MMMM dd, yyyy")}
+                  {formatInAppTimezone(item.created_at, "MMMM dd, yyyy", timezone)}
                 </p>
               </div>
               <div>
@@ -153,7 +155,7 @@ export function MeetingActionItemViewModal({
                       Deleted At
                     </p>
                     <p className="text-sm mt-1 text-rose-600 tabular-nums">
-                      {format(new Date(item.deleted_at), "MMMM dd, yyyy")}
+                      {formatInAppTimezone(item.deleted_at, "MMMM dd, yyyy", timezone)}
                     </p>
                   </div>
                   {item.deleted_reason && (
@@ -176,7 +178,7 @@ export function MeetingActionItemViewModal({
                 </p>
                 <p className="text-sm mt-1 tabular-nums">
                   {item.updated_at
-                    ? format(new Date(item.updated_at), "MMMM dd, yyyy")
+                    ? formatInAppTimezone(item.updated_at, "MMMM dd, yyyy", timezone)
                     : "Never"}
                 </p>
               </div>

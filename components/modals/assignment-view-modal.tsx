@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ interface AssignmentViewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   assignment: Assignment | null;
+  timezone?: string | null;
 }
 
 const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
@@ -28,6 +29,7 @@ export function AssignmentViewModal({
   open,
   onOpenChange,
   assignment,
+  timezone,
 }: AssignmentViewModalProps) {
   if (!assignment) return null;
 
@@ -85,7 +87,7 @@ export function AssignmentViewModal({
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Assigned Date</p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(assignment.assigned_date), "MMMM dd, yyyy")}
+                  {formatInAppTimezone(assignment.assigned_date, "MMMM dd, yyyy", timezone)}
                 </p>
               </div>
               <div>
@@ -102,7 +104,7 @@ export function AssignmentViewModal({
                 <div>
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Returned Date</p>
                   <p className="text-sm mt-1 tabular-nums">
-                    {format(new Date(assignment.returned_date), "MMMM dd, yyyy")}
+                    {formatInAppTimezone(assignment.returned_date, "MMMM dd, yyyy", timezone)}
                   </p>
                 </div>
               )}
@@ -119,7 +121,7 @@ export function AssignmentViewModal({
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Date Lost</p>
                     <p className="text-sm mt-1 tabular-nums">
-                      {format(new Date(assignment.date_lost), "MMMM dd, yyyy")}
+                      {formatInAppTimezone(assignment.date_lost, "MMMM dd, yyyy", timezone)}
                     </p>
                   </div>
                   {assignment.lost_reason && (
@@ -140,7 +142,7 @@ export function AssignmentViewModal({
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(assignment.created_at), "MMMM dd, yyyy")}
+                  {formatInAppTimezone(assignment.created_at, "MMMM dd, yyyy", timezone)}
                 </p>
               </div>
               <div>
@@ -152,7 +154,7 @@ export function AssignmentViewModal({
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
                     <p className="text-sm mt-1 tabular-nums text-rose-600">
-                      {format(new Date(assignment.deleted_at), "MMMM dd, yyyy")}
+                      {formatInAppTimezone(assignment.deleted_at, "MMMM dd, yyyy", timezone)}
                     </p>
                   </div>
                   {assignment.deleted_reason && (
@@ -169,7 +171,7 @@ export function AssignmentViewModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {assignment.updated_at
-                    ? format(new Date(assignment.updated_at), "MMMM dd, yyyy")
+                    ? formatInAppTimezone(assignment.updated_at, "MMMM dd, yyyy", timezone)
                     : "Never"}
                 </p>
               </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ interface RoleViewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   role: Role | null;
+  timezone?: string | null;
 }
 
 const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
@@ -26,6 +27,7 @@ export function RoleViewModal({
   open,
   onOpenChange,
   role,
+  timezone,
 }: RoleViewModalProps) {
   if (!role) return null;
 
@@ -75,7 +77,7 @@ export function RoleViewModal({
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(role.created_at), "MMMM dd, yyyy")}
+                  {formatInAppTimezone(role.created_at, "MMMM dd, yyyy", timezone)}
                 </p>
               </div>
               <div>
@@ -87,7 +89,7 @@ export function RoleViewModal({
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
                     <p className="text-sm mt-1 tabular-nums text-rose-600">
-                      {format(new Date(role.deleted_at), "MMMM dd, yyyy")}
+                      {formatInAppTimezone(role.deleted_at, "MMMM dd, yyyy", timezone)}
                     </p>
                   </div>
                   {role.deleted_reason && (
@@ -104,7 +106,7 @@ export function RoleViewModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {role.updated_at
-                    ? format(new Date(role.updated_at), "MMMM dd, yyyy")
+                    ? formatInAppTimezone(role.updated_at, "MMMM dd, yyyy", timezone)
                     : "Never"}
                 </p>
               </div>

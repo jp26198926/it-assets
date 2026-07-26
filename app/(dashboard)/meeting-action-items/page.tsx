@@ -8,6 +8,7 @@ import { MeetingActionItemViewModal } from "@/components/modals/meeting-action-i
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import {
   getMeetingActionItems,
   createMeetingActionItem,
@@ -46,6 +47,7 @@ export default function MeetingActionItemsPage() {
   const [deleteItem, setDeleteItem] = useState<MeetingActionItem | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<MeetingActionItemFilters>(
     {}
   );
@@ -86,6 +88,7 @@ export default function MeetingActionItemsPage() {
       )
       .catch(() => {});
     getEmployeeList().then(setEmployees).catch(() => {});
+  getAppSettings().then(s => setAppTimezone(s.timezone)).catch(() => {});
   }, [loadData]);
 
   function handleView(item: MeetingActionItem) {
@@ -191,6 +194,7 @@ export default function MeetingActionItemsPage() {
               onServerSearch={handleServerSearch}
               onServerSearchClear={handleServerSearchClear}
               statuses={statuses}
+              timezone={appTimezone}
               priorities={priorities}
             />
           )}
@@ -207,7 +211,8 @@ export default function MeetingActionItemsPage() {
 
         <MeetingActionItemViewModal
           open={!!viewItem}
-          onOpenChange={(open) => !open && setViewItem(null)}
+          onOpenChange={(open) =>
+          !open && setViewItem(null)}
           item={viewItem}
         />
 

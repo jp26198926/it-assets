@@ -83,7 +83,8 @@ export function createItemColumns(
   onView: (item: Item) => void,
   onEdit: (item: Item) => void,
   onDelete: (item: Item) => void,
-  onRestore: (item: Item) => void
+  onRestore: (item: Item) => void,
+  timezone?: string | null
 ): ColumnDef<Item>[] {
   return [
     {

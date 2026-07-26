@@ -1,7 +1,7 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,7 +84,7 @@ export function createDepartmentColumns(
   onView: (department: Department) => void,
   onEdit: (department: Department) => void,
   onDelete: (department: Department) => void,
-  onRestore: (department: Department) => void
+  onRestore: (department: Department) => void, timezone?: string | null
 ): ColumnDef<Department>[] {
   return [
     {
@@ -144,7 +144,7 @@ export function createDepartmentColumns(
         const date = row.getValue("created_at") as Date;
         return (
           <span className="text-sm tabular-nums text-[#1a1f36]">
-            {format(new Date(date), "MMM dd, yyyy")}
+            {formatInAppTimezone(date, "MMM dd, yyyy", timezone)}
           </span>
         );
       },

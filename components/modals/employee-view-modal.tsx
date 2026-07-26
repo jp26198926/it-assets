@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ interface EmployeeViewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   employee: Employee | null;
+  timezone?: string | null;
 }
 
 const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
@@ -26,6 +27,7 @@ export function EmployeeViewModal({
   open,
   onOpenChange,
   employee,
+  timezone,
 }: EmployeeViewModalProps) {
   if (!employee) return null;
 
@@ -96,7 +98,7 @@ export function EmployeeViewModal({
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(employee.created_at), "MMMM dd, yyyy")}
+                  {formatInAppTimezone(employee.created_at, "MMMM dd, yyyy", timezone)}
                 </p>
               </div>
               <div>
@@ -108,7 +110,7 @@ export function EmployeeViewModal({
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
                     <p className="text-sm mt-1 tabular-nums text-rose-600">
-                      {format(new Date(employee.deleted_at), "MMMM dd, yyyy")}
+                      {formatInAppTimezone(employee.deleted_at, "MMMM dd, yyyy", timezone)}
                     </p>
                   </div>
                   {employee.deleted_reason && (
@@ -125,7 +127,7 @@ export function EmployeeViewModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {employee.updated_at
-                    ? format(new Date(employee.updated_at), "MMMM dd, yyyy")
+                    ? formatInAppTimezone(employee.updated_at, "MMMM dd, yyyy", timezone)
                     : "Never"}
                 </p>
               </div>

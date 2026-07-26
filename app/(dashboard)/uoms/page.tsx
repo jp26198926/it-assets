@@ -9,6 +9,7 @@ import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
 import { getUOMs, createUOM, updateUOM, deleteUOM, restoreUOM } from "@/lib/actions/uom-actions";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import type { UOM, CreateUOMInput, UOMFilters } from "@/lib/types/uom";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ export default function UOMsPage() {
   const [deleteUOMItem, setDeleteUOMItem] = useState<UOM | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<UOMFilters>({});
 
   const loadData = useCallback(async (filters?: UOMFilters) => {
@@ -34,6 +36,7 @@ export default function UOMsPage() {
 
   useEffect(() => {
     loadData();
+  getAppSettings().then(s => setAppTimezone(s.timezone)).catch(() => {});
   }, [loadData]);
 
   const handleServerSearch = useCallback((filters: UOMFilters) => {
@@ -107,7 +110,7 @@ export default function UOMsPage() {
     }
   };
 
-  const columns = createUOMColumns(handleView, handleEdit, handleDelete, handleRestore);
+  const columns = createUOMColumns(handleView, handleEdit, handleDelete, handleRestore, appTimezone);
 
   if (loading) {
     return (
@@ -162,8 +165,10 @@ export default function UOMsPage() {
 
         <UOMViewModal
           open={!!viewUOM}
-          onOpenChange={(open) => !open && setViewUOM(null)}
+          onOpenChange={(open) =>
+          !open && setViewUOM(null)}
           uom={viewUOM}
+          timezone={appTimezone}
         />
 
         <DeleteConfirmModal

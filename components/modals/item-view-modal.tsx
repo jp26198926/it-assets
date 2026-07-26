@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,7 @@ interface ItemViewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item: Item | null;
+  timezone?: string | null;
 }
 
 const statusConfig: Record<string, { bg: string; text: string; dot: string }> =
@@ -32,6 +33,7 @@ export function ItemViewModal({
   open,
   onOpenChange,
   item,
+  timezone,
 }: ItemViewModalProps) {
   if (!item) return null;
 
@@ -173,7 +175,7 @@ export function ItemViewModal({
                   Created At
                 </p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(item.created_at), "yyyy-MM-dd HH:mm:ss")}
+                  {formatInAppTimezone(item.created_at, "yyyy-MM-dd HH:mm:ss", timezone)}
                 </p>
               </div>
 
@@ -191,7 +193,7 @@ export function ItemViewModal({
                       Deleted At
                     </p>
                     <p className="text-sm mt-1 tabular-nums text-rose-600">
-                      {format(new Date(item.deleted_at), "yyyy-MM-dd HH:mm:ss")}
+                      {formatInAppTimezone(item.deleted_at, "yyyy-MM-dd HH:mm:ss", timezone)}
                     </p>
                   </div>
 
@@ -216,7 +218,7 @@ export function ItemViewModal({
                 </p>
                 <p className="text-sm mt-1 tabular-nums">
                   {item.updated_at
-                    ? format(new Date(item.updated_at), "yyyy-MM-dd HH:mm:ss")
+                    ? formatInAppTimezone(item.updated_at, "yyyy-MM-dd HH:mm:ss", timezone)
                     : "Never"}
                 </p>
               </div>

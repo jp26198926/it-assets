@@ -9,6 +9,7 @@ import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
 import { getPages, createPage, updatePage, deletePage, restorePage } from "@/lib/actions/page-actions";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import type { Page, CreatePageInput, PageFilters } from "@/lib/types/page";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ export default function PagesPage() {
   const [deletePageItem, setDeletePageItem] = useState<Page | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<PageFilters>({});
 
   const loadData = useCallback(async (filters?: PageFilters) => {
@@ -34,6 +36,7 @@ export default function PagesPage() {
 
   useEffect(() => {
     loadData();
+  getAppSettings().then(s => setAppTimezone(s.timezone)).catch(() => {});
   }, [loadData]);
 
   const handleServerSearch = useCallback((filters: PageFilters) => {
@@ -107,7 +110,7 @@ export default function PagesPage() {
     }
   };
 
-  const columns = createPageColumns(handleView, handleEdit, handleDelete, handleRestore);
+  const columns = createPageColumns(handleView, handleEdit, handleDelete, handleRestore, appTimezone);
 
   if (loading) {
     return (
@@ -163,8 +166,10 @@ export default function PagesPage() {
 
         <PageViewModal
           open={!!viewPage}
-          onOpenChange={(open) => !open && setViewPage(null)}
+          onOpenChange={(open) =>
+          !open && setViewPage(null)}
           page={viewPage}
+          timezone={appTimezone}
         />
 
         <DeleteConfirmModal

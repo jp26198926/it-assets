@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,12 +16,14 @@ interface MeetingViewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   meeting: Meeting | null;
+  timezone?: string | null;
 }
 
 export function MeetingViewModal({
   open,
   onOpenChange,
   meeting,
+  timezone,
 }: MeetingViewModalProps) {
   if (!meeting) return null;
 
@@ -92,7 +94,7 @@ export function MeetingViewModal({
                 Date
               </p>
               <p className="text-sm mt-1 tabular-nums">
-                {format(new Date(meeting.scheduled_date), "MMMM dd, yyyy")}
+                {formatInAppTimezone(meeting.scheduled_date, "MMMM dd, yyyy", timezone)}
               </p>
             </div>
             <div>
@@ -249,7 +251,7 @@ export function MeetingViewModal({
                 {meeting.recurrence.end_type === "After" &&
                   ` (${meeting.recurrence.end_after} times)`}
                 {meeting.recurrence.end_type === "On Date" &&
-                  ` until ${format(new Date(meeting.recurrence.end_date!), "MMM dd, yyyy")}`}
+                  ` until ${formatInAppTimezone(meeting.recurrence.end_date!, "MMM dd, yyyy", timezone)}`}
               </p>
             </div>
           )}
@@ -266,7 +268,7 @@ export function MeetingViewModal({
                   Created At
                 </p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(meeting.created_at), "MMMM dd, yyyy")}
+                  {formatInAppTimezone(meeting.created_at, "MMMM dd, yyyy", timezone)}
                 </p>
               </div>
               <div>
@@ -284,7 +286,7 @@ export function MeetingViewModal({
                       Deleted At
                     </p>
                     <p className="text-sm mt-1 text-rose-600 tabular-nums">
-                      {format(new Date(meeting.deleted_at), "MMMM dd, yyyy")}
+                      {formatInAppTimezone(meeting.deleted_at, "MMMM dd, yyyy", timezone)}
                     </p>
                   </div>
                   {meeting.deleted_reason && (
@@ -307,7 +309,7 @@ export function MeetingViewModal({
                 </p>
                 <p className="text-sm mt-1 tabular-nums">
                   {meeting.updated_at
-                    ? format(new Date(meeting.updated_at), "MMMM dd, yyyy")
+                    ? formatInAppTimezone(meeting.updated_at, "MMMM dd, yyyy", timezone)
                     : "Never"}
                 </p>
               </div>

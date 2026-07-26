@@ -9,6 +9,7 @@ import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
 import { getEmployees, createEmployee, updateEmployee, deleteEmployee, restoreEmployee } from "@/lib/actions/employee-actions";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import type { Employee, CreateEmployeeInput, EmployeeFilters } from "@/lib/types/employee";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ export default function EmployeesPage() {
   const [deleteEmployeeItem, setDeleteEmployeeItem] = useState<Employee | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<EmployeeFilters>({});
 
   const loadData = useCallback(async (filters?: EmployeeFilters) => {
@@ -34,6 +36,7 @@ export default function EmployeesPage() {
 
   useEffect(() => {
     loadData();
+  getAppSettings().then(s => setAppTimezone(s.timezone)).catch(() => {});
   }, [loadData]);
 
   const handleServerSearch = useCallback((filters: EmployeeFilters) => {
@@ -107,7 +110,7 @@ export default function EmployeesPage() {
     }
   };
 
-  const columns = createEmployeeColumns(handleView, handleEdit, handleDelete, handleRestore);
+  const columns = createEmployeeColumns(handleView, handleEdit, handleDelete, handleRestore, appTimezone);
 
   if (loading) {
     return (
@@ -162,8 +165,10 @@ export default function EmployeesPage() {
 
         <EmployeeViewModal
           open={!!viewEmployee}
-          onOpenChange={(open) => !open && setViewEmployee(null)}
+          onOpenChange={(open) =>
+          !open && setViewEmployee(null)}
           employee={viewEmployee}
+          timezone={appTimezone}
         />
 
         <DeleteConfirmModal

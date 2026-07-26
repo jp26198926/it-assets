@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,7 @@ interface DepartmentViewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   department: Department | null;
+  timezone?: string | null;
 }
 
 const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
@@ -27,6 +28,7 @@ export function DepartmentViewModal({
   open,
   onOpenChange,
   department,
+  timezone,
 }: DepartmentViewModalProps) {
   if (!department) return null;
 
@@ -80,7 +82,7 @@ export function DepartmentViewModal({
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(department.created_at), "MMMM dd, yyyy")}
+                  {formatInAppTimezone(department.created_at, "MMMM dd, yyyy", timezone)}
                 </p>
               </div>
               <div>
@@ -92,7 +94,7 @@ export function DepartmentViewModal({
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
                     <p className="text-sm mt-1 tabular-nums text-rose-600">
-                      {format(new Date(department.deleted_at), "MMMM dd, yyyy")}
+                      {formatInAppTimezone(department.deleted_at, "MMMM dd, yyyy", timezone)}
                     </p>
                   </div>
                   {department.deleted_reason && (
@@ -109,7 +111,7 @@ export function DepartmentViewModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {department.updated_at
-                    ? format(new Date(department.updated_at), "MMMM dd, yyyy")
+                    ? formatInAppTimezone(department.updated_at, "MMMM dd, yyyy", timezone)
                     : "Never"}
                 </p>
               </div>

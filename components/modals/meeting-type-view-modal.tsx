@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,12 +15,14 @@ interface MeetingTypeViewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   meetingType: MeetingType | null;
+  timezone?: string | null;
 }
 
 export function MeetingTypeViewModal({
   open,
   onOpenChange,
   meetingType,
+  timezone,
 }: MeetingTypeViewModalProps) {
   if (!meetingType) return null;
 
@@ -114,7 +116,7 @@ export function MeetingTypeViewModal({
                   Created At
                 </p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(meetingType.created_at), "MMMM dd, yyyy")}
+                  {formatInAppTimezone(meetingType.created_at, "MMMM dd, yyyy", timezone)}
                 </p>
               </div>
               <div>
@@ -132,9 +134,10 @@ export function MeetingTypeViewModal({
                       Deleted At
                     </p>
                     <p className="text-sm mt-1 text-rose-600 tabular-nums">
-                      {format(
-                        new Date(meetingType.deleted_at),
-                        "MMMM dd, yyyy"
+                      {formatInAppTimezone(
+                        meetingType.deleted_at,
+                        "MMMM dd, yyyy",
+                        timezone
                       )}
                     </p>
                   </div>
@@ -158,7 +161,7 @@ export function MeetingTypeViewModal({
                 </p>
                 <p className="text-sm mt-1 tabular-nums">
                   {meetingType.updated_at
-                    ? format(new Date(meetingType.updated_at), "MMMM dd, yyyy")
+                    ? formatInAppTimezone(meetingType.updated_at, "MMMM dd, yyyy", timezone)
                     : "Never"}
                 </p>
               </div>

@@ -9,6 +9,7 @@ import { AssignmentReturnModal } from "@/components/modals/assignment-return-mod
 import { AssignmentMarkLostModal } from "@/components/modals/assignment-mark-lost-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import {
   getAssignments,
   createAssignment,
@@ -37,6 +38,7 @@ export default function AssignmentsPage() {
   const [markLostFormOpen, setMarkLostFormOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<AssignmentFilters>({});
 
   const loadData = useCallback(async (filters?: AssignmentFilters) => {
@@ -52,6 +54,7 @@ export default function AssignmentsPage() {
 
   useEffect(() => {
     loadData();
+  getAppSettings().then(s => setAppTimezone(s.timezone)).catch(() => {});
   }, [loadData]);
 
   const handleServerSearch = useCallback((filters: AssignmentFilters) => {
@@ -220,6 +223,7 @@ export default function AssignmentsPage() {
           open={!!viewAssignment}
           onOpenChange={(open) => !open && setViewAssignment(null)}
           assignment={viewAssignment}
+          timezone={appTimezone}
         />
 
         <AssignmentReturnModal

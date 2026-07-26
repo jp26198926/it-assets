@@ -19,7 +19,8 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import {
   PieChart,
   Pie,
@@ -126,6 +127,7 @@ export default function DashboardPage() {
   const { hasPermission, isLoading: authLoading } = useAuthorization();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
 
   const canViewAssets = hasPermission("/assets", "View");
   const canViewTickets = hasPermission("/tickets", "View");
@@ -133,8 +135,8 @@ export default function DashboardPage() {
   const canViewTicketReport = hasPermission("/ticket-report", "View");
 
   useEffect(() => {
-    fetchDashboardStats()
-      .then(setStats)
+    Promise.all([fetchDashboardStats(), getAppSettings()])
+      .then(([stats, appSettings]) => { setStats(stats); setAppTimezone(appSettings.timezone); })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -442,7 +444,7 @@ export default function DashboardPage() {
                             <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
                             <Tooltip
                               labelFormatter={(label) =>
-                                format(new Date(String(label)), "MMM dd, yyyy")
+                                formatInAppTimezone(new Date(String(label)), "MMM dd, yyyy", appTimezone)
                               }
                             />
                             <Area

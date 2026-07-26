@@ -9,6 +9,7 @@ import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
 import { getItems, createItem, updateItem, deleteItem, restoreItem } from "@/lib/actions/item-actions";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import type { Item, CreateItemInput, ItemFilters } from "@/lib/types/item";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ export default function ItemsPage() {
   const [deleteItemItem, setDeleteItemItem] = useState<Item | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<ItemFilters>({});
 
   useEffect(() => {
@@ -111,7 +113,7 @@ export default function ItemsPage() {
     }
   };
 
-  const columns = createItemColumns(handleView, handleEdit, handleDelete, handleRestore);
+  const columns = createItemColumns(handleView, handleEdit, handleDelete, handleRestore, appTimezone);
 
   if (loading) {
     return (
@@ -166,8 +168,10 @@ export default function ItemsPage() {
 
         <ItemViewModal
           open={!!viewItem}
-          onOpenChange={(open) => !open && setViewItem(null)}
+          onOpenChange={(open) =>
+          !open && setViewItem(null)}
           item={viewItem}
+          timezone={appTimezone}
         />
 
         <DeleteConfirmModal

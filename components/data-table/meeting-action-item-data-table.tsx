@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   useReactTable,
   getCoreRowModel,
@@ -43,6 +43,7 @@ interface MeetingActionItemDataTableProps {
   onServerSearch?: (filters: MeetingActionItemFilters) => void;
   onServerSearchClear?: () => void;
   statuses?: { value: string; label: string }[];
+  timezone?: string | null;
   priorities?: { value: string; label: string }[];
 }
 
@@ -58,6 +59,7 @@ export function MeetingActionItemDataTable({
   onServerSearchClear,
   statuses,
   priorities,
+  timezone,
 }: MeetingActionItemDataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -224,7 +226,7 @@ export function MeetingActionItemDataTable({
                           ? `#${item.meeting_no} ${item.meeting_title}`
                           : "No meeting"}
                         {item.due_date
-                          ? ` · Due ${format(new Date(item.due_date), "MMM dd")}`
+                          ? ` · Due ${formatInAppTimezone(item.due_date, "MMM dd", timezone)}`
                           : ""}
                       </p>
                     </div>

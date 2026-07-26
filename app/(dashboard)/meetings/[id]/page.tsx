@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   ArrowLeft,
   Calendar,
@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { PageGuard } from "@/components/auth/page-guard";
 import { useAuthorization } from "@/hooks/use-authorization";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import { getMeetingById, updateMeeting, getMeetingTypeSelectOptions, addAttendee, updateAttendee, removeAttendee } from "@/lib/actions/meeting-actions";
 import { getCloudinarySettings } from "@/lib/actions/cloudinary-actions";
 import {
@@ -67,6 +68,7 @@ export default function MeetingDetailPage() {
   const [maxFileSize, setMaxFileSize] = useState(10);
   const [editorKey, setEditorKey] = useState(0);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [agendaModalOpen, setAgendaModalOpen] = useState(false);
   const [meetingTypes, setMeetingTypes] = useState<MeetingTypeSelectOption[]>([]);
@@ -106,11 +108,12 @@ export default function MeetingDetailPage() {
     const fetchMeeting = async () => {
       try {
         const meetingId = params.id as string;
-        const [data, cloudinarySettings, types, empList] = await Promise.all([
+        const [data, cloudinarySettings, types, empList, appSettings] = await Promise.all([
           getMeetingById(meetingId),
           getCloudinarySettings(),
           getMeetingTypeSelectOptions(),
           getEmployeeList(),
+          getAppSettings(),
         ]);
         if (data) {
           setMeeting(data);
@@ -123,6 +126,7 @@ export default function MeetingDetailPage() {
         setMaxFileSize(cloudinarySettings.max_file_size || 10);
         setMeetingTypes(types);
         setEmployees(empList);
+        setAppTimezone(appSettings.timezone);
       } catch {
         setError(true);
       } finally {
@@ -677,7 +681,7 @@ export default function MeetingDetailPage() {
                           </div>
                           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                             {item.assigned_to_name && <span>Assigned: {item.assigned_to_name}</span>}
-                            {item.due_date && <span>Due: {format(new Date(item.due_date), "MMM dd, yyyy")}</span>}
+                            {item.due_date && <span>Due: {formatInAppTimezone(item.due_date, "MMM dd, yyyy", appTimezone)}</span>}
                           </div>
                         </div>
                         {canEdit && (meeting.status === "Scheduled" || meeting.status === "In Progress") && (
@@ -942,7 +946,7 @@ export default function MeetingDetailPage() {
                 <div className="flex items-center gap-2 text-sm text-[#1a1f36]">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span>
-                    {format(new Date(meeting.scheduled_date), "MMMM dd, yyyy")}
+                    {formatInAppTimezone(meeting.scheduled_date, "MMMM dd, yyyy", appTimezone)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-[#1a1f36] mt-1">
@@ -1005,9 +1009,10 @@ export default function MeetingDetailPage() {
                     {meeting.recurrence.end_type === "After" &&
                       ` (${meeting.recurrence.end_after} times)`}
                     {meeting.recurrence.end_type === "On Date" &&
-                      ` until ${format(
-                        new Date(meeting.recurrence.end_date!),
-                        "MMM dd, yyyy"
+                      ` until ${formatInAppTimezone(
+                        meeting.recurrence.end_date!,
+                        "MMM dd, yyyy",
+                        appTimezone
                       )}`}
                   </p>
                 </div>

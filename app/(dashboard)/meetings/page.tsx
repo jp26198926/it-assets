@@ -8,6 +8,7 @@ import { MeetingFormModal } from "@/components/modals/meeting-form-modal";
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import {
   getMeetings,
   createMeeting,
@@ -42,6 +43,7 @@ export default function MeetingsPage() {
   const [activeFilters, setActiveFilters] = useState<MeetingFilters>({});
   const [meetingTypes, setMeetingTypes] = useState<MeetingTypeSelectOption[]>([]);
   const [employees, setEmployees] = useState<{ id: string; name: string }[]>([]);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
 
   const loadData = useCallback(async (filters?: MeetingFilters) => {
     try {
@@ -61,6 +63,7 @@ export default function MeetingsPage() {
     loadData();
     getMeetingTypeSelectOptions().then(setMeetingTypes).catch(() => {});
     getEmployeeList().then(setEmployees).catch(() => {});
+    getAppSettings().then(s => setAppTimezone(s.timezone)).catch(() => {});
   }, [loadData]);
 
   function handleView(meeting: Meeting) {
@@ -124,7 +127,7 @@ export default function MeetingsPage() {
     loadData();
   }
 
-  const columns = createMeetingColumns(handleView, handleEdit, handleDelete, handleRestore);
+  const columns = createMeetingColumns(handleView, handleEdit, handleDelete, handleRestore, appTimezone);
 
   return (
     <PageGuard pagePath="/meetings">

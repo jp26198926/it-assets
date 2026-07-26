@@ -9,6 +9,7 @@ import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
 import { getLocations, createLocation, updateLocation, deleteLocation, restoreLocation } from "@/lib/actions/location-actions";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import type { Location, CreateLocationInput, LocationFilters } from "@/lib/types/location";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ export default function LocationsPage() {
   const [deleteLocationItem, setDeleteLocationItem] = useState<Location | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<LocationFilters>({});
 
   const loadData = useCallback(async (filters?: LocationFilters) => {
@@ -34,6 +36,7 @@ export default function LocationsPage() {
 
   useEffect(() => {
     loadData();
+  getAppSettings().then(s => setAppTimezone(s.timezone)).catch(() => {});
   }, [loadData]);
 
   const handleServerSearch = useCallback((filters: LocationFilters) => {
@@ -107,7 +110,7 @@ export default function LocationsPage() {
     }
   };
 
-  const columns = createLocationColumns(handleView, handleEdit, handleDelete, handleRestore);
+  const columns = createLocationColumns(handleView, handleEdit, handleDelete, handleRestore, appTimezone);
 
   if (loading) {
     return (
@@ -162,8 +165,10 @@ export default function LocationsPage() {
 
         <LocationViewModal
           open={!!viewLocation}
-          onOpenChange={(open) => !open && setViewLocation(null)}
+          onOpenChange={(open) =>
+          !open && setViewLocation(null)}
           location={viewLocation}
+          timezone={appTimezone}
         />
 
         <DeleteConfirmModal

@@ -1,7 +1,7 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -110,7 +110,8 @@ export function createAssignmentColumns(
   onEdit: (assignment: Assignment) => void,
   onReturn: (assignment: Assignment) => void,
   onMarkAsLost: (assignment: Assignment) => void,
-  onRestore: (assignment: Assignment) => void
+  onRestore: (assignment: Assignment) => void,
+  timezone?: string | null
 ): ColumnDef<Assignment>[] {
   return [
     {
@@ -176,7 +177,7 @@ export function createAssignmentColumns(
         const date = row.getValue("assigned_date") as Date;
         return (
           <span className="text-sm tabular-nums text-[#1a1f36]">
-            {format(new Date(date), "MMM dd, yyyy")}
+            {formatInAppTimezone(date, "MMM dd, yyyy", timezone)}
           </span>
         );
       },
@@ -190,7 +191,7 @@ export function createAssignmentColumns(
         const date = row.getValue("returned_date") as Date | null;
         return (
           <span className="text-sm tabular-nums text-[#1a1f36]">
-            {date ? format(new Date(date), "MMM dd, yyyy") : "—"}
+            {date ? formatInAppTimezone(date, "MMM dd, yyyy", timezone) : "—"}
           </span>
         );
       },

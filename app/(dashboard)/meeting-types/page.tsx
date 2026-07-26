@@ -8,6 +8,7 @@ import { MeetingTypeViewModal } from "@/components/modals/meeting-type-view-moda
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import {
   getMeetingTypes,
   createMeetingType,
@@ -29,6 +30,7 @@ export default function MeetingTypesPage() {
   const [deleteItem, setDeleteItem] = useState<MeetingType | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<MeetingTypeFilters>({});
 
   const loadData = useCallback(async (filters?: MeetingTypeFilters) => {
@@ -47,6 +49,7 @@ export default function MeetingTypesPage() {
 
   useEffect(() => {
     loadData();
+  getAppSettings().then(s => setAppTimezone(s.timezone)).catch(() => {});
   }, [loadData]);
 
   function handleView(meetingType: MeetingType) {
@@ -109,7 +112,7 @@ export default function MeetingTypesPage() {
     loadData();
   }
 
-  const columns = createMeetingTypeColumns(handleView, handleEdit, handleDelete, handleRestore);
+  const columns = createMeetingTypeColumns(handleView, handleEdit, handleDelete, handleRestore, appTimezone);
 
   return (
     <PageGuard pagePath="/meeting-types">
@@ -154,8 +157,10 @@ export default function MeetingTypesPage() {
 
         <MeetingTypeViewModal
           open={!!viewMeetingType}
-          onOpenChange={(open) => !open && setViewMeetingType(null)}
+          onOpenChange={(open) =>
+          !open && setViewMeetingType(null)}
           meetingType={viewMeetingType}
+          timezone={appTimezone}
         />
 
         <DeleteConfirmModal

@@ -1,6 +1,7 @@
 "use client";
 
-import { format, isAfter } from "date-fns";
+import { isAfter } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import { MoreHorizontal, Eye, Edit, Trash2, RotateCcw, Package } from "lucide-react";
 import {
   DropdownMenu,
@@ -26,6 +27,7 @@ interface MobileCardProps {
   onEdit: (asset: ITAsset) => void;
   onDelete: (asset: ITAsset) => void;
   onRestore: (asset: ITAsset) => void;
+  timezone?: string | null;
 }
 
 export function AssetMobileCard({
@@ -34,6 +36,7 @@ export function AssetMobileCard({
   onEdit,
   onDelete,
   onRestore,
+  timezone,
 }: MobileCardProps) {
   const config = statusConfig[asset.status] || statusConfig.Active;
   const expiry = new Date(asset.warrantyExpiry);
@@ -129,12 +132,12 @@ export function AssetMobileCard({
         </div>
         <div>
           <p className="text-[10px] uppercase tracking-wider text-[#94a3b8] font-semibold">Purchase Date</p>
-          <p className="text-[#1a1f36] tabular-nums">{format(new Date(asset.purchaseDate), "MMM dd, yyyy")}</p>
+          <p className="text-[#1a1f36] tabular-nums">{formatInAppTimezone(asset.purchaseDate, "MMM dd, yyyy", timezone)}</p>
         </div>
         <div>
           <p className="text-[10px] uppercase tracking-wider text-[#94a3b8] font-semibold">Warranty Expiry</p>
           <p className={`tabular-nums ${isExpired ? "text-[#dc2626] font-semibold" : "text-[#1a1f36]"}`}>
-            {format(expiry, "MMM dd, yyyy")}
+            {formatInAppTimezone(expiry, "MMM dd, yyyy", timezone)}
             {isExpired && <span className="ml-1 text-[8px] bg-[#fee2e2] text-[#dc2626] px-1 py-0.5">Expired</span>}
           </p>
         </div>

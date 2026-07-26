@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollReveal } from "@/components/scroll-reveal";
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
+import { getAppSettings } from "@/lib/actions/application-actions";
 
 interface TicketData {
   id: string;
@@ -43,6 +44,7 @@ export default function TrackTicketPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [ticket, setTicket] = useState<TicketData | null>(null);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [searched, setSearched] = useState(false);
 
@@ -63,6 +65,7 @@ export default function TrackTicketPage() {
       const data = await res.json();
       if (data.success && data.data) {
         setTicket(data.data);
+        getAppSettings().then(s => setAppTimezone(s.timezone)).catch(() => {});
       } else {
         setError(data.error || "Ticket not found. Please check your ticket number and email.");
       }
@@ -194,12 +197,12 @@ export default function TrackTicketPage() {
                 <div className="border-t pt-4 grid sm:grid-cols-2 gap-4 text-sm">
                   <div className="flex items-center gap-2 text-[#64748b]">
                     <Clock className="h-4 w-4" />
-                    <span>Created: {format(new Date(ticket.created_at), "MMM dd, yyyy 'at' h:mm a")}</span>
+                    <span>Created: {formatInAppTimezone(ticket.created_at, "MMM dd, yyyy 'at' h:mm a", appTimezone)}</span>
                   </div>
                   {ticket.updated_at && (
                     <div className="flex items-center gap-2 text-[#64748b]">
                       <Clock className="h-4 w-4" />
-                      <span>Updated: {format(new Date(ticket.updated_at), "MMM dd, yyyy 'at' h:mm a")}</span>
+                      <span>Updated: {formatInAppTimezone(ticket.updated_at, "MMM dd, yyyy 'at' h:mm a", appTimezone)}</span>
                     </div>
                   )}
                 </div>

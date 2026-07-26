@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Eye, Pencil, Trash2, RotateCcw } from "lucide-react";
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,7 +18,8 @@ export function createMeetingActionItemColumns(
   onView: (item: MeetingActionItem) => void,
   onEdit: (item: MeetingActionItem) => void,
   onDelete: (item: MeetingActionItem) => void,
-  onRestore: (item: MeetingActionItem) => void
+  onRestore: (item: MeetingActionItem) => void,
+  timezone?: string | null
 ): ColumnDef<MeetingActionItem>[] {
   function Actions({ item }: { item: MeetingActionItem }) {
     const { hasPermission } = useAuthorization();
@@ -125,7 +126,7 @@ export function createMeetingActionItemColumns(
           <span
             className={`tabular-nums ${isOverdue ? "text-red-600 font-medium" : ""}`}
           >
-            {format(new Date(val), "MMM dd, yyyy")}
+            {formatInAppTimezone(val, "MMM dd, yyyy", timezone)}
           </span>
         );
       },

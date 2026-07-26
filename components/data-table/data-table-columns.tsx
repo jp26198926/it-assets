@@ -1,7 +1,8 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { format, isAfter } from "date-fns";
+import { isAfter } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -75,7 +76,8 @@ export function createColumns(
   onView: (asset: ITAsset) => void,
   onEdit: (asset: ITAsset) => void,
   onDelete: (asset: ITAsset) => void,
-  onRestore: (asset: ITAsset) => void
+  onRestore: (asset: ITAsset) => void,
+  timezone?: string | null
 ): ColumnDef<ITAsset>[] {
   return [
     {
@@ -175,7 +177,7 @@ export function createColumns(
         const date = row.getValue("purchaseDate") as string;
         return (
           <span className="text-sm tabular-nums text-[#1a1f36]">
-            {format(new Date(date), "MMM dd, yyyy")}
+            {formatInAppTimezone(date, "MMM dd, yyyy", timezone)}
           </span>
         );
       },
@@ -191,7 +193,7 @@ export function createColumns(
         const isExpired = !isAfter(expiry, new Date());
         return (
           <span className={`text-sm tabular-nums ${isExpired ? "text-[#dc2626] font-semibold" : "text-[#1a1f36]"}`}>
-            {format(expiry, "MMM dd, yyyy")}
+            {formatInAppTimezone(expiry, "MMM dd, yyyy", timezone)}
             {isExpired && (
               <span className="ml-1.5 text-[10px] font-bold bg-[#fee2e2] text-[#dc2626] px-2 py-0.5">
                 Expired

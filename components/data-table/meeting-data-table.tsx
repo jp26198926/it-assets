@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   useReactTable,
   getCoreRowModel,
@@ -40,6 +40,7 @@ interface MeetingDataTableProps {
   onServerSearch?: (filters: MeetingFilters) => void;
   onServerSearchClear?: () => void;
   meetingTypes?: MeetingTypeSelectOption[];
+  timezone?: string | null;
   statuses?: { value: string; label: string }[];
 }
 
@@ -55,6 +56,7 @@ export function MeetingDataTable({
   onServerSearchClear,
   meetingTypes,
   statuses,
+  timezone,
 }: MeetingDataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -215,7 +217,7 @@ export function MeetingDataTable({
                         #{item.meeting_no} — {item.title}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(item.scheduled_date), "MMM dd, yyyy")} at {item.start_time}
+                        {formatInAppTimezone(item.scheduled_date, "MMM dd, yyyy", timezone)} at {item.start_time}
                         {item.location ? ` · ${item.location}` : ""}
                       </p>
                     </div>

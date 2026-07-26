@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Eye, Pencil, Trash2, RotateCcw } from "lucide-react";
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,7 +18,8 @@ export function createMeetingColumns(
   onView: (meeting: Meeting) => void,
   onEdit: (meeting: Meeting) => void,
   onDelete: (meeting: Meeting) => void,
-  onRestore: (meeting: Meeting) => void
+  onRestore: (meeting: Meeting) => void,
+  timezone?: string | null
 ): ColumnDef<Meeting>[] {
   function Actions({ meeting }: { meeting: Meeting }) {
     const { hasPermission } = useAuthorization();
@@ -114,7 +115,7 @@ export function createMeetingColumns(
       ),
       cell: ({ row }) => (
         <span className="tabular-nums">
-          {format(new Date(row.getValue("scheduled_date")), "MMM dd, yyyy")}
+          {formatInAppTimezone(row.getValue("scheduled_date"), "MMM dd, yyyy", timezone)}
         </span>
       ),
     },

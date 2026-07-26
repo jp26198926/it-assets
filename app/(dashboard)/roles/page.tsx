@@ -9,6 +9,7 @@ import { RolePermissionModal } from "@/components/modals/role-permission-modal";
 import { RoleDuplicateModal } from "@/components/modals/role-duplicate-modal";
 import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import { PageGuard } from "@/components/auth/page-guard";
 import { getRoles, createRole, updateRole, deleteRole, restoreRole, duplicateRole } from "@/lib/actions/role-actions";
 import type { Role, CreateRoleInput, RoleFilters } from "@/lib/types/role";
@@ -23,6 +24,7 @@ export default function RolesPage() {
   const [duplicateRoleItem, setDuplicateRoleItem] = useState<Role | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<RoleFilters>({});
 
   const loadData = useCallback(async (filters?: RoleFilters) => {
@@ -38,6 +40,7 @@ export default function RolesPage() {
 
   useEffect(() => {
     loadData();
+  getAppSettings().then(s => setAppTimezone(s.timezone)).catch(() => {});
   }, [loadData]);
 
   const handleServerSearch = useCallback((filters: RoleFilters) => {
@@ -135,7 +138,7 @@ export default function RolesPage() {
     }
   };
 
-  const columns = createRoleColumns(handleView, handleEdit, handleDelete, handleRestore, handlePermission, handleDuplicate);
+  const columns = createRoleColumns(handleView, handleEdit, handleDelete, handleRestore, handlePermission, handleDuplicate, appTimezone);
 
   if (loading) {
     return (
@@ -191,8 +194,10 @@ export default function RolesPage() {
 
         <RoleViewModal
           open={!!viewRole}
-          onOpenChange={(open) => !open && setViewRole(null)}
+          onOpenChange={(open) =>
+          !open && setViewRole(null)}
           role={viewRole}
+          timezone={appTimezone}
         />
 
         <DeleteConfirmModal

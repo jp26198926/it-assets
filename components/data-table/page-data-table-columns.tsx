@@ -1,7 +1,7 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -186,7 +186,8 @@ export function createPageColumns(
   onView: (page: Page) => void,
   onEdit: (page: Page) => void,
   onDelete: (page: Page) => void,
-  onRestore: (page: Page) => void
+  onRestore: (page: Page) => void,
+  timezone?: string | null
 ): ColumnDef<Page>[] {
   return [
     {
@@ -283,7 +284,7 @@ export function createPageColumns(
         const date = row.getValue("created_at") as Date;
         return (
           <span className="text-sm tabular-nums text-[#1a1f36]">
-            {format(new Date(date), "MMM dd, yyyy")}
+            {formatInAppTimezone(date, "MMM dd, yyyy", timezone)}
           </span>
         );
       },

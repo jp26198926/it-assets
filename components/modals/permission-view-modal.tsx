@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,7 @@ interface PermissionViewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   permission: Permission | null;
+  timezone?: string | null;
 }
 
 const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
@@ -27,6 +28,7 @@ export function PermissionViewModal({
   open,
   onOpenChange,
   permission,
+  timezone,
 }: PermissionViewModalProps) {
   if (!permission) return null;
 
@@ -76,7 +78,7 @@ export function PermissionViewModal({
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created At</p>
                 <p className="text-sm mt-1 tabular-nums">
-                  {format(new Date(permission.created_at), "MMMM dd, yyyy")}
+                  {formatInAppTimezone(permission.created_at, "MMMM dd, yyyy", timezone)}
                 </p>
               </div>
               <div>
@@ -88,7 +90,7 @@ export function PermissionViewModal({
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deleted At</p>
                     <p className="text-sm mt-1 tabular-nums text-rose-600">
-                      {format(new Date(permission.deleted_at), "MMMM dd, yyyy")}
+                      {formatInAppTimezone(permission.deleted_at, "MMMM dd, yyyy", timezone)}
                     </p>
                   </div>
                   {permission.deleted_reason && (
@@ -105,7 +107,7 @@ export function PermissionViewModal({
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Last Updated</p>
                 <p className="text-sm mt-1 tabular-nums">
                   {permission.updated_at
-                    ? format(new Date(permission.updated_at), "MMMM dd, yyyy")
+                    ? formatInAppTimezone(permission.updated_at, "MMMM dd, yyyy", timezone)
                     : "Never"}
                 </p>
               </div>

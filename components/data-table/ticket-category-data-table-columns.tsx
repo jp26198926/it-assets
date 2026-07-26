@@ -1,7 +1,7 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { formatInAppTimezone } from "@/lib/utils/timezone";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,7 +84,8 @@ export function createTicketCategoryColumns(
   onView: (ticketCategory: TicketCategory) => void,
   onEdit: (ticketCategory: TicketCategory) => void,
   onDelete: (ticketCategory: TicketCategory) => void,
-  onRestore: (ticketCategory: TicketCategory) => void
+  onRestore: (ticketCategory: TicketCategory) => void,
+  timezone?: string | null
 ): ColumnDef<TicketCategory>[] {
   return [
     {
@@ -121,7 +122,7 @@ export function createTicketCategoryColumns(
         const date = row.getValue("created_at") as Date;
         return (
           <span className="text-sm tabular-nums text-[#1a1f36]">
-            {format(new Date(date), "MMM dd, yyyy")}
+            {formatInAppTimezone(date, "MMM dd, yyyy", timezone)}
           </span>
         );
       },

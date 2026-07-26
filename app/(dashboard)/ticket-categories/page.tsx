@@ -9,6 +9,7 @@ import { DeleteConfirmModal } from "@/components/modals/delete-confirm-modal";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
 import { getTicketCategories, createTicketCategory, updateTicketCategory, deleteTicketCategory, restoreTicketCategory } from "@/lib/actions/ticket-category-actions";
+import { getAppSettings } from "@/lib/actions/application-actions";
 import type { TicketCategory, CreateTicketCategoryInput, TicketCategoryFilters } from "@/lib/types/ticket-category";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ export default function TicketCategoriesPage() {
   const [deleteTicketCategoryItem, setDeleteTicketCategoryItem] = useState<TicketCategory | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<TicketCategoryFilters>({});
 
   useEffect(() => {
@@ -111,7 +113,7 @@ export default function TicketCategoriesPage() {
     }
   };
 
-  const columns = createTicketCategoryColumns(handleView, handleEdit, handleDelete, handleRestore);
+  const columns = createTicketCategoryColumns(handleView, handleEdit, handleDelete, handleRestore, appTimezone);
 
   if (loading) {
     return (
@@ -166,8 +168,10 @@ export default function TicketCategoriesPage() {
 
         <TicketCategoryViewModal
           open={!!viewTicketCategory}
-          onOpenChange={(open) => !open && setViewTicketCategory(null)}
+          onOpenChange={(open) =>
+          !open && setViewTicketCategory(null)}
           ticketCategory={viewTicketCategory}
+          timezone={appTimezone}
         />
 
         <DeleteConfirmModal
