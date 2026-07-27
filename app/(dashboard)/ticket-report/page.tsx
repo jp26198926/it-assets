@@ -12,6 +12,8 @@ import { TicketTotalsTab } from "@/components/reports/ticket-totals-tab";
 import { TicketCategoryTab } from "@/components/reports/ticket-category-tab";
 import { BarChart3, List, PieChart, Tag } from "lucide-react";
 import { getAppSettings } from "@/lib/actions/application-actions";
+import { getFilteredTickets, getTicketSummary, getTicketTotals } from "@/lib/actions/ticket-report-actions";
+import { toast } from "sonner";
 import type { TicketReportFilters } from "@/lib/types/ticket-report";
 import type { Ticket } from "@/lib/types/ticket";
 import type { TicketReportSummary, TicketReportTotals } from "@/lib/types/ticket-report";
@@ -32,7 +34,7 @@ export default function TicketReportPage() {
     date_from: defaults.from,
     date_to: defaults.to,
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [summary, setSummary] = useState<TicketReportSummary>({ daily: [], weekly: [], monthly: [] });
   const [totals, setTotals] = useState<TicketReportTotals>({
@@ -48,34 +50,23 @@ export default function TicketReportPage() {
     getAppSettings().then((s) => setAppTimezone(s.timezone)).catch(() => {});
   }, []);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (currentFilters: TicketReportFilters) => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (filters.date_from) params.set("date_from", filters.date_from);
-      if (filters.date_to) params.set("date_to", filters.date_to);
-      if (filters.technician_id) params.set("technician_id", filters.technician_id);
-      if (filters.department_id) params.set("department_id", filters.department_id);
-      if (filters.requestor_id) params.set("requestor_id", filters.requestor_id);
-      if (filters.status && filters.status.length > 0) params.set("status", filters.status.join(","));
-
-      const res = await fetch(`/api/ticket-report?${params.toString()}`);
-      const data = await res.json();
-      if (data.success) {
-        setTickets(data.data.tickets);
-        setSummary(data.data.summary);
-        setTotals(data.data.totals);
-      }
-    } catch {
-      // ignore
+      const [ticketData, summaryData, totalsData] = await Promise.all([
+        getFilteredTickets(currentFilters),
+        getTicketSummary(currentFilters),
+        getTicketTotals(currentFilters),
+      ]);
+      setTickets(ticketData);
+      setSummary(summaryData);
+      setTotals(totalsData);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to load ticket report");
     } finally {
       setLoading(false);
     }
-  }, [filters]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  }, []);
 
   return (
     <PageGuard pagePath="/ticket-report">
@@ -98,7 +89,7 @@ export default function TicketReportPage() {
             <DateRangeFilter
               filters={filters}
               onFiltersChange={setFilters}
-              onApply={fetchData}
+              onApply={(f) => fetchData(f)}
             />
           </CardContent>
         </Card>

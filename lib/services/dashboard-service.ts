@@ -2,6 +2,7 @@ import { connectDB } from "@/lib/db/connection";
 import { Asset as AssetModel } from "@/lib/db/models/asset";
 import { Ticket as TicketModel } from "@/lib/db/models/ticket";
 import { Assignment as AssignmentModel } from "@/lib/db/models/assignment";
+import { getAppSettings } from "./application-service";
 import type {
   DashboardStats,
   DashboardAssetStatus,
@@ -39,6 +40,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   await import("@/lib/db/models/user");
 
   const notDeleted = { deleted_at: null };
+  const { timezone } = await getAppSettings();
+  const tz = timezone || "UTC";
 
   const [
     assetStatusResults,
@@ -119,7 +122,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$created_at" } },
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$created_at", timezone: tz } },
           count: { $sum: 1 },
         },
       },

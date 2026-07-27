@@ -24,7 +24,7 @@ const STATUS_OPTIONS = ["Open", "In Progress", "Resolved", "Closed"];
 interface DateRangeFilterProps {
   filters: TicketReportFilters;
   onFiltersChange: (filters: TicketReportFilters) => void;
-  onApply: () => void;
+  onApply: (filters: TicketReportFilters) => void;
 }
 
 function getDefaultDateRange() {
@@ -181,7 +181,7 @@ export function DateRangeFilter({ filters, onFiltersChange, onApply }: DateRange
           </PopoverContent>
         </Popover>
       </div>
-      <Button size="sm" onClick={onApply}>
+      <Button size="sm" onClick={() => onApply(filters)}>
         <Search className="size-4" />
         Apply
       </Button>
@@ -189,11 +189,12 @@ export function DateRangeFilter({ filters, onFiltersChange, onApply }: DateRange
         size="sm"
         variant="outline"
         onClick={() => {
-          onFiltersChange({
+          const clearedFilters = {
             date_from: defaults.from,
             date_to: defaults.to,
-          });
-          onApply();
+          };
+          onFiltersChange(clearedFilters);
+          onApply(clearedFilters);
         }}
       >
         <X className="size-4" />

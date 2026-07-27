@@ -192,7 +192,7 @@ export async function getTicketSummary(filters: TicketReportFilters): Promise<Ti
       { $match: match },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$created_at" } },
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$created_at", timezone: timezone || "UTC" } },
           count: { $sum: 1 },
           open: { $sum: { $cond: [{ $eq: ["$status", "Open"] }, 1, 0] } },
           in_progress: { $sum: { $cond: [{ $eq: ["$status", "In Progress"] }, 1, 0] } },
@@ -206,10 +206,7 @@ export async function getTicketSummary(filters: TicketReportFilters): Promise<Ti
       { $match: match },
       {
         $group: {
-          _id: {
-            year: { $year: "$created_at" },
-            week: { $isoWeek: "$created_at" },
-          },
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$created_at", timezone: timezone || "UTC" } },
           count: { $sum: 1 },
           open: { $sum: { $cond: [{ $eq: ["$status", "Open"] }, 1, 0] } },
           in_progress: { $sum: { $cond: [{ $eq: ["$status", "In Progress"] }, 1, 0] } },
@@ -217,13 +214,12 @@ export async function getTicketSummary(filters: TicketReportFilters): Promise<Ti
           closed: { $sum: { $cond: [{ $eq: ["$status", "Closed"] }, 1, 0] } },
         },
       },
-      { $sort: { "_id.year": 1, "_id.week": 1 } },
     ]),
     TicketModel.aggregate([
       { $match: match },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m", date: "$created_at" } },
+          _id: { $dateToString: { format: "%Y-%m", date: "$created_at", timezone: timezone || "UTC" } },
           count: { $sum: 1 },
           open: { $sum: { $cond: [{ $eq: ["$status", "Open"] }, 1, 0] } },
           in_progress: { $sum: { $cond: [{ $eq: ["$status", "In Progress"] }, 1, 0] } },
@@ -244,14 +240,34 @@ export async function getTicketSummary(filters: TicketReportFilters): Promise<Ti
       resolved: d.resolved,
       closed: d.closed,
     })),
-    weekly: weekly.map((d) => ({
-      label: `W${d._id.week} ${d._id.year}`,
-      count: d.count,
-      open: d.open,
-      in_progress: d.in_progress,
-      resolved: d.resolved,
-      closed: d.closed,
-    })),
+    weekly: (() => {
+      const weekMap = new Map<string, { count: number; open: number; in_progress: number; resolved: number; closed: number }>();
+      for (const d of weekly) {
+        const parts = (d._id as string).split("-");
+        const dt = new Date(Date.UTC(+parts[0], +parts[1] - 1, +parts[2]));
+        const dayOfWeek = dt.getUTCDay() || 7;
+        dt.setUTCDate(dt.getUTCDate() + 4 - dayOfWeek);
+        const yearStart = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1));
+        const week = Math.ceil(((+dt - +yearStart) / 86400000 + 1) / 7);
+        const key = `${dt.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+        const existing = weekMap.get(key);
+        if (existing) {
+          existing.count += d.count;
+          existing.open += d.open;
+          existing.in_progress += d.in_progress;
+          existing.resolved += d.resolved;
+          existing.closed += d.closed;
+        } else {
+          weekMap.set(key, { count: d.count, open: d.open, in_progress: d.in_progress, resolved: d.resolved, closed: d.closed });
+        }
+      }
+      return Array.from(weekMap.entries())
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, v]) => {
+          const [y, w] = key.split("-W");
+          return { label: `W${w} ${y}`, ...v };
+        });
+    })(),
     monthly: monthly.map((d) => ({
       label: d._id,
       count: d.count,
