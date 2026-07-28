@@ -1,7 +1,7 @@
 import { connectDB } from "@/lib/db/connection";
 import { Ticket as TicketModel } from "@/lib/db/models/ticket";
 import { getAppSettings } from "./application-service";
-import { startOfDayInTimezone, endOfDayInTimezone } from "@/lib/utils/timezone";
+import { startOfDayInTimezone, endOfDayInTimezone, formatInAppTimezone } from "@/lib/utils/timezone";
 import type {
   TicketReportFilters,
   TicketTotalItem,
@@ -187,96 +187,86 @@ export async function getTicketSummary(filters: TicketReportFilters): Promise<Ti
   const { timezone } = await getAppSettings();
   const match = buildDateFilter(filters, timezone);
 
-  const [daily, weekly, monthly] = await Promise.all([
-    TicketModel.aggregate([
-      { $match: match },
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$created_at", timezone: timezone || "UTC" } },
-          count: { $sum: 1 },
-          open: { $sum: { $cond: [{ $eq: ["$status", "Open"] }, 1, 0] } },
-          in_progress: { $sum: { $cond: [{ $eq: ["$status", "In Progress"] }, 1, 0] } },
-          resolved: { $sum: { $cond: [{ $eq: ["$status", "Resolved"] }, 1, 0] } },
-          closed: { $sum: { $cond: [{ $eq: ["$status", "Closed"] }, 1, 0] } },
-        },
-      },
-      { $sort: { _id: 1 } },
-    ]),
-    TicketModel.aggregate([
-      { $match: match },
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$created_at", timezone: timezone || "UTC" } },
-          count: { $sum: 1 },
-          open: { $sum: { $cond: [{ $eq: ["$status", "Open"] }, 1, 0] } },
-          in_progress: { $sum: { $cond: [{ $eq: ["$status", "In Progress"] }, 1, 0] } },
-          resolved: { $sum: { $cond: [{ $eq: ["$status", "Resolved"] }, 1, 0] } },
-          closed: { $sum: { $cond: [{ $eq: ["$status", "Closed"] }, 1, 0] } },
-        },
-      },
-    ]),
-    TicketModel.aggregate([
-      { $match: match },
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m", date: "$created_at", timezone: timezone || "UTC" } },
-          count: { $sum: 1 },
-          open: { $sum: { $cond: [{ $eq: ["$status", "Open"] }, 1, 0] } },
-          in_progress: { $sum: { $cond: [{ $eq: ["$status", "In Progress"] }, 1, 0] } },
-          resolved: { $sum: { $cond: [{ $eq: ["$status", "Resolved"] }, 1, 0] } },
-          closed: { $sum: { $cond: [{ $eq: ["$status", "Closed"] }, 1, 0] } },
-        },
-      },
-      { $sort: { _id: 1 } },
-    ]),
-  ]);
+  const tickets = await TicketModel.find(match, { created_at: 1, status: 1 }).lean();
 
-  return {
-    daily: daily.map((d) => ({
-      label: d._id,
-      count: d.count,
-      open: d.open,
-      in_progress: d.in_progress,
-      resolved: d.resolved,
-      closed: d.closed,
-    })),
-    weekly: (() => {
-      const weekMap = new Map<string, { count: number; open: number; in_progress: number; resolved: number; closed: number }>();
-      for (const d of weekly) {
-        const parts = (d._id as string).split("-");
-        const dt = new Date(Date.UTC(+parts[0], +parts[1] - 1, +parts[2]));
-        const dayOfWeek = dt.getUTCDay() || 7;
-        dt.setUTCDate(dt.getUTCDate() + 4 - dayOfWeek);
-        const yearStart = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1));
-        const week = Math.ceil(((+dt - +yearStart) / 86400000 + 1) / 7);
-        const key = `${dt.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
-        const existing = weekMap.get(key);
-        if (existing) {
-          existing.count += d.count;
-          existing.open += d.open;
-          existing.in_progress += d.in_progress;
-          existing.resolved += d.resolved;
-          existing.closed += d.closed;
-        } else {
-          weekMap.set(key, { count: d.count, open: d.open, in_progress: d.in_progress, resolved: d.resolved, closed: d.closed });
-        }
-      }
-      return Array.from(weekMap.entries())
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([key, v]) => {
-          const [y, w] = key.split("-W");
-          return { label: `W${w} ${y}`, ...v };
-        });
-    })(),
-    monthly: monthly.map((d) => ({
-      label: d._id,
-      count: d.count,
-      open: d.open,
-      in_progress: d.in_progress,
-      resolved: d.resolved,
-      closed: d.closed,
-    })),
-  };
+  const dailyMap = new Map<string, { count: number; open: number; in_progress: number; resolved: number; closed: number }>();
+  const monthlyMap = new Map<string, { count: number; open: number; in_progress: number; resolved: number; closed: number }>();
+
+  for (const ticket of tickets) {
+    const dayLabel = formatInAppTimezone(ticket.created_at, "yyyy-MM-dd", timezone);
+    const monthLabel = formatInAppTimezone(ticket.created_at, "yyyy-MM", timezone);
+
+    const dayEntry = dailyMap.get(dayLabel);
+    if (dayEntry) {
+      dayEntry.count++;
+      if (ticket.status === "Open") dayEntry.open++;
+      else if (ticket.status === "In Progress") dayEntry.in_progress++;
+      else if (ticket.status === "Resolved") dayEntry.resolved++;
+      else if (ticket.status === "Closed") dayEntry.closed++;
+    } else {
+      dailyMap.set(dayLabel, {
+        count: 1,
+        open: ticket.status === "Open" ? 1 : 0,
+        in_progress: ticket.status === "In Progress" ? 1 : 0,
+        resolved: ticket.status === "Resolved" ? 1 : 0,
+        closed: ticket.status === "Closed" ? 1 : 0,
+      });
+    }
+
+    const monthEntry = monthlyMap.get(monthLabel);
+    if (monthEntry) {
+      monthEntry.count++;
+      if (ticket.status === "Open") monthEntry.open++;
+      else if (ticket.status === "In Progress") monthEntry.in_progress++;
+      else if (ticket.status === "Resolved") monthEntry.resolved++;
+      else if (ticket.status === "Closed") monthEntry.closed++;
+    } else {
+      monthlyMap.set(monthLabel, {
+        count: 1,
+        open: ticket.status === "Open" ? 1 : 0,
+        in_progress: ticket.status === "In Progress" ? 1 : 0,
+        resolved: ticket.status === "Resolved" ? 1 : 0,
+        closed: ticket.status === "Closed" ? 1 : 0,
+      });
+    }
+  }
+
+  const daily = Array.from(dailyMap.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([label, v]) => ({ label, ...v }));
+
+  const weekMap = new Map<string, { count: number; open: number; in_progress: number; resolved: number; closed: number }>();
+  for (const d of daily) {
+    const parts = d.label.split("-");
+    const dt = new Date(Date.UTC(+parts[0], +parts[1] - 1, +parts[2]));
+    const dayOfWeek = dt.getUTCDay() || 7;
+    dt.setUTCDate(dt.getUTCDate() + 4 - dayOfWeek);
+    const yearStart = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1));
+    const week = Math.ceil(((+dt - +yearStart) / 86400000 + 1) / 7);
+    const key = `${dt.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+    const existing = weekMap.get(key);
+    if (existing) {
+      existing.count += d.count;
+      existing.open += d.open;
+      existing.in_progress += d.in_progress;
+      existing.resolved += d.resolved;
+      existing.closed += d.closed;
+    } else {
+      weekMap.set(key, { count: d.count, open: d.open, in_progress: d.in_progress, resolved: d.resolved, closed: d.closed });
+    }
+  }
+  const weekly = Array.from(weekMap.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, v]) => {
+      const [y, w] = key.split("-W");
+      return { label: `W${w} ${y}`, ...v };
+    });
+
+  const monthly = Array.from(monthlyMap.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([label, v]) => ({ label, ...v }));
+
+  return { daily, weekly, monthly };
 }
 
 export async function getTicketTotals(filters: TicketReportFilters): Promise<TicketReportTotals> {
