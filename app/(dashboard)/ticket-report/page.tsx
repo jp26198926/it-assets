@@ -13,27 +13,24 @@ import { TicketCategoryTab } from "@/components/reports/ticket-category-tab";
 import { BarChart3, List, PieChart, Tag } from "lucide-react";
 import { getAppSettings } from "@/lib/actions/application-actions";
 import { getFilteredTickets, getTicketSummary, getTicketTotals } from "@/lib/actions/ticket-report-actions";
+import { getDateInTimezone } from "@/lib/utils/timezone";
 import { toast } from "sonner";
 import type { TicketReportFilters } from "@/lib/types/ticket-report";
 import type { Ticket } from "@/lib/types/ticket";
 import type { TicketReportSummary, TicketReportTotals } from "@/lib/types/ticket-report";
 
-function getDefaultDateRange() {
+function getDefaultDateRange(timezone?: string | null): TicketReportFilters {
   const to = new Date();
   const from = new Date();
   from.setDate(from.getDate() - 30);
   return {
-    from: from.toISOString().split("T")[0],
-    to: to.toISOString().split("T")[0],
+    date_from: getDateInTimezone(from, timezone),
+    date_to: getDateInTimezone(to, timezone),
   };
 }
 
 export default function TicketReportPage() {
-  const defaults = getDefaultDateRange();
-  const [filters, setFilters] = useState<TicketReportFilters>({
-    date_from: defaults.from,
-    date_to: defaults.to,
-  });
+  const [filters, setFilters] = useState<TicketReportFilters>({});
   const [loading, setLoading] = useState(false);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [summary, setSummary] = useState<TicketReportSummary>({ daily: [], weekly: [], monthly: [] });
@@ -47,7 +44,12 @@ export default function TicketReportPage() {
   const [appTimezone, setAppTimezone] = useState<string | null>(null);
 
   useEffect(() => {
-    getAppSettings().then((s) => setAppTimezone(s.timezone)).catch(() => {});
+    getAppSettings().then((s) => {
+      setAppTimezone(s.timezone);
+      const defaults = getDefaultDateRange(s.timezone);
+      setFilters(defaults);
+      fetchData(defaults);
+    }).catch(() => {});
   }, []);
 
   const fetchData = useCallback(async (currentFilters: TicketReportFilters) => {
@@ -90,6 +92,7 @@ export default function TicketReportPage() {
               filters={filters}
               onFiltersChange={setFilters}
               onApply={(f) => fetchData(f)}
+              timezone={appTimezone}
             />
           </CardContent>
         </Card>

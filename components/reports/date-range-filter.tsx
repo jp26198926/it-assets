@@ -12,6 +12,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Search, X, ChevronDown } from "lucide-react";
+import { getDateInTimezone } from "@/lib/utils/timezone";
 import type { TicketReportFilters } from "@/lib/types/ticket-report";
 
 interface FilterOption {
@@ -25,23 +26,24 @@ interface DateRangeFilterProps {
   filters: TicketReportFilters;
   onFiltersChange: (filters: TicketReportFilters) => void;
   onApply: (filters: TicketReportFilters) => void;
+  timezone?: string | null;
 }
 
-function getDefaultDateRange() {
+function getDefaultDateRange(timezone?: string | null) {
   const to = new Date();
   const from = new Date();
   from.setDate(from.getDate() - 30);
   return {
-    from: from.toISOString().split("T")[0],
-    to: to.toISOString().split("T")[0],
+    from: getDateInTimezone(from, timezone),
+    to: getDateInTimezone(to, timezone),
   };
 }
 
-export function DateRangeFilter({ filters, onFiltersChange, onApply }: DateRangeFilterProps) {
+export function DateRangeFilter({ filters, onFiltersChange, onApply, timezone }: DateRangeFilterProps) {
   const [technicians, setTechnicians] = useState<FilterOption[]>([]);
   const [departments, setDepartments] = useState<FilterOption[]>([]);
   const [requestors, setRequestors] = useState<FilterOption[]>([]);
-  const defaults = getDefaultDateRange();
+  const defaults = getDefaultDateRange(timezone);
 
   useEffect(() => {
     async function loadOptions() {

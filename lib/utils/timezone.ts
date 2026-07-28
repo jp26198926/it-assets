@@ -27,3 +27,10 @@ export function endOfDayInTimezone(
   const dayStr = tzFormat(date, tz, "yyyy-MM-dd");
   return fromZonedTime(`${dayStr}T23:59:59`, tz);
 }
+
+export function getDateInTimezone(
+  date: Date,
+  timezone?: string | null,
+): string {
+  return tzFormat(date, timezone || DEFAULT_TZ, "yyyy-MM-dd");
+}
