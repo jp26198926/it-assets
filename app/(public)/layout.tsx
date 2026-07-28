@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { AuthToaster } from "@/components/auth-toaster";
+import { getAppSettings } from "@/lib/actions/application-actions";
 
-export const metadata: Metadata = {
-  title: "IT Support Portal",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getAppSettings();
+  return { title: settings.app_name || "IT Asset Manager" };
+}
 
 export default function PublicLayout({
   children,

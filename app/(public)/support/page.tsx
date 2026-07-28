@@ -1,17 +1,49 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { TicketPlus, Search, HeadphonesIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { TicketPlus, Search, Server } from "lucide-react";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { getCurrentUser } from "@/lib/actions/auth-actions";
+import { getAppSettings } from "@/lib/actions/application-actions";
 
 export default function SupportLandingPage() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [appName, setAppName] = useState("IT Asset Manager");
+  const [appLogo, setAppLogo] = useState<string | null>(null);
+
+  useEffect(() => {
+    getCurrentUser().then((user) => {
+      if (user) {
+        router.push("/tickets");
+      } else {
+        setIsLoading(false);
+      }
+    });
+  }, [router]);
+
+  useEffect(() => {
+    getAppSettings().then((settings) => {
+      if (settings.app_name) setAppName(settings.app_name);
+      if (settings.app_logo) setAppLogo(settings.app_logo);
+    });
+  }, []);
+
+  if (isLoading) return null;
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b bg-white/80 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <HeadphonesIcon className="h-6 w-6 text-[#3b82f6]" />
-            <span className="text-lg font-semibold text-[#1a1f36] hidden sm:inline">IT Support Portal</span>
+            {appLogo ? (
+              <img src={appLogo} alt="Logo" className="h-6 w-6 rounded object-contain" />
+            ) : (
+              <Server className="h-6 w-6 text-[#3b82f6]" />
+            )}
+            <span className="text-lg font-semibold text-[#1a1f36] hidden sm:inline">{appName}</span>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-sm text-[#64748b] hover:text-[#3b82f6] transition-colors">

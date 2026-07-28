@@ -7,7 +7,7 @@ const publicPaths = ["/login", "/register", "/forgot-password", "/verify-otp"];
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (publicPaths.includes(pathname)) {
+  if (publicPaths.includes(pathname) || pathname.startsWith("/support")) {
     const token = request.cookies.get("auth-token")?.value;
     if (token) {
       const payload = await verifyToken(token);

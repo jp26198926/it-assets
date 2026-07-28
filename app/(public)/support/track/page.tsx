@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Search, Loader2, Clock, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { formatInAppTimezone } from "@/lib/utils/timezone";
 import { getAppSettings } from "@/lib/actions/application-actions";
+import { getCurrentUser } from "@/lib/actions/auth-actions";
 
 interface TicketData {
   id: string;
@@ -40,6 +42,8 @@ const priorityColors: Record<string, string> = {
 };
 
 export default function TrackTicketPage() {
+  const router = useRouter();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [ticketNo, setTicketNo] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -47,6 +51,16 @@ export default function TrackTicketPage() {
   const [appTimezone, setAppTimezone] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [searched, setSearched] = useState(false);
+
+  useEffect(() => {
+    getCurrentUser().then((user) => {
+      if (user) {
+        router.push("/tickets");
+      } else {
+        setIsCheckingAuth(false);
+      }
+    });
+  }, [router]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,6 +89,8 @@ export default function TrackTicketPage() {
       setLoading(false);
     }
   };
+
+  if (isCheckingAuth) return null;
 
   return (
     <div className="min-h-screen flex flex-col">

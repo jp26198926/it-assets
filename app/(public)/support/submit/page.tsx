@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Send, Upload, X, FileText, ImageIcon, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { getCurrentUser } from "@/lib/actions/auth-actions";
 
 interface SelectOptions {
   categories: { id: string; name: string }[];
@@ -51,6 +53,8 @@ const defaultFormData: FormData = {
 };
 
 export default function SubmitTicketPage() {
+  const router = useRouter();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [formData, setFormData] = useState<FormData>(defaultFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -62,6 +66,16 @@ export default function SubmitTicketPage() {
   const [barcodeLoading, setBarcodeLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [ticketNo, setTicketNo] = useState("");
+
+  useEffect(() => {
+    getCurrentUser().then((user) => {
+      if (user) {
+        router.push("/tickets");
+      } else {
+        setIsCheckingAuth(false);
+      }
+    });
+  }, [router]);
 
   useEffect(() => {
     fetch("/api/public/tickets/select-options")
@@ -214,6 +228,8 @@ export default function SubmitTicketPage() {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
+
+  if (isCheckingAuth) return null;
 
   if (submitted) {
     return (
