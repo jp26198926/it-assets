@@ -27,7 +27,9 @@ export default function TicketsPage() {
   const [deleteTicketItem, setDeleteTicketItem] = useState<Ticket | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeFilters, setActiveFilters] = useState<TicketFilters>({ default_view: true });
+  const [activeFilters, setActiveFilters] = useState<TicketFilters>({
+    default_view: true,
+  });
   const [selectOptions, setSelectOptions] = useState<{
     categories: { id: string; name: string }[];
     departments: { id: string; name: string }[];
@@ -129,7 +131,12 @@ export default function TicketsPage() {
     }
   };
 
-  const columns = createTicketColumns(handleView, handleDelete, handleRestore, appTimezone);
+  const columns = createTicketColumns(
+    handleView,
+    handleDelete,
+    handleRestore,
+    appTimezone,
+  );
 
   const currentUser = authUser
     ? {
@@ -144,12 +151,12 @@ export default function TicketsPage() {
       <div className="space-y-4 sm:space-y-6">
         <ScrollReveal>
           <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">
-                Tickets
-              </h1>
-              <p className="text-sm sm:text-base text-[#64748b] mt-1 hidden sm:block">
-                Manage support tickets
-              </p>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">
+              Tickets
+            </h1>
+            <p className="text-sm sm:text-base text-[#64748b] mt-1 hidden sm:block">
+              Manage support tickets
+            </p>
           </div>
         </ScrollReveal>
         <div className="flex items-center justify-center h-64">
@@ -164,12 +171,12 @@ export default function TicketsPage() {
       <div className="space-y-4 sm:space-y-6">
         <ScrollReveal>
           <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">
-                Tickets
-              </h1>
-              <p className="text-sm sm:text-base text-[#64748b] mt-1 hidden sm:block">
-                Manage support tickets
-              </p>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1a1f36] sm:text-3xl">
+              Tickets
+            </h1>
+            <p className="text-sm sm:text-base text-[#64748b] mt-1 hidden sm:block">
+              Manage support tickets
+            </p>
           </div>
         </ScrollReveal>
 

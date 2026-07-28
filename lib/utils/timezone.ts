@@ -1,4 +1,4 @@
-import { formatInTimeZone as tzFormat } from "date-fns-tz";
+import { formatInTimeZone as tzFormat, fromZonedTime } from "date-fns-tz";
 
 const DEFAULT_TZ = "UTC";
 
@@ -16,7 +16,7 @@ export function startOfDayInTimezone(
 ): Date {
   const tz = timezone || DEFAULT_TZ;
   const dayStr = tzFormat(date, tz, "yyyy-MM-dd");
-  return new Date(tzFormat(new Date(dayStr + "T00:00:00"), tz, "yyyy-MM-dd'T'HH:mm:ssXXX"));
+  return fromZonedTime(`${dayStr}T00:00:00`, tz);
 }
 
 export function endOfDayInTimezone(
@@ -25,5 +25,5 @@ export function endOfDayInTimezone(
 ): Date {
   const tz = timezone || DEFAULT_TZ;
   const dayStr = tzFormat(date, tz, "yyyy-MM-dd");
-  return new Date(tzFormat(new Date(dayStr + "T23:59:59"), tz, "yyyy-MM-dd'T'HH:mm:ssXXX"));
+  return fromZonedTime(`${dayStr}T23:59:59`, tz);
 }

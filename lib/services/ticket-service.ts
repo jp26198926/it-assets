@@ -628,13 +628,23 @@ export async function getTickets(
 
   if (filters?.default_view) {
     const now = new Date();
-    query.$or = [
+    const defaultOr = [
       { status: { $in: ["Open", "In Progress"] } },
       { created_at: { $gte: startOfDayInTimezone(now, tz), $lte: endOfDayInTimezone(now, tz) } },
     ];
-  }
 
-  if (filters?.search) {
+    if (filters?.search) {
+      const searchOr = [
+        { ticket_no: { $regex: filters.search, $options: "i" } },
+        { title: { $regex: filters.search, $options: "i" } },
+        { name: { $regex: filters.search, $options: "i" } },
+        { email: { $regex: filters.search, $options: "i" } },
+      ];
+      query.$and = [{ $or: defaultOr }, { $or: searchOr }];
+    } else {
+      query.$or = defaultOr;
+    }
+  } else if (filters?.search) {
     query.$or = [
       { ticket_no: { $regex: filters.search, $options: "i" } },
       { title: { $regex: filters.search, $options: "i" } },
