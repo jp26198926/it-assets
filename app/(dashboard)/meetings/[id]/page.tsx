@@ -22,6 +22,7 @@ import {
   RotateCcw,
   CheckCircle,
   Upload,
+  Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +30,7 @@ import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { PageGuard } from "@/components/auth/page-guard";
 import { useAuthorization } from "@/hooks/use-authorization";
 import { getAppSettings } from "@/lib/actions/application-actions";
-import { getMeetingById, updateMeeting, getMeetingTypeSelectOptions, addAttendee, updateAttendee, removeAttendee } from "@/lib/actions/meeting-actions";
+import { getMeetingById, updateMeeting, getMeetingTypeSelectOptions, addAttendee, updateAttendee, removeAttendee, cloneMeeting } from "@/lib/actions/meeting-actions";
 import { getCloudinarySettings } from "@/lib/actions/cloudinary-actions";
 import {
   getMeetingActionItems,
@@ -43,6 +44,7 @@ import type { MeetingActionItem, CreateMeetingActionItemInput, UpdateMeetingActi
 import { MeetingEditModal } from "@/components/modals/meeting-edit-modal";
 import { MeetingUpdateStatusModal } from "@/components/modals/meeting-update-status-modal";
 import { MeetingAgendaModal } from "@/components/modals/meeting-agenda-modal";
+import { MeetingCloneModal } from "@/components/modals/meeting-clone-modal";
 import type { Meeting, Recurrence, UpdateMeetingInput } from "@/lib/types/meeting";
 import type { MeetingTypeSelectOption } from "@/lib/types/meeting";
 import { useBreadcrumbOverrides } from "@/components/layout/breadcrumb-override-context";
@@ -91,6 +93,8 @@ export default function MeetingDetailPage() {
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [cloning, setCloning] = useState(false);
+  const [cloneModalOpen, setCloneModalOpen] = useState(false);
   const { setOverrides: setBreadcrumbOverrides } = useBreadcrumbOverrides();
   const { hasPermission } = useAuthorization();
   const canEdit = hasPermission("/meetings", "Edit");
@@ -401,6 +405,21 @@ export default function MeetingDetailPage() {
       toast.success("Attendee removed");
     } catch {
       toast.error("Failed to remove attendee");
+    }
+  };
+
+  const handleCloneConfirm = async (data: { scheduled_date: Date; start_time: string; end_time?: string }) => {
+    if (!meeting) return;
+    setCloning(true);
+    try {
+      const cloned = await cloneMeeting(meeting.id, data);
+      setCloneModalOpen(false);
+      toast.success("Meeting cloned successfully");
+      router.push(`/meetings/${cloned.id}`);
+    } catch {
+      toast.error("Failed to clone meeting");
+    } finally {
+      setCloning(false);
     }
   };
 
@@ -894,6 +913,15 @@ export default function MeetingDetailPage() {
                     <ClipboardCheck className="h-4 w-4" />
                     Status
                   </Button>
+                  <Button
+                    size="sm"
+                    className="gap-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200 col-span-2"
+                    onClick={() => setCloneModalOpen(true)}
+                    disabled={cloning}
+                  >
+                    <Copy className="h-4 w-4" />
+                    {cloning ? "Cloning..." : "Clone"}
+                  </Button>
                 </div>
               </div>
             )}
@@ -1138,6 +1166,14 @@ export default function MeetingDetailPage() {
           const refreshed = await getMeetingById(meeting.id);
           if (refreshed) setMeeting(refreshed);
         }}
+      />
+
+      <MeetingCloneModal
+        open={cloneModalOpen}
+        onOpenChange={setCloneModalOpen}
+        meeting={meeting}
+        onConfirm={handleCloneConfirm}
+        loading={cloning}
       />
 
       {/* Attachment Upload Modal */}

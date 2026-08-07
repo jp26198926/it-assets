@@ -85,3 +85,38 @@ export async function removeAttendee(
 export async function getMeetingTypeSelectOptions(): Promise<MeetingTypeSelectOption[]> {
   return meetingService.getMeetingTypeSelectOptions();
 }
+
+export async function cloneMeeting(
+  sourceId: string,
+  overrides?: { scheduled_date?: Date; start_time?: string; end_time?: string }
+): Promise<Meeting> {
+  const source = await meetingService.getMeetingById(sourceId);
+  if (!source) throw new Error("Source meeting not found");
+
+  return meetingService.createMeeting({
+    title: source.title,
+    description: source.description || undefined,
+    meeting_type_id: source.meeting_type_id || undefined,
+    scheduled_date: overrides?.scheduled_date || new Date(source.scheduled_date),
+    start_time: overrides?.start_time || source.start_time,
+    end_time: overrides?.end_time ?? (source.end_time || undefined),
+    location: source.location || undefined,
+    meeting_link: source.meeting_link || undefined,
+    platform: source.platform || undefined,
+    agenda_items: source.agenda_items.map((a) => ({
+      topic: a.topic,
+      description: a.description,
+      presenter: a.presenter,
+      duration_minutes: a.duration_minutes,
+      notes: a.notes,
+    })),
+    attendees: source.attendees.map((a) => ({
+      employee_id: a.employee_id,
+      attendance_status: "Pending" as const,
+      notes: a.notes,
+    })),
+    attachments: [...source.attachments],
+    is_recurring: source.is_recurring,
+    recurrence: source.recurrence ? { ...source.recurrence } : null,
+  });
+}
