@@ -11,6 +11,9 @@ export interface Item {
   uom_name?: string;
   uom_code?: string;
   minimum_stock: number;
+  stock: number;
+  last_cost: number;
+  avg_cost: number;
   image_url: string | null;
   status: "Active" | "Deleted";
   created_at: Date;
@@ -33,6 +36,9 @@ export interface CreateItemInput {
   description?: string;
   uom_id?: string;
   minimum_stock?: number;
+  stock?: number;
+  last_cost?: number;
+  avg_cost?: number;
   image_url?: string;
   created_by?: string | null;
 }

@@ -42,6 +42,9 @@ const defaultFormData: CreateItemInput = {
   description: "",
   uom_id: undefined,
   minimum_stock: 0,
+  stock: 0,
+  last_cost: 0,
+  avg_cost: 0,
   image_url: "",
 };
 
@@ -87,6 +90,9 @@ export function ItemFormModal({
         description: item.description || "",
         uom_id: item.uom_id || undefined,
         minimum_stock: item.minimum_stock,
+        stock: item.stock,
+        last_cost: item.last_cost,
+        avg_cost: item.avg_cost,
         image_url: item.image_url || "",
       });
     } else {
@@ -307,6 +313,58 @@ export function ItemFormModal({
                   })
                 }
                 placeholder="0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="stock">Stock</Label>
+              <Input
+                id="stock"
+                type="number"
+                min="0"
+                value={formData.stock}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    stock: Number(e.target.value),
+                  })
+                }
+                placeholder="0"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="last_cost">Last Cost</Label>
+              <Input
+                id="last_cost"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.last_cost}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    last_cost: Number(e.target.value),
+                  })
+                }
+                placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="avg_cost">Avg Cost</Label>
+              <Input
+                id="avg_cost"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.avg_cost}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    avg_cost: Number(e.target.value),
+                  })
+                }
+                placeholder="0.00"
               />
             </div>
           </div>

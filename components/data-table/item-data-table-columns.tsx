@@ -180,6 +180,45 @@ export function createItemColumns(
       ),
     },
     {
+      accessorKey: "stock",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Stock" />
+      ),
+      cell: ({ row }) => (
+        <span className="text-sm tabular-nums text-[#1a1f36]">
+          {row.getValue("stock")}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "last_cost",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Last Cost" />
+      ),
+      cell: ({ row }) => {
+        const value = row.getValue("last_cost") as number;
+        return (
+          <span className="text-sm tabular-nums text-[#1a1f36]">
+            {value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: "avg_cost",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Avg Cost" />
+      ),
+      cell: ({ row }) => {
+        const value = row.getValue("avg_cost") as number;
+        return (
+          <span className="text-sm tabular-nums text-[#1a1f36]">
+            {value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        );
+      },
+    },
+    {
       accessorKey: "status",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Status" />

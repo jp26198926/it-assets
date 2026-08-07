@@ -107,6 +107,9 @@ function toItem(d: Record<string, unknown>): Item {
     uom_name,
     uom_code,
     minimum_stock: (d.minimum_stock as number) ?? 0,
+    stock: (d.stock as number) ?? 0,
+    last_cost: (d.last_cost as number) ?? 0,
+    avg_cost: (d.avg_cost as number) ?? 0,
     image_url: (d.image_url as string) ?? null,
     status: d.status as "Active" | "Deleted",
     created_at: d.created_at as Date,
@@ -229,6 +232,9 @@ export async function createItem(data: CreateItemInput): Promise<Item> {
     description: data.description || null,
     uom_id: data.uom_id || null,
     minimum_stock: data.minimum_stock ?? 0,
+    stock: data.stock ?? 0,
+    last_cost: data.last_cost ?? 0,
+    avg_cost: data.avg_cost ?? 0,
     image_url: data.image_url || null,
     status: "Active",
     created_by: data.created_by || null,
@@ -258,6 +264,9 @@ export async function updateItem(id: string, data: UpdateItemInput): Promise<Ite
   if (data.description !== undefined) updateData.description = data.description || null;
   if (data.uom_id !== undefined) updateData.uom_id = data.uom_id || null;
   if (data.minimum_stock !== undefined) updateData.minimum_stock = data.minimum_stock;
+  if (data.stock !== undefined) updateData.stock = data.stock;
+  if (data.last_cost !== undefined) updateData.last_cost = data.last_cost;
+  if (data.avg_cost !== undefined) updateData.avg_cost = data.avg_cost;
   if (data.image_url !== undefined) updateData.image_url = data.image_url || null;
   if (data.updated_by !== undefined) updateData.updated_by = data.updated_by || null;
   updateData.updated_at = new Date();

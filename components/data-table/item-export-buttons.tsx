@@ -39,13 +39,16 @@ export function ItemExportButtons({ table }: ItemExportButtonsProps) {
         row.original.model || "N/A",
         row.original.uom_name || "N/A",
         String(row.original.minimum_stock),
+        String(row.original.stock),
+        row.original.last_cost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        row.original.avg_cost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
         row.original.status,
         new Date(row.original.created_at).toLocaleDateString(),
       ]);
 
       autoTable(doc, {
         startY: 35,
-        head: [["Item Code", "Name", "Category", "Brand", "Model", "UOM", "Min Stock", "Status", "Created"]],
+        head: [["Item Code", "Name", "Category", "Brand", "Model", "UOM", "Min Stock", "Stock", "Last Cost", "Avg Cost", "Status", "Created"]],
         body: rows,
         headStyles: { fillColor: [59, 130, 246] },
       });
@@ -71,6 +74,9 @@ export function ItemExportButtons({ table }: ItemExportButtonsProps) {
         Model: row.original.model || "N/A",
         UOM: row.original.uom_name || "N/A",
         "Min Stock": row.original.minimum_stock,
+        Stock: row.original.stock,
+        "Last Cost": row.original.last_cost,
+        "Avg Cost": row.original.avg_cost,
         Status: row.original.status,
         Created: new Date(row.original.created_at).toLocaleDateString(),
       }));
@@ -87,6 +93,9 @@ export function ItemExportButtons({ table }: ItemExportButtonsProps) {
         { wch: 20 },
         { wch: 15 },
         { wch: 10 },
+        { wch: 10 },
+        { wch: 12 },
+        { wch: 12 },
         { wch: 10 },
         { wch: 15 },
       ];

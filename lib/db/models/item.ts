@@ -10,6 +10,9 @@ export interface IItem extends Omit<Document, "model">, BaseAuditFields {
   description: string | null;
   uom_id: mongoose.Types.ObjectId | null;
   minimum_stock: number;
+  stock: number;
+  last_cost: number;
+  avg_cost: number;
   image_url: string | null;
   status: "Active" | "Deleted";
 }
@@ -49,6 +52,18 @@ const ItemSchema = new Schema<IItem>({
     default: null,
   },
   minimum_stock: {
+    type: Number,
+    default: 0,
+  },
+  stock: {
+    type: Number,
+    default: 0,
+  },
+  last_cost: {
+    type: Number,
+    default: 0,
+  },
+  avg_cost: {
     type: Number,
     default: 0,
   },

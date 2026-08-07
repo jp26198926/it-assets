@@ -121,12 +121,43 @@ export function ItemViewModal({
                   {item.minimum_stock}
                 </p>
               </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Stock
+                </p>
+                <p className="text-sm mt-1 tabular-nums">
+                  {item.stock}
+                </p>
+              </div>
 
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Model
                 </p>
                 <p className="text-sm mt-1">{item.model || "N/A"}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Last Cost
+                </p>
+                <p className="text-sm mt-1 tabular-nums">
+                  {item.last_cost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Avg Cost
+                </p>
+                <p className="text-sm mt-1 tabular-nums">
+                  {item.avg_cost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
               </div>
             </div>
           </div>
