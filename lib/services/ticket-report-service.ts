@@ -1,5 +1,9 @@
 import { connectDB } from "@/lib/db/connection";
 import { Ticket as TicketModel } from "@/lib/db/models/ticket";
+import { TicketCategory as TicketCategoryModel } from "@/lib/db/models/ticket-category";
+import { Department as DepartmentModel } from "@/lib/db/models/department";
+import { Asset as AssetModel } from "@/lib/db/models/asset";
+import { User as UserModel } from "@/lib/db/models/user";
 import { getAppSettings } from "./application-service";
 import { startOfDayInTimezone, endOfDayInTimezone, formatInAppTimezone } from "@/lib/utils/timezone";
 import type {
