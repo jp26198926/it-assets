@@ -1,7 +1,7 @@
 export interface StockMovement {
   id: string;
   date: Date;
-  transaction_type: "RECEIVE" | "RELEASE";
+  transaction_type: "RECEIVE" | "RELEASE" | "ADJUSTMENT";
   item_id: string;
   item_name?: string;
   item_code?: string;
@@ -16,7 +16,7 @@ export interface StockMovement {
 
 export interface CreateStockMovementInput {
   date: Date;
-  transaction_type: "RECEIVE" | "RELEASE";
+  transaction_type: "RECEIVE" | "RELEASE" | "ADJUSTMENT";
   item_id: string;
   location_id: string;
   qty: number;
