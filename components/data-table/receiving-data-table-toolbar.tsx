@@ -5,6 +5,8 @@ import { Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTableViewOptions } from "./data-table-view-options";
+import { ReceivingAdvancedSearchDialog } from "./receiving-advanced-search-dialog";
+import { ReceivingExportButtons } from "./receiving-export-buttons";
 import { useAuthorization } from "@/hooks/use-authorization";
 import type { Receiving, ReceivingFilters } from "@/lib/types/receiving";
 
@@ -30,6 +32,7 @@ export function ReceivingDataTableToolbar<TData>({
   const filteredCount = table.getFilteredRowModel().rows.length;
   const totalCount = allData.length;
   const canAdd = hasPermission("/receivings", "Add");
+  const canExport = hasPermission("/receivings", "Export");
 
   return (
     <div className="space-y-3">
@@ -69,7 +72,14 @@ export function ReceivingDataTableToolbar<TData>({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          {onServerSearch && (
+            <ReceivingAdvancedSearchDialog
+              onSearch={onServerSearch}
+              onClear={onServerSearchClear || (() => {})}
+            />
+          )}
           <DataTableViewOptions table={table} />
+          {canExport && <ReceivingExportButtons table={table as unknown as Table<Receiving>} />}
         </div>
       </div>
     </div>

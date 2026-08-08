@@ -150,8 +150,22 @@ export async function getReceivings(filters?: ReceivingFilters): Promise<Receivi
     query.po_number = { $regex: filters.po_number, $options: "i" };
   }
 
+  if (filters?.invoice_number) {
+    query.invoice_number = { $regex: filters.invoice_number, $options: "i" };
+  }
+
   if (filters?.status) {
     query.status = filters.status;
+  }
+
+  if (filters?.date_from) {
+    query.date_received = { ...query.date_received as Record<string, unknown>, $gte: new Date(filters.date_from) };
+  }
+
+  if (filters?.date_to) {
+    const endDate = new Date(filters.date_to);
+    endDate.setHours(23, 59, 59, 999);
+    query.date_received = { ...query.date_received as Record<string, unknown>, $lte: endDate };
   }
 
   const receivings = await applyPopulates(

@@ -14,7 +14,10 @@ export async function GET(request: NextRequest) {
     if (searchParams.get("code")) filters.code = searchParams.get("code")!;
     if (searchParams.get("supplier_id")) filters.supplier_id = searchParams.get("supplier_id")!;
     if (searchParams.get("po_number")) filters.po_number = searchParams.get("po_number")!;
+    if (searchParams.get("invoice_number")) filters.invoice_number = searchParams.get("invoice_number")!;
     if (searchParams.get("status")) filters.status = searchParams.get("status")!;
+    if (searchParams.get("date_from")) filters.date_from = searchParams.get("date_from")!;
+    if (searchParams.get("date_to")) filters.date_to = searchParams.get("date_to")!;
 
     const hasFilters = Object.keys(filters).length > 0;
     const receivings = await receivingService.getReceivings(hasFilters ? filters : undefined);

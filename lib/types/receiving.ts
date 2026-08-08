@@ -41,7 +41,10 @@ export interface ReceivingFilters {
   code?: string;
   supplier_id?: string;
   po_number?: string;
+  invoice_number?: string;
   status?: string;
+  date_from?: string;
+  date_to?: string;
 }
 
 export interface ReceivingAdvancedFilter {

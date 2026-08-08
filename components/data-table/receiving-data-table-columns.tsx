@@ -80,7 +80,12 @@ export function createReceivingColumns(
         <DataTableColumnHeader column={column} title="Code" />
       ),
       cell: ({ row }) => (
-        <span className="font-mono font-medium text-[#1a1f36]">{row.getValue("code")}</span>
+        <button
+          onClick={() => onView(row.original)}
+          className="font-mono font-medium text-[#1a1f36] hover:text-[#3b82f6] hover:underline cursor-pointer"
+        >
+          {row.getValue("code")}
+        </button>
       ),
     },
     {
