@@ -26,7 +26,7 @@ interface ReceivingItemFormModalProps {
   onOpenChange: (open: boolean) => void;
   item?: ReceivingItem | null;
   receivingId: string;
-  itemOptions: { id: string; name: string }[];
+  itemOptions: { id: string; name: string; uom_name?: string; category_name?: string }[];
   locationOptions: { id: string; name: string }[];
   onSubmit: (data: CreateReceivingItemInput) => Promise<void>;
 }
@@ -142,6 +142,26 @@ export function ReceivingItemFormModal({
                 ))}
               </SelectContent>
             </Select>
+            {formData.item_id && (() => {
+              const selectedItem = itemOptions.find((opt) => opt.id === formData.item_id);
+              if (selectedItem && (selectedItem.uom_name || selectedItem.category_name)) {
+                return (
+                  <div className="flex items-center gap-3 text-xs text-[#64748b]">
+                    {selectedItem.uom_name && (
+                      <span className="inline-flex items-center gap-1">
+                        <span className="font-medium">UOM:</span> {selectedItem.uom_name}
+                      </span>
+                    )}
+                    {selectedItem.category_name && (
+                      <span className="inline-flex items-center gap-1">
+                        <span className="font-medium">Category:</span> {selectedItem.category_name}
+                      </span>
+                    )}
+                  </div>
+                );
+              }
+              return null;
+            })()}
             {errors.item_id && (
               <p className="text-xs text-red-500">{errors.item_id}</p>
             )}

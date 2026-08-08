@@ -53,7 +53,7 @@ export default function ReceivingDetailPage() {
   const [editItem, setEditItem] = useState<ReceivingItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<ReceivingItem | null>(null);
 
-  const [itemOptions, setItemOptions] = useState<{ id: string; name: string }[]>([]);
+  const [itemOptions, setItemOptions] = useState<{ id: string; name: string; uom_name?: string; category_name?: string }[]>([]);
   const [locationOptions, setLocationOptions] = useState<{ id: string; name: string }[]>([]);
 
   const fetchData = useCallback(async () => {
@@ -72,8 +72,13 @@ export default function ReceivingDetailPage() {
 
       // Load item and location options
       const { getItems } = await import("@/lib/actions/item-actions");
-      const allItems = await getItems();
-      setItemOptions(allItems.map((i) => ({ id: i.id, name: i.name })));
+      const allItems = await getItems({ status: "Active" });
+      setItemOptions(allItems.map((i) => ({
+        id: i.id,
+        name: i.name,
+        uom_name: i.uom_name,
+        category_name: i.category_name,
+      })));
 
       // Load locations
       const { getLocations } = await import("@/lib/actions/location-actions");
