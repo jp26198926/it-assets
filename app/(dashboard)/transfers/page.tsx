@@ -99,8 +99,12 @@ export default function TransfersPage() {
         await updateTransfer(editTransfer.id, data);
         toast.success(`Transfer ${editTransfer.code} has been updated`);
       } else {
-        await createTransfer(data);
+        const newTransfer = await createTransfer(data);
         toast.success("Transfer has been created");
+        const refreshed = await getTransfers({ status: "Active" });
+        setTransfers(refreshed);
+        router.push(`/transfers/${newTransfer.id}`);
+        return;
       }
       const refreshed = await getTransfers(activeFilters);
       setTransfers(refreshed);

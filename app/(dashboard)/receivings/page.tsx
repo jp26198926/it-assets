@@ -99,8 +99,12 @@ export default function ReceivingsPage() {
         await updateReceiving(editReceiving.id, data);
         toast.success(`Receiving ${editReceiving.code} has been updated`);
       } else {
-        await createReceiving(data);
+        const newReceiving = await createReceiving(data);
         toast.success("Receiving has been created");
+        const refreshed = await getReceivings({ status: "Active" });
+        setReceivings(refreshed);
+        router.push(`/receivings/${newReceiving.id}`);
+        return;
       }
       const refreshed = await getReceivings(activeFilters);
       setReceivings(refreshed);

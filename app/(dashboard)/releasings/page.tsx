@@ -88,8 +88,12 @@ export default function ReleasingsPage() {
         await updateReleasing(editReleasing.id, data);
         toast.success(`Releasing ${editReleasing.code} has been updated`);
       } else {
-        await createReleasing(data);
+        const newReleasing = await createReleasing(data);
         toast.success("Releasing has been created");
+        const refreshed = await getReleasings({ status: "Active" });
+        setReleasings(refreshed);
+        router.push(`/releasings/${newReleasing.id}`);
+        return;
       }
       const refreshed = await getReleasings(activeFilters);
       setReleasings(refreshed);
