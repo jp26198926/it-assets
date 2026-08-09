@@ -8,10 +8,13 @@ import { DataTableColumnHeader } from "./data-table-column-header";
 const typeConfig: Record<string, { color: string }> = {
   RECEIVE: { color: "bg-[#d1fae5] text-[#059669]" },
   RELEASE: { color: "bg-[#fee2e2] text-[#dc2626]" },
+  ADJUSTMENT: { color: "bg-[#fef3c7] text-[#d97706]" }, // yellow
+  TRANSFER: { color: "bg-[#ffedd5] text-[#ea580c]" }, // orange
+  CANCEL: { color: "bg-[#dc2626] text-white" }, // red
 };
 
 export function createStockMovementColumns(
-  timezone?: string | null
+  timezone?: string | null,
 ): ColumnDef<StockMovement>[] {
   return [
     {
@@ -37,7 +40,9 @@ export function createStockMovementColumns(
         const type = row.getValue("transaction_type") as string;
         const config = typeConfig[type] || typeConfig.RECEIVE;
         return (
-          <div className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold ${config.color}`}>
+          <div
+            className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold ${config.color}`}
+          >
             {type}
           </div>
         );
@@ -66,9 +71,7 @@ export function createStockMovementColumns(
       cell: ({ row }) => {
         const original = row.original as StockMovement;
         return (
-          <span className="text-[#1a1f36]">
-            {original.item_name || "N/A"}
-          </span>
+          <span className="text-[#1a1f36]">{original.item_name || "N/A"}</span>
         );
       },
     },
@@ -94,10 +97,12 @@ export function createStockMovementColumns(
       cell: ({ row }) => {
         const qty = row.getValue("qty") as number;
         const original = row.original as StockMovement;
-        const isReceive = original.transaction_type === "RECEIVE";
+        // const isReceive = original.transaction_type === "RECEIVE";
         return (
-          <span className={`text-sm tabular-nums font-medium ${isReceive ? "text-[#059669]" : "text-[#dc2626]"}`}>
-            {isReceive ? "+" : "-"}{qty.toLocaleString()}
+          <span
+            className={`text-sm tabular-nums font-medium ${Number(qty) > 0 ? "text-[#059669]" : "text-[#dc2626]"}`}
+          >
+            {qty.toLocaleString()}
           </span>
         );
       },
@@ -123,11 +128,7 @@ export function createStockMovementColumns(
       ),
       cell: ({ row }) => {
         const remarks = row.getValue("remarks") as string | null;
-        return (
-          <span className="text-[#64748b]">
-            {remarks || "N/A"}
-          </span>
-        );
+        return <span className="text-[#64748b]">{remarks || "N/A"}</span>;
       },
     },
   ];

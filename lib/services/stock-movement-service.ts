@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/db/connection";
 import { StockMovement as StockMovementModel } from "@/lib/db/models/stock-movement";
-import type { CreateStockMovementInput, StockMovement } from "@/lib/types/stock-movement";
+import type { CreateStockMovementInput, StockMovement, StockMovementFilters } from "@/lib/types/stock-movement";
 
 function toStockMovement(d: Record<string, unknown>): StockMovement {
   const itemId = d.item_id as unknown as
@@ -34,7 +34,7 @@ function toStockMovement(d: Record<string, unknown>): StockMovement {
   return {
     id: (d._id as { toString(): string }).toString(),
     date: d.date as Date,
-    transaction_type: d.transaction_type as "RECEIVE" | "RELEASE",
+    transaction_type: d.transaction_type as "RECEIVE" | "RELEASE" | "ADJUSTMENT" | "TRANSFER",
     item_id,
     item_name,
     item_code,
@@ -48,17 +48,65 @@ function toStockMovement(d: Record<string, unknown>): StockMovement {
   };
 }
 
-export async function getStockMovements(filters?: {
-  item_id?: string;
-  location_id?: string;
-  transaction_type?: string;
-}): Promise<StockMovement[]> {
+function hasActiveFilters(filters?: StockMovementFilters): boolean {
+  if (!filters) return false;
+  return !!(
+    filters.date_from ||
+    filters.date_to ||
+    filters.transaction_type ||
+    filters.item_name ||
+    filters.location_name ||
+    filters.reference_description ||
+    filters.remarks
+  );
+}
+
+export async function getStockMovements(filters?: StockMovementFilters): Promise<StockMovement[]> {
   await connectDB();
 
   const query: Record<string, unknown> = {};
-  if (filters?.item_id) query.item_id = filters.item_id;
-  if (filters?.location_id) query.location_id = filters.location_id;
-  if (filters?.transaction_type) query.transaction_type = filters.transaction_type;
+
+  if (!hasActiveFilters(filters)) {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    query.date = { $gte: startOfDay, $lt: endOfDay };
+  } else {
+    if (filters!.date_from || filters!.date_to) {
+      const dateQuery: Record<string, Date> = {};
+      if (filters!.date_from) dateQuery.$gte = new Date(filters!.date_from);
+      if (filters!.date_to) {
+        const end = new Date(filters!.date_to);
+        end.setDate(end.getDate() + 1);
+        dateQuery.$lt = end;
+      }
+      query.date = dateQuery;
+    }
+  }
+
+  if (filters?.transaction_type) {
+    query.transaction_type = filters.transaction_type;
+  }
+
+  if (filters?.item_name) {
+    const { Item } = await import("@/lib/db/models/item");
+    const items = await Item.find({ name: { $regex: filters.item_name, $options: "i" } }).select("_id").lean();
+    query.item_id = { $in: items.map((i) => i._id) };
+  }
+
+  if (filters?.location_name) {
+    const { Location } = await import("@/lib/db/models/location");
+    const locations = await Location.find({ name: { $regex: filters.location_name, $options: "i" } }).select("_id").lean();
+    query.location_id = { $in: locations.map((l) => l._id) };
+  }
+
+  if (filters?.reference_description) {
+    query.reference_description = { $regex: filters.reference_description, $options: "i" };
+  }
+
+  if (filters?.remarks) {
+    query.remarks = { $regex: filters.remarks, $options: "i" };
+  }
 
   const movements = await StockMovementModel.find(query)
     .populate("item_id", "name item_code")

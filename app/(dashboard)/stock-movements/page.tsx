@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { StockMovementDataTable } from "@/components/data-table/stock-movement-data-table";
 import { createStockMovementColumns } from "@/components/data-table/stock-movement-data-table-columns";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
 import { getStockMovements } from "@/lib/actions/stock-movement-actions";
 import { getAppSettings } from "@/lib/actions/application-actions";
-import type { StockMovement } from "@/lib/types/stock-movement";
+import type { StockMovement, StockMovementFilters } from "@/lib/types/stock-movement";
 import { toast } from "sonner";
 
 export default function StockMovementsPage() {
@@ -35,6 +35,22 @@ export default function StockMovementsPage() {
     };
     load();
     return () => { cancelled = true; };
+  }, []);
+
+  const handleServerSearch = useCallback((filters: StockMovementFilters) => {
+    getStockMovements(filters)
+      .then((data) => setMovements(data))
+      .catch(() => {
+        toast.error("Failed to search stock movements");
+      });
+  }, []);
+
+  const handleServerSearchClear = useCallback(() => {
+    getStockMovements()
+      .then((data) => setMovements(data))
+      .catch(() => {
+        toast.error("Failed to load stock movements");
+      });
   }, []);
 
   const columns = createStockMovementColumns(appTimezone);
@@ -73,6 +89,8 @@ export default function StockMovementsPage() {
           <StockMovementDataTable
             columns={columns}
             data={movements}
+            onServerSearch={handleServerSearch}
+            onServerSearchClear={handleServerSearchClear}
           />
         </ScrollReveal>
       </div>
