@@ -34,7 +34,7 @@ function toStockMovement(d: Record<string, unknown>): StockMovement {
   return {
     id: (d._id as { toString(): string }).toString(),
     date: d.date as Date,
-    transaction_type: d.transaction_type as "RECEIVE" | "RELEASE" | "ADJUSTMENT" | "TRANSFER",
+    transaction_type: d.transaction_type as "RECEIVE" | "RELEASE" | "ADJUSTMENT" | "TRANSFER" | "CONVERSION",
     item_id,
     item_name,
     item_code,

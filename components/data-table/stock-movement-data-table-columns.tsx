@@ -11,6 +11,7 @@ const typeConfig: Record<string, { color: string }> = {
   ADJUSTMENT: { color: "bg-[#fef3c7] text-[#d97706]" }, // yellow
   TRANSFER: { color: "bg-[#ffedd5] text-[#ea580c]" }, // orange
   CANCEL: { color: "bg-[#dc2626] text-white" }, // red
+  CONVERSION: { color: "bg-[#dbeafe] text-[#2563eb]" }, // primary
 };
 
 export function createStockMovementColumns(

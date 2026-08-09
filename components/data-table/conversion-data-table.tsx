@@ -10,44 +10,38 @@ import {
 import {
   type ColumnDef,
   type SortingState,
-  type ColumnFiltersState,
-  type VisibilityState,
   type PaginationState,
-  type RowSelectionState,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { useState } from "react";
-import { ArrowUpDown } from "lucide-react";
-import { StockMovementDataTableToolbar } from "./stock-movement-data-table-toolbar";
+import { ArrowUpDown, RefreshCw } from "lucide-react";
 import { DataTablePagination } from "./data-table-pagination";
-import type {
-  StockMovement,
-  StockMovementFilters,
-} from "@/lib/types/stock-movement";
+import { ConversionDataTableToolbar } from "./conversion-data-table-toolbar";
+import type { Conversion } from "@/lib/types/conversion";
+import type { ConversionFilters } from "@/lib/types/conversion";
 
-interface StockMovementDataTableProps {
-  columns: ColumnDef<StockMovement>[];
-  data: StockMovement[];
-  onServerSearch?: (filters: StockMovementFilters) => void;
-  onServerSearchClear?: () => void;
+interface ConversionDataTableProps {
+  columns: ColumnDef<Conversion>[];
+  data: Conversion[];
+  onView: (conversion: Conversion) => void;
+  onAdd: () => void;
+  onServerSearch: (filters: ConversionFilters) => void;
+  onServerSearchClear: () => void;
 }
 
-export function StockMovementDataTable({
+export function ConversionDataTable({
   columns,
   data,
+  onView,
+  onAdd,
   onServerSearch,
   onServerSearchClear,
-}: StockMovementDataTableProps) {
+}: ConversionDataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [globalFilter, setGlobalFilter] = useState("");
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -59,45 +53,21 @@ export function StockMovementDataTable({
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: setPagination,
     state: {
       sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-      globalFilter,
       pagination,
-    },
-    globalFilterFn: (row, columnId, filterValue) => {
-      const search = String(filterValue).toLowerCase();
-      if (!search) return true;
-      const value = String(row.getValue(columnId)).toLowerCase();
-      return value.includes(search);
     },
   });
 
-  const typeConfig: Record<string, { color: string }> = {
-    RECEIVE: { color: "bg-[#d1fae5] text-[#059669]" },
-    RELEASE: { color: "bg-[#fee2e2] text-[#dc2626]" },
-    ADJUSTMENT: { color: "bg-[#fef3c7] text-[#d97706]" }, // yellow
-    TRANSFER: { color: "bg-[#ffedd5] text-[#ea580c]" }, // orange
-    CANCEL: { color: "bg-[#dc2626] text-white" }, // red
-    CONVERSION: { color: "bg-[#dbeafe] text-[#2563eb]" }, // primary
-  };
-
   return (
     <div className="space-y-4">
-      <StockMovementDataTableToolbar
+      <ConversionDataTableToolbar
         table={table}
+        onAdd={onAdd}
         onServerSearch={onServerSearch}
         onServerSearchClear={onServerSearchClear}
-        allData={data}
       />
 
       {/* Desktop Table View */}
@@ -106,20 +76,14 @@ export function StockMovementDataTable({
           <table className="w-full caption-bottom text-sm">
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow
-                  key={headerGroup.id}
-                  className="bg-[#3b82f6] hover:bg-[#3b82f6]"
-                >
+                <TableRow key={headerGroup.id} className="bg-[#3b82f6] hover:bg-[#3b82f6]">
                   {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      className="h-12 text-xs font-semibold uppercase tracking-wider text-white"
-                    >
+                    <TableHead key={header.id} className="h-12 text-xs font-semibold uppercase tracking-wider text-white">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext(),
+                            header.getContext()
                           )}
                     </TableHead>
                   ))}
@@ -131,14 +95,13 @@ export function StockMovementDataTable({
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
                     className="border-b border-[#f0f4f8] transition-colors hover:bg-[#f8fafc] last:border-0"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id} className="py-4">
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext(),
+                          cell.getContext()
                         )}
                       </TableCell>
                     ))}
@@ -152,14 +115,10 @@ export function StockMovementDataTable({
                   >
                     <div className="flex flex-col items-center justify-center gap-3 text-[#64748b]">
                       <div className="bg-[#f0f4f8] p-4">
-                        <ArrowUpDown className="size-8 text-[#94a3b8]" />
+                        <RefreshCw className="size-8 text-[#94a3b8]" />
                       </div>
-                      <p className="font-semibold text-[#1a1f36]">
-                        No stock movements found
-                      </p>
-                      <p className="text-sm">
-                        Movements are recorded when receivings are completed
-                      </p>
+                      <p className="font-semibold text-[#1a1f36]">No conversions found</p>
+                      <p className="text-sm">Create a new conversion to get started</p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -173,45 +132,35 @@ export function StockMovementDataTable({
       <div className="lg:hidden space-y-3">
         {table.getRowModel().rows?.length ? (
           table.getRowModel().rows.map((row) => {
-            const movement = row.original as StockMovement;
-            const isReceive = movement.transaction_type === "RECEIVE";
-
-            const transColor =
-              typeConfig[movement.transaction_type] || typeConfig.RECEIVE;
+            const conversion = row.original as Conversion;
             return (
               <div
                 key={row.id}
-                className={`shadow-sm p-4 border ${transColor.color}`}
+                className="bg-white shadow-sm p-4 border border-[#f0f4f8]"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div
-                      className={`flex size-10 items-center justify-center ${isReceive ? "bg-emerald-50" : "bg-rose-50"}`}
-                    >
-                      <span
-                        className={`text-lg ${Number(movement.qty) > 0 ? "text-[#059669]" : "text-[#dc2626]"}`}
-                      >
-                        {Number(movement.qty) > 0 ? "📥" : "📤"}
+                    <div className="flex size-10 items-center justify-center bg-blue-50">
+                      <span className="text-lg text-[#3b82f6]">
+                        <RefreshCw className="size-5" />
                       </span>
                     </div>
                     <div>
                       <p className="font-medium text-[#1a1f36]">
-                        {movement.item_name || "N/A"}
+                        {conversion.from_item_name || "N/A"} → {conversion.to_item_name || "N/A"}
                       </p>
                       <p className="text-xs text-[#64748b] mt-0.5">
-                        {movement.reference_description || "No reference"}
+                        {conversion.code} • {conversion.location_name || "N/A"}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p
-                      className={`font-semibold tabular-nums ${Number(movement.qty) > 0 ? "text-[#059669]" : "text-[#dc2626]"}`}
-                    >
-                      {movement.qty.toLocaleString()}
-                    </p>
                     <p className="text-xs text-[#64748b]">
-                      {movement.transaction_type}
+                      <span className="text-red-600">-{conversion.from_qty}</span>
+                      {" → "}
+                      <span className="text-emerald-600">+{conversion.to_qty}</span>
                     </p>
+                    <p className="text-xs text-[#64748b]">CONVERSION</p>
                   </div>
                 </div>
               </div>
@@ -221,14 +170,10 @@ export function StockMovementDataTable({
           <div className="bg-white shadow-sm p-8 text-center">
             <div className="flex flex-col items-center justify-center gap-3 text-[#64748b]">
               <div className="bg-[#f0f4f8] p-4">
-                <ArrowUpDown className="size-8 text-[#94a3b8]" />
+                <RefreshCw className="size-8 text-[#94a3b8]" />
               </div>
-              <p className="font-semibold text-[#1a1f36]">
-                No stock movements found
-              </p>
-              <p className="text-sm">
-                Movements are recorded when receivings are completed
-              </p>
+              <p className="font-semibold text-[#1a1f36]">No conversions found</p>
+              <p className="text-sm">Create a new conversion to get started</p>
             </div>
           </div>
         )}

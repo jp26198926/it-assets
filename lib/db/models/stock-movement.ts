@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IStockMovement extends Document {
   date: Date;
-  transaction_type: "RECEIVE" | "RELEASE" | "ADJUSTMENT" | "TRANSFER";
+  transaction_type: "RECEIVE" | "RELEASE" | "ADJUSTMENT" | "TRANSFER" | "CONVERSION";
   item_id: mongoose.Types.ObjectId;
   location_id: mongoose.Types.ObjectId;
   qty: number;
@@ -20,7 +20,7 @@ const StockMovementSchema = new Schema<IStockMovement>({
   transaction_type: {
     type: String,
     required: true,
-    enum: ["RECEIVE", "RELEASE", "ADJUSTMENT", "TRANSFER"],
+    enum: ["RECEIVE", "RELEASE", "ADJUSTMENT", "TRANSFER", "CONVERSION"],
   },
   item_id: {
     type: Schema.Types.ObjectId,
