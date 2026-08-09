@@ -37,3 +37,9 @@ export interface AdjustmentFilters {
   date_from?: string;
   date_to?: string;
 }
+
+export interface AdjustmentAdvancedFilter {
+  field: string;
+  operator: "contains" | "equals" | "startsWith";
+  value: string;
+}

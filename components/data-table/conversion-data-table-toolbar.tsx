@@ -4,14 +4,21 @@ import { type Table } from "@tanstack/react-table";
 import { Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DataTableViewOptions } from "./data-table-view-options";
+import { ConversionAdvancedSearchDialog } from "./conversion-advanced-search-dialog";
+import { ConversionAdvancedFilterDialog } from "./conversion-advanced-filter-dialog";
+import { ConversionExportButtons } from "./conversion-export-buttons";
 import { useAuthorization } from "@/hooks/use-authorization";
-import type { ConversionFilters } from "@/lib/types/conversion";
+import type { Conversion, ConversionFilters, ConversionAdvancedFilter } from "@/lib/types/conversion";
 
 interface ConversionDataTableToolbarProps<TData> {
   table: Table<TData>;
   onAdd: () => void;
   onServerSearch?: (filters: ConversionFilters) => void;
   onServerSearchClear?: () => void;
+  advancedFilters: ConversionAdvancedFilter[];
+  onAdvancedFiltersChange: (filters: ConversionAdvancedFilter[]) => void;
+  allData: TData[];
 }
 
 export function ConversionDataTableToolbar<TData>({
@@ -19,11 +26,15 @@ export function ConversionDataTableToolbar<TData>({
   onAdd,
   onServerSearch,
   onServerSearchClear,
+  advancedFilters,
+  onAdvancedFiltersChange,
+  allData,
 }: ConversionDataTableToolbarProps<TData>) {
   const { hasPermission } = useAuthorization();
   const filteredCount = table.getFilteredRowModel().rows.length;
-  const totalCount = table.getCoreRowModel().rows.length;
+  const totalCount = allData.length;
   const canAdd = hasPermission("/conversions", "Add");
+  const canExport = hasPermission("/conversions", "Export");
 
   return (
     <div className="space-y-3">
@@ -60,6 +71,31 @@ export function ConversionDataTableToolbar<TData>({
             }}
             className="h-9 sm:w-[200px] lg:w-[300px] pl-9 bg-[#f0f4f8] border-0 text-sm"
           />
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {onServerSearch && (
+            <ConversionAdvancedSearchDialog
+              onSearch={onServerSearch}
+              onClear={onServerSearchClear || (() => {})}
+            />
+          )}
+          <ConversionAdvancedFilterDialog
+            filters={advancedFilters}
+            onFiltersChange={onAdvancedFiltersChange}
+          />
+          {advancedFilters.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onAdvancedFiltersChange([])}
+              className="h-8 text-xs text-[#64748b] hover:text-[#1a1f36]"
+            >
+              Clear ({advancedFilters.length})
+            </Button>
+          )}
+          <DataTableViewOptions table={table} />
+          {canExport && <ConversionExportButtons table={table as unknown as Table<Conversion>} />}
         </div>
       </div>
     </div>

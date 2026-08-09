@@ -44,3 +44,9 @@ export interface ConversionFilters {
   date_from?: string;
   date_to?: string;
 }
+
+export interface ConversionAdvancedFilter {
+  field: string;
+  operator: "contains" | "equals" | "startsWith";
+  value: string;
+}

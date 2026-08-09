@@ -13,6 +13,7 @@ import {
   type PaginationState,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
@@ -20,39 +21,55 @@ import {
 import { useState } from "react";
 import { Database } from "lucide-react";
 import { DataTablePagination } from "./data-table-pagination";
-import type { StockLevel } from "@/lib/types/stock-level";
+import { StockLevelDataTableToolbar } from "./stock-level-data-table-toolbar";
+import type { StockLevel, StockLevelFilters } from "@/lib/types/stock-level";
 
 interface StockLevelDataTableProps {
   columns: ColumnDef<StockLevel>[];
   data: StockLevel[];
+  onServerSearch?: (filters: StockLevelFilters) => void;
+  onServerSearchClear?: () => void;
 }
 
 export function StockLevelDataTable({
   columns,
   data,
+  onServerSearch,
+  onServerSearchClear,
 }: StockLevelDataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
+  const [globalFilter, setGlobalFilter] = useState("");
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
+    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
       pagination,
+      globalFilter,
     },
   });
 
   return (
     <div className="space-y-4">
+      <StockLevelDataTableToolbar
+        table={table}
+        onServerSearch={onServerSearch}
+        onServerSearchClear={onServerSearchClear}
+        allData={data}
+      />
+
       {/* Desktop Table View */}
       <div className="hidden lg:block bg-white shadow-sm">
         <div className="overflow-x-auto">

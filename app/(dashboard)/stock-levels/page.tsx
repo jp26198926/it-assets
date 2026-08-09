@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { StockLevelDataTable } from "@/components/data-table/stock-level-data-table";
 import { createStockLevelColumns } from "@/components/data-table/stock-level-data-table-columns";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
 import { getStockLevels } from "@/lib/actions/stock-level-actions";
-import type { StockLevel } from "@/lib/types/stock-level";
+import type { StockLevel, StockLevelFilters } from "@/lib/types/stock-level";
 import { toast } from "sonner";
 
 export default function StockLevelsPage() {
@@ -27,6 +27,51 @@ export default function StockLevelsPage() {
     };
     load();
     return () => { cancelled = true; };
+  }, []);
+
+  const handleServerSearch = useCallback((filters: StockLevelFilters) => {
+    const loadFiltered = async () => {
+      try {
+        const data = await getStockLevels();
+        let filtered = data;
+
+        if (filters.item_name) {
+          filtered = filtered.filter((item) =>
+            item.item_name?.toLowerCase().includes(filters.item_name!.toLowerCase())
+          );
+        }
+        if (filters.item_code) {
+          filtered = filtered.filter((item) =>
+            item.item_code?.toLowerCase().includes(filters.item_code!.toLowerCase())
+          );
+        }
+        if (filters.location_name) {
+          filtered = filtered.filter((item) =>
+            item.location_name?.toLowerCase().includes(filters.location_name!.toLowerCase())
+          );
+        }
+        if (filters.qty_min !== undefined) {
+          filtered = filtered.filter((item) => item.qty >= filters.qty_min!);
+        }
+        if (filters.qty_max !== undefined) {
+          filtered = filtered.filter((item) => item.qty <= filters.qty_max!);
+        }
+
+        setLevels(filtered);
+      } catch {
+        toast.error("Failed to search stock levels");
+      }
+    };
+    loadFiltered();
+  }, []);
+
+  const handleServerSearchClear = useCallback(async () => {
+    try {
+      const data = await getStockLevels();
+      setLevels(data);
+    } catch {
+      toast.error("Failed to load stock levels");
+    }
   }, []);
 
   const columns = createStockLevelColumns();
@@ -65,6 +110,8 @@ export default function StockLevelsPage() {
           <StockLevelDataTable
             columns={columns}
             data={levels}
+            onServerSearch={handleServerSearch}
+            onServerSearchClear={handleServerSearchClear}
           />
         </ScrollReveal>
       </div>

@@ -17,3 +17,11 @@ export interface CreateStockLevelInput {
 export interface UpdateStockLevelInput {
   qty?: number;
 }
+
+export interface StockLevelFilters {
+  item_name?: string;
+  item_code?: string;
+  location_name?: string;
+  qty_min?: number;
+  qty_max?: number;
+}

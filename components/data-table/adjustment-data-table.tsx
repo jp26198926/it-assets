@@ -10,19 +10,20 @@ import {
 import {
   type ColumnDef,
   type SortingState,
+  type VisibilityState,
   type PaginationState,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useState } from "react";
-import { ArrowUpDown, Plus } from "lucide-react";
+import { useState, useMemo } from "react";
+import { ArrowUpDown } from "lucide-react";
 import { DataTablePagination } from "./data-table-pagination";
 import { AdjustmentDataTableToolbar } from "./adjustment-data-table-toolbar";
-import type { Adjustment } from "@/lib/types/adjustment";
-import type { AdjustmentFilters } from "@/lib/types/adjustment";
+import type { Adjustment, AdjustmentFilters, AdjustmentAdvancedFilter } from "@/lib/types/adjustment";
 
 interface AdjustmentDataTableProps {
   columns: ColumnDef<Adjustment>[];
@@ -42,21 +43,49 @@ export function AdjustmentDataTable({
   onServerSearchClear,
 }: AdjustmentDataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
+  const [advancedFilters, setAdvancedFilters] = useState<AdjustmentAdvancedFilter[]>([]);
+
+  const filteredData = useMemo(() => {
+    if (advancedFilters.length === 0) return data;
+
+    return data.filter((item) => {
+      const record = item as unknown as Record<string, unknown>;
+      return advancedFilters.every((filter) => {
+        const fieldValue = String(record[filter.field] ?? "").toLowerCase();
+        const filterValue = filter.value.toLowerCase();
+
+        switch (filter.operator) {
+          case "equals":
+            return fieldValue === filterValue;
+          case "contains":
+            return fieldValue.includes(filterValue);
+          case "startsWith":
+            return fieldValue.startsWith(filterValue);
+          default:
+            return true;
+        }
+      });
+    });
+  }, [data, advancedFilters]);
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
+    onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: setPagination,
     state: {
       sorting,
+      columnVisibility,
       pagination,
     },
   });
@@ -68,6 +97,9 @@ export function AdjustmentDataTable({
         onAdd={onAdd}
         onServerSearch={onServerSearch}
         onServerSearchClear={onServerSearchClear}
+        advancedFilters={advancedFilters}
+        onAdvancedFiltersChange={setAdvancedFilters}
+        allData={data}
       />
 
       {/* Desktop Table View */}
