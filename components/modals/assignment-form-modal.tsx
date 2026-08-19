@@ -12,13 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Search } from "lucide-react";
 import { getAssignmentSelectOptions } from "@/lib/actions/assignment-actions";
@@ -322,7 +316,7 @@ export function AssignmentFormModal({
             {assignTo === "employee" ? (
               <div className="space-y-2">
                 <Label>Employee *</Label>
-                <Select
+                <SearchableSelect
                   value={formData.employee_id || ""}
                   onValueChange={(value) => {
                     const emp = employees.find((e) => e.id === value);
@@ -332,26 +326,15 @@ export function AssignmentFormModal({
                       department_id: emp?.departmentId || "",
                     });
                   }}
-                  disabled={optionsLoading}
-                >
-                  <SelectTrigger
-                    className={`w-full ${errors.assignTo ? "border-red-500" : ""}`}
-                  >
-                    <SelectValue placeholder="Select employee" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {employees.map((emp) => (
-                      <SelectItem key={emp.id} value={emp.id}>
-                        {emp.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  options={employees}
+                  placeholder="Select employee"
+                  searchPlaceholder="Search employees..."
+                />
               </div>
             ) : (
               <div className="space-y-2">
                 <Label>Department *</Label>
-                <Select
+                <SearchableSelect
                   value={formData.department_id || ""}
                   onValueChange={(value) =>
                     setFormData({
@@ -360,21 +343,10 @@ export function AssignmentFormModal({
                       employee_id: "",
                     })
                   }
-                  disabled={optionsLoading}
-                >
-                  <SelectTrigger
-                    className={`w-full ${errors.assignTo ? "border-red-500" : ""}`}
-                  >
-                    <SelectValue placeholder="Select department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map((dep) => (
-                      <SelectItem key={dep.id} value={dep.id}>
-                        {dep.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  options={departments}
+                  placeholder="Select department"
+                  searchPlaceholder="Search departments..."
+                />
               </div>
             )}
 
@@ -399,24 +371,13 @@ export function AssignmentFormModal({
           {/* Location */}
           <div className="space-y-2">
             <Label>Location</Label>
-            <Select
+            <SearchableSelect
               value={formData.location_id || ""}
-              onValueChange={(value) =>
-                setFormData({ ...formData, location_id: value })
-              }
-              disabled={optionsLoading}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select location" />
-              </SelectTrigger>
-              <SelectContent>
-                {locations.map((loc) => (
-                  <SelectItem key={loc.id} value={loc.id}>
-                    {loc.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onValueChange={(value) => setFormData({ ...formData, location_id: value })}
+              options={locations}
+              placeholder="Select location"
+              searchPlaceholder="Search locations..."
+            />
           </div>
 
           <div className="space-y-2">

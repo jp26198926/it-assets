@@ -14,13 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import type { AssignmentFilters } from "@/lib/types/assignment";
 
 interface AssignmentAdvancedSearchDialogProps {
@@ -78,15 +72,16 @@ export function AssignmentAdvancedSearchDialog({
         <div className="grid gap-4 py-2">
           <div className="space-y-2">
             <Label htmlFor="search-status">Status</Label>
-            <Select value={searchStatus} onValueChange={setSearchStatus}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="All statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Returned">Returned</SelectItem>
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={searchStatus}
+              onValueChange={setSearchStatus}
+              options={[
+                { id: "Active", name: "Active" },
+                { id: "Returned", name: "Returned" },
+              ]}
+              placeholder="All statuses"
+              searchPlaceholder="Search statuses..."
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="search-asset-id">Asset ID</Label>

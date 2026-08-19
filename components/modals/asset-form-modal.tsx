@@ -13,13 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { getAssetSelectOptions } from "@/lib/actions/asset-actions";
 import type { Asset, CreateAssetInput } from "@/lib/types/asset";
 
@@ -154,29 +148,13 @@ export function AssetFormModal({
         >
           <div className="space-y-2">
             <Label htmlFor="item_id">Item</Label>
-            <Select
-              value={formData.item_id || "none"}
-              onValueChange={(value) =>
-                setFormData({
-                  ...formData,
-                  item_id: value === "none" ? undefined : value,
-                })
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue
-                  placeholder={optionsLoading ? "Loading..." : "Select item"}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No Item</SelectItem>
-                {items.map((item) => (
-                  <SelectItem key={item.id} value={item.id}>
-                    {item.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={formData.item_id || ""}
+              onValueChange={(value) => setFormData({ ...formData, item_id: value || undefined })}
+              options={items}
+              placeholder={optionsLoading ? "Loading..." : "Select item"}
+              searchPlaceholder="Search items..."
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -210,31 +188,13 @@ export function AssetFormModal({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="location_id">Location</Label>
-              <Select
-                value={formData.location_id || "none"}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    location_id: value === "none" ? undefined : value,
-                  })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={
-                      optionsLoading ? "Loading..." : "Select location"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Location</SelectItem>
-                  {locations.map((loc) => (
-                    <SelectItem key={loc.id} value={loc.id}>
-                      {loc.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={formData.location_id || ""}
+                onValueChange={(value) => setFormData({ ...formData, location_id: value || undefined })}
+                options={locations}
+                placeholder={optionsLoading ? "Loading..." : "Select location"}
+                searchPlaceholder="Search locations..."
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="date_received">Date Received</Label>
