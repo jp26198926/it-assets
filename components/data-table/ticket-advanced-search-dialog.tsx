@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import type { TicketFilters } from "@/lib/types/ticket";
 
 interface TicketAdvancedSearchDialogProps {
@@ -140,63 +141,55 @@ export function TicketAdvancedSearchDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="search-priority">Priority</Label>
-              <select
-                id="search-priority"
+              <SearchableSelect
                 value={searchPriority}
-                onChange={(e) => setSearchPriority(e.target.value)}
-                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <option value="">All</option>
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-                <option value="Critical">Critical</option>
-              </select>
+                onValueChange={setSearchPriority}
+                options={[
+                  { id: "Low", name: "Low" },
+                  { id: "Medium", name: "Medium" },
+                  { id: "High", name: "High" },
+                  { id: "Critical", name: "Critical" },
+                ]}
+                placeholder="All"
+                searchPlaceholder="Search priorities..."
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="search-status">Status</Label>
-              <select
-                id="search-status"
+              <SearchableSelect
                 value={searchStatus}
-                onChange={(e) => setSearchStatus(e.target.value)}
-                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <option value="">All</option>
-                <option value="Open">Open</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Resolved">Resolved</option>
-                <option value="Closed">Closed</option>
-              </select>
+                onValueChange={setSearchStatus}
+                options={[
+                  { id: "Open", name: "Open" },
+                  { id: "In Progress", name: "In Progress" },
+                  { id: "Resolved", name: "Resolved" },
+                  { id: "Closed", name: "Closed" },
+                ]}
+                placeholder="All"
+                searchPlaceholder="Search statuses..."
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="search-category">Category</Label>
-              <select
-                id="search-category"
+              <SearchableSelect
                 value={searchCategory}
-                onChange={(e) => setSearchCategory(e.target.value)}
-                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <option value="">All</option>
-                {selectOptions?.categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
+                onValueChange={setSearchCategory}
+                options={selectOptions?.categories || []}
+                placeholder="All"
+                searchPlaceholder="Search categories..."
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="search-department">Department</Label>
-              <select
-                id="search-department"
+              <SearchableSelect
                 value={searchDepartment}
-                onChange={(e) => setSearchDepartment(e.target.value)}
-                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <option value="">All</option>
-                {selectOptions?.departments.map((dept) => (
-                  <option key={dept.id} value={dept.id}>{dept.name}</option>
-                ))}
-              </select>
+                onValueChange={setSearchDepartment}
+                options={selectOptions?.departments || []}
+                placeholder="All"
+                searchPlaceholder="Search departments..."
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">

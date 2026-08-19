@@ -10,13 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { ClipboardCheck } from "lucide-react";
 
 interface TicketUpdateStatusModalProps {
@@ -64,18 +58,13 @@ export function TicketUpdateStatusModal({
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Status</Label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {statusOptions.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={status}
+                onValueChange={setStatus}
+                options={statusOptions.map((s) => ({ id: s, name: s }))}
+                placeholder="Select status"
+                searchPlaceholder="Search statuses..."
+              />
             </div>
           </div>
         </form>

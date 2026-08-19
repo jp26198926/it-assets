@@ -13,13 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Upload, X, FileText, ImageIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { getCloudinarySettings } from "@/lib/actions/cloudinary-actions";
@@ -283,101 +277,62 @@ export function TicketFormModal({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Category *</Label>
-              <Select
+              <SearchableSelect
                 value={formData.category_id}
                 onValueChange={(value) => setFormData({ ...formData, category_id: value })}
-              >
-                <SelectTrigger className={`w-full ${errors.category_id ? "border-red-500" : ""}`}>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {selectOptions.categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={selectOptions.categories}
+                placeholder="Select category"
+                searchPlaceholder="Search categories..."
+              />
               {errors.category_id && <p className="text-xs text-red-500">{errors.category_id}</p>}
             </div>
             <div className="space-y-2">
               <Label>Priority</Label>
-              <Select
-                value={formData.priority}
-                onValueChange={(value: "Low" | "Medium" | "High" | "Critical") =>
-                  setFormData({ ...formData, priority: value })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Critical">Critical</SelectItem>
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={formData.priority ?? ""}
+                onValueChange={(value) => setFormData({ ...formData, priority: value as "Low" | "Medium" | "High" | "Critical" })}
+                options={[
+                  { id: "Low", name: "Low" },
+                  { id: "Medium", name: "Medium" },
+                  { id: "High", name: "High" },
+                  { id: "Critical", name: "Critical" },
+                ]}
+                placeholder="Select priority"
+                searchPlaceholder="Search priorities..."
+              />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Department (Optional)</Label>
-              <Select
-                value={formData.department_id || "none"}
-                onValueChange={(value) => setFormData({ ...formData, department_id: value === "none" ? "" : value })}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select department" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {selectOptions.departments.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={formData.department_id ?? ""}
+                onValueChange={(value) => setFormData({ ...formData, department_id: value })}
+                options={selectOptions.departments}
+                placeholder="Select department"
+                searchPlaceholder="Search departments..."
+              />
             </div>
             <div className="space-y-2">
               <Label>Asset (Optional)</Label>
-              <Select
-                value={formData.asset_id || "none"}
-                onValueChange={(value) => setFormData({ ...formData, asset_id: value === "none" ? "" : value })}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select asset" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {selectOptions.assets.map((asset) => (
-                    <SelectItem key={asset.id} value={asset.id}>
-                      {asset.barcode} - {asset.itemName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={formData.asset_id ?? ""}
+                onValueChange={(value) => setFormData({ ...formData, asset_id: value })}
+                options={selectOptions.assets.map((asset) => ({ id: asset.id, name: `${asset.barcode} - ${asset.itemName}` }))}
+                placeholder="Select asset"
+                searchPlaceholder="Search assets..."
+              />
             </div>
             <div className="space-y-2">
               <Label>Assign To (Optional)</Label>
-              <Select
-                value={formData.assigned_to || "none"}
-                onValueChange={(value) => setFormData({ ...formData, assigned_to: value === "none" ? "" : value })}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select user" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {selectOptions.users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={formData.assigned_to ?? ""}
+                onValueChange={(value) => setFormData({ ...formData, assigned_to: value })}
+                options={selectOptions.users}
+                placeholder="Select user"
+                searchPlaceholder="Search users..."
+              />
             </div>
           </div>
 

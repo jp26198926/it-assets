@@ -10,13 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { UserPlus } from "lucide-react";
 
 interface TicketAssignModalProps {
@@ -64,19 +58,13 @@ export function TicketAssignModal({
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Assign To</Label>
-              <Select value={assignedTo} onValueChange={setAssignedTo}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select technician" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Unassigned</SelectItem>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={assignedTo}
+                onValueChange={setAssignedTo}
+                options={[{ id: "none", name: "Unassigned" }, ...users]}
+                placeholder="Select technician"
+                searchPlaceholder="Search users..."
+              />
             </div>
           </div>
         </form>

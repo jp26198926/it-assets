@@ -11,13 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Edit } from "lucide-react";
 import type { Ticket } from "@/lib/types/ticket";
 
@@ -87,73 +81,51 @@ export function TicketEditModal({
 
             <div className="space-y-2">
               <Label>Category</Label>
-              <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {selectOptions.categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={categoryId}
+                onValueChange={setCategoryId}
+                options={selectOptions.categories}
+                placeholder="Select category"
+                searchPlaceholder="Search categories..."
+              />
             </div>
 
             <div className="space-y-2">
               <Label>Department (Optional)</Label>
-              <Select
-                value={departmentId || "none"}
-                onValueChange={(value) => setDepartmentId(value === "none" ? "" : value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select department" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {selectOptions.departments.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={departmentId}
+                onValueChange={setDepartmentId}
+                options={selectOptions.departments}
+                placeholder="Select department"
+                searchPlaceholder="Search departments..."
+              />
             </div>
 
             <div className="space-y-2">
               <Label>Asset (Optional)</Label>
-              <Select
-                value={assetId || "none"}
-                onValueChange={(value) => setAssetId(value === "none" ? "" : value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select asset" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {selectOptions.assets.map((asset) => (
-                    <SelectItem key={asset.id} value={asset.id}>
-                      {asset.itemName} ({asset.barcode})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={assetId}
+                onValueChange={setAssetId}
+                options={selectOptions.assets.map((asset) => ({ id: asset.id, name: `${asset.itemName} (${asset.barcode})` }))}
+                placeholder="Select asset"
+                searchPlaceholder="Search assets..."
+              />
             </div>
 
             <div className="space-y-2">
               <Label>Priority</Label>
-              <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Critical">Critical</SelectItem>
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={priority}
+                onValueChange={setPriority}
+                options={[
+                  { id: "Low", name: "Low" },
+                  { id: "Medium", name: "Medium" },
+                  { id: "High", name: "High" },
+                  { id: "Critical", name: "Critical" },
+                ]}
+                placeholder="Select priority"
+                searchPlaceholder="Search priorities..."
+              />
             </div>
           </div>
         </form>
