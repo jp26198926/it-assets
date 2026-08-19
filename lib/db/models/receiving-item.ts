@@ -64,7 +64,6 @@ const ReceivingItemSchema = new Schema<IReceivingItem>({
   ...BaseAuditSchemaDefinition,
 });
 
-ReceivingItemSchema.index({ code: 1 }, { unique: true });
 ReceivingItemSchema.index({ receiving_id: 1 });
 ReceivingItemSchema.index({ item_id: 1 });
 ReceivingItemSchema.index({ status: 1 });

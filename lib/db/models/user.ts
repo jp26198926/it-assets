@@ -78,7 +78,6 @@ const UserSchema = new Schema<IUser>({
   ...BaseAuditSchemaDefinition,
 });
 
-UserSchema.index({ email: 1 }, { unique: true });
 UserSchema.index({ department_id: 1 });
 UserSchema.index({ role_id: 1 });
 UserSchema.index({ status: 1 });

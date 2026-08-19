@@ -27,8 +27,6 @@ const UOMSchema = new Schema<IUOM>({
   ...BaseAuditSchemaDefinition,
 });
 
-UOMSchema.index({ code: 1 }, { unique: true });
-UOMSchema.index({ name: 1 }, { unique: true });
 UOMSchema.index({ status: 1 });
 
 export const UOM =

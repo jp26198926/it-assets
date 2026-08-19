@@ -49,7 +49,6 @@ const ReleasingItemSchema = new Schema<IReleasingItem>({
   ...BaseAuditSchemaDefinition,
 });
 
-ReleasingItemSchema.index({ code: 1 }, { unique: true });
 ReleasingItemSchema.index({ releasing_id: 1 });
 ReleasingItemSchema.index({ item_id: 1 });
 ReleasingItemSchema.index({ status: 1 });

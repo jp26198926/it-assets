@@ -32,8 +32,6 @@ const DepartmentSchema = new Schema<IDepartment>({
   ...BaseAuditSchemaDefinition,
 });
 
-DepartmentSchema.index({ code: 1 }, { unique: true });
-DepartmentSchema.index({ name: 1 }, { unique: true });
 DepartmentSchema.index({ status: 1 });
 
 export const Department =

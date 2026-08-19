@@ -52,7 +52,6 @@ const ConversionSchema = new Schema<IConversion>({
   ...BaseAuditSchemaDefinition,
 });
 
-ConversionSchema.index({ code: 1 }, { unique: true });
 ConversionSchema.index({ location_id: 1 });
 ConversionSchema.index({ from_item_id: 1 });
 ConversionSchema.index({ to_item_id: 1 });

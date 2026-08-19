@@ -52,7 +52,6 @@ const RoleSchema = new Schema<IRole>({
   ...BaseAuditSchemaDefinition,
 });
 
-RoleSchema.index({ name: 1 }, { unique: true });
 RoleSchema.index({ status: 1 });
 
 export const Role =

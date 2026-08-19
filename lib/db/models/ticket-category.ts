@@ -21,7 +21,6 @@ const TicketCategorySchema = new Schema<ITicketCategory>({
   ...BaseAuditSchemaDefinition,
 });
 
-TicketCategorySchema.index({ name: 1 }, { unique: true });
 TicketCategorySchema.index({ status: 1 });
 
 export const TicketCategory =

@@ -41,7 +41,6 @@ const SupplierSchema = new Schema<ISupplier>({
   ...BaseAuditSchemaDefinition,
 });
 
-SupplierSchema.index({ name: 1 }, { unique: true });
 SupplierSchema.index({ status: 1 });
 
 export const Supplier =

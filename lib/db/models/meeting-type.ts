@@ -30,7 +30,6 @@ const MeetingTypeSchema = new Schema<IMeetingType>({
   ...BaseAuditSchemaDefinition,
 });
 
-MeetingTypeSchema.index({ name: 1 }, { unique: true });
 MeetingTypeSchema.index({ status: 1 });
 
 export const MeetingType =

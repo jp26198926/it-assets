@@ -43,7 +43,6 @@ const ReleasingSchema = new Schema<IReleasing>({
   ...BaseAuditSchemaDefinition,
 });
 
-ReleasingSchema.index({ code: 1 }, { unique: true });
 ReleasingSchema.index({ status: 1 });
 ReleasingSchema.index({ from_location_id: 1 });
 ReleasingSchema.index({ to_department_id: 1 });

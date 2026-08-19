@@ -88,7 +88,6 @@ const TicketSchema = new Schema<ITicket>({
   ...BaseAuditSchemaDefinition,
 });
 
-TicketSchema.index({ ticket_no: 1 }, { unique: true });
 TicketSchema.index({ email: 1 });
 TicketSchema.index({ status: 1 });
 TicketSchema.index({ category_id: 1 });

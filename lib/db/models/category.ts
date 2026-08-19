@@ -33,7 +33,6 @@ const CategorySchema = new Schema<ICategory>({
   ...BaseAuditSchemaDefinition,
 });
 
-CategorySchema.index({ name: 1 }, { unique: true });
 CategorySchema.index({ type: 1 });
 CategorySchema.index({ status: 1 });
 

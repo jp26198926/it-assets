@@ -21,7 +21,6 @@ const LocationSchema = new Schema<ILocation>({
   ...BaseAuditSchemaDefinition,
 });
 
-LocationSchema.index({ name: 1 }, { unique: true });
 LocationSchema.index({ status: 1 });
 
 export const Location =

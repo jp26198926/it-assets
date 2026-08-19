@@ -209,7 +209,6 @@ const MeetingSchema = new Schema<IMeeting>({
   ...BaseAuditSchemaDefinition,
 });
 
-MeetingSchema.index({ meeting_no: 1 }, { unique: true });
 MeetingSchema.index({ status: 1 });
 MeetingSchema.index({ meeting_type_id: 1 });
 MeetingSchema.index({ scheduled_date: 1 });

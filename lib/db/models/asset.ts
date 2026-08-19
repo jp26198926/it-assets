@@ -75,7 +75,6 @@ const AssetSchema = new Schema<IAsset>({
   ...BaseAuditSchemaDefinition,
 });
 
-AssetSchema.index({ barcode: 1 }, { unique: true });
 AssetSchema.index({ item_id: 1 });
 AssetSchema.index({ location_id: 1 });
 AssetSchema.index({ assigned_to_employee: 1 });

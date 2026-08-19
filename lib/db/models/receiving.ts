@@ -47,7 +47,6 @@ const ReceivingSchema = new Schema<IReceiving>({
   ...BaseAuditSchemaDefinition,
 });
 
-ReceivingSchema.index({ code: 1 }, { unique: true });
 ReceivingSchema.index({ status: 1 });
 ReceivingSchema.index({ supplier_id: 1 });
 ReceivingSchema.index({ date_received: -1 });

@@ -43,7 +43,6 @@ const TransferItemSchema = new Schema<ITransferItem>({
   ...BaseAuditSchemaDefinition,
 });
 
-TransferItemSchema.index({ code: 1 }, { unique: true });
 TransferItemSchema.index({ transfer_id: 1 });
 TransferItemSchema.index({ item_id: 1 });
 TransferItemSchema.index({ status: 1 });

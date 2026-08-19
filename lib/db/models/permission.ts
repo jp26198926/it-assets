@@ -26,7 +26,6 @@ const PermissionSchema = new Schema<IPermission>({
   ...BaseAuditSchemaDefinition,
 });
 
-PermissionSchema.index({ name: 1 }, { unique: true });
 PermissionSchema.index({ status: 1 });
 
 export const Permission =

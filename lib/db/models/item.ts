@@ -80,8 +80,6 @@ const ItemSchema = new Schema<IItem>({
   ...BaseAuditSchemaDefinition,
 });
 
-ItemSchema.index({ name: 1 }, { unique: true });
-ItemSchema.index({ item_code: 1 }, { unique: true });
 ItemSchema.index({ category_id: 1 });
 ItemSchema.index({ uom_id: 1 });
 ItemSchema.index({ status: 1 });

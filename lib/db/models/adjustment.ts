@@ -41,7 +41,6 @@ const AdjustmentSchema = new Schema<IAdjustment>({
   ...BaseAuditSchemaDefinition,
 });
 
-AdjustmentSchema.index({ code: 1 }, { unique: true });
 AdjustmentSchema.index({ location_id: 1 });
 AdjustmentSchema.index({ item_id: 1 });
 AdjustmentSchema.index({ date_adjusted: -1 });

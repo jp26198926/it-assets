@@ -52,7 +52,6 @@ const PageSchema = new Schema<IPage>({
   ...BaseAuditSchemaDefinition,
 });
 
-PageSchema.index({ name: 1 }, { unique: true });
 PageSchema.index({ parent_id: 1 });
 PageSchema.index({ status: 1 });
 PageSchema.index({ order: 1 });
