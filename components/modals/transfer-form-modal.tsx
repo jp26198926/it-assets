@@ -12,13 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import type { Transfer, CreateTransferInput } from "@/lib/types/transfer";
 
 interface TransferFormModalProps {
@@ -52,7 +46,7 @@ export function TransferFormModal({
       setOptionsLoading(true);
       import("@/lib/actions/location-actions").then(({ getLocations }) => {
         getLocations().then((data) => {
-          setLocations(data.map((l: { id: string; name: string }) => ({ id: l.id, name: l.name })));
+          setLocations(data.map((l: { id: string; name: string }) => ({ id: l.id, name: l.name })).sort((a, b) => a.name.localeCompare(b.name)));
         });
       }).catch(() => {}).finally(() => setOptionsLoading(false));
     }
@@ -146,58 +140,26 @@ export function TransferFormModal({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="from_location">From Location *</Label>
-              <Select
-                value={formData.from_location_id || "none"}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    from_location_id: value === "none" ? "" : value,
-                  })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={optionsLoading ? "Loading..." : "Select location"}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Select Location</SelectItem>
-                  {locations.map((l) => (
-                    <SelectItem key={l.id} value={l.id}>
-                      {l.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={formData.from_location_id}
+                onValueChange={(value) => setFormData({ ...formData, from_location_id: value })}
+                options={locations}
+                placeholder={optionsLoading ? "Loading..." : "Select location"}
+                searchPlaceholder="Search locations..."
+              />
               {errors.from_location_id && (
                 <p className="text-xs text-red-500">{errors.from_location_id}</p>
               )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="to_location">To Location *</Label>
-              <Select
-                value={formData.to_location_id || "none"}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    to_location_id: value === "none" ? "" : value,
-                  })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={optionsLoading ? "Loading..." : "Select location"}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Select Location</SelectItem>
-                  {locations.map((l) => (
-                    <SelectItem key={l.id} value={l.id}>
-                      {l.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={formData.to_location_id}
+                onValueChange={(value) => setFormData({ ...formData, to_location_id: value })}
+                options={locations}
+                placeholder={optionsLoading ? "Loading..." : "Select location"}
+                searchPlaceholder="Search locations..."
+              />
               {errors.to_location_id && (
                 <p className="text-xs text-red-500">{errors.to_location_id}</p>
               )}

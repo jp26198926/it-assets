@@ -12,13 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { getItemSelectOptions } from "@/lib/actions/item-actions";
 import type { Receiving, CreateReceivingInput } from "@/lib/types/receiving";
 
@@ -55,7 +49,7 @@ export function ReceivingFormModal({
       // Load suppliers for dropdown
       import("@/lib/actions/supplier-actions").then(({ getSuppliers }) => {
         getSuppliers().then((data) => {
-          setSuppliers(data.map((s) => ({ id: s.id, name: s.name })));
+          setSuppliers(data.map((s) => ({ id: s.id, name: s.name })).sort((a, b) => a.name.localeCompare(b.name)));
         });
       }).catch(() => {}).finally(() => setOptionsLoading(false));
     }
@@ -143,29 +137,13 @@ export function ReceivingFormModal({
             </div>
             <div className="space-y-2">
               <Label htmlFor="supplier">Supplier</Label>
-              <Select
-                value={formData.supplier_id || "none"}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    supplier_id: value === "none" ? "" : value,
-                  })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={optionsLoading ? "Loading..." : "Select supplier"}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Supplier</SelectItem>
-                  {suppliers.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={formData.supplier_id}
+                onValueChange={(value) => setFormData({ ...formData, supplier_id: value })}
+                options={suppliers}
+                placeholder={optionsLoading ? "Loading..." : "Select supplier"}
+                searchPlaceholder="Search suppliers..."
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">

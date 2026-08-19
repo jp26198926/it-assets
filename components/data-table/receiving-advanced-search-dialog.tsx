@@ -14,13 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import type { ReceivingFilters } from "@/lib/types/receiving";
 
 interface ReceivingAdvancedSearchDialogProps {
@@ -46,7 +40,7 @@ export function ReceivingAdvancedSearchDialog({
     if (open && suppliers.length === 0) {
       import("@/lib/actions/supplier-actions").then(({ getSuppliers }) => {
         getSuppliers().then((data) => {
-          setSuppliers(data.map((s) => ({ id: s.id, name: s.name })));
+          setSuppliers(data.map((s) => ({ id: s.id, name: s.name })).sort((a, b) => a.name.localeCompare(b.name)));
         });
       }).catch(() => {});
     }
@@ -131,22 +125,13 @@ export function ReceivingAdvancedSearchDialog({
             </div>
             <div className="space-y-2">
               <Label>Supplier</Label>
-              <Select
-                value={searchSupplierId || "none"}
-                onValueChange={(value) => setSearchSupplierId(value === "none" ? "" : value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="All Suppliers" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">All Suppliers</SelectItem>
-                  {suppliers.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={searchSupplierId}
+                onValueChange={setSearchSupplierId}
+                options={suppliers}
+                placeholder="All Suppliers"
+                searchPlaceholder="Search suppliers..."
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -171,20 +156,17 @@ export function ReceivingAdvancedSearchDialog({
           </div>
           <div className="space-y-2">
             <Label htmlFor="search-status">Status</Label>
-            <Select
-              value={searchStatus || "none"}
-              onValueChange={(value) => setSearchStatus(value === "none" ? "" : value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">All Statuses</SelectItem>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-                <SelectItem value="Cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={searchStatus}
+              onValueChange={setSearchStatus}
+              options={[
+                { id: "Active", name: "Active" },
+                { id: "Completed", name: "Completed" },
+                { id: "Cancelled", name: "Cancelled" },
+              ]}
+              placeholder="All Statuses"
+              searchPlaceholder="Search statuses..."
+            />
           </div>
         </div>
         <DialogFooter className="flex justify-between">

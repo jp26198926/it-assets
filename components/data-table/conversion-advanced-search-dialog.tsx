@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { getLocations } from "@/lib/actions/location-actions";
 import { getItems } from "@/lib/actions/item-actions";
 import type { ConversionFilters } from "@/lib/types/conversion";
@@ -46,8 +47,8 @@ export function ConversionAdvancedSearchDialog({
       getLocations().catch(() => [] as Location[]),
       getItems().catch(() => [] as Item[]),
     ]).then(([locs, its]) => {
-      setLocations(locs.filter((l) => !l.deleted_at));
-      setItems(its.filter((i) => !i.deleted_at));
+      setLocations(locs.filter((l) => !l.deleted_at).sort((a, b) => a.name.localeCompare(b.name)));
+      setItems(its.filter((i) => !i.deleted_at).sort((a, b) => a.name.localeCompare(b.name)));
     });
   }, [open]);
 
@@ -108,51 +109,35 @@ export function ConversionAdvancedSearchDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="search-location">Location</Label>
-              <select
-                id="search-location"
+              <SearchableSelect
                 value={searchLocation}
-                onChange={(e) => setSearchLocation(e.target.value)}
-                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <option value="">All locations</option>
-                {locations.map((loc) => (
-                  <option key={loc.id} value={loc.id}>{loc.name}</option>
-                ))}
-              </select>
+                onValueChange={setSearchLocation}
+                options={locations.map((loc) => ({ id: loc.id, name: loc.name }))}
+                placeholder="All locations"
+                searchPlaceholder="Search locations..."
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="search-from-item">From Item</Label>
-              <select
-                id="search-from-item"
+              <SearchableSelect
                 value={searchFromItem}
-                onChange={(e) => setSearchFromItem(e.target.value)}
-                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <option value="">All items</option>
-                {items.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}{item.item_code ? ` (${item.item_code})` : ""}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setSearchFromItem}
+                options={items.map((item) => ({ id: item.id, name: `${item.name}${item.item_code ? ` (${item.item_code})` : ""}` }))}
+                placeholder="All items"
+                searchPlaceholder="Search items..."
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="search-to-item">To Item</Label>
-              <select
-                id="search-to-item"
+              <SearchableSelect
                 value={searchToItem}
-                onChange={(e) => setSearchToItem(e.target.value)}
-                className="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <option value="">All items</option>
-                {items.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}{item.item_code ? ` (${item.item_code})` : ""}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setSearchToItem}
+                options={items.map((item) => ({ id: item.id, name: `${item.name}${item.item_code ? ` (${item.item_code})` : ""}` }))}
+                placeholder="All items"
+                searchPlaceholder="Search items..."
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">

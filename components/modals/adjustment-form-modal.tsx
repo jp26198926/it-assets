@@ -12,13 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { getStockLevelByItemAndLocation } from "@/lib/actions/stock-level-actions";
 import type { CreateAdjustmentInput } from "@/lib/types/adjustment";
 
@@ -56,12 +50,12 @@ export function AdjustmentFormModal({
       Promise.all([
         import("@/lib/actions/location-actions").then(({ getLocations }) =>
           getLocations().then((data) =>
-            setLocations(data.map((l) => ({ id: l.id, name: l.name })))
+            setLocations(data.map((l) => ({ id: l.id, name: l.name })).sort((a, b) => a.name.localeCompare(b.name)))
           )
         ),
         import("@/lib/actions/item-actions").then(({ getItems }) =>
           getItems().then((data) =>
-            setItems(data.map((i) => ({ id: i.id, name: i.name, item_code: i.item_code || "" })))
+            setItems(data.map((i) => ({ id: i.id, name: i.name, item_code: i.item_code || "" })).sort((a, b) => a.name.localeCompare(b.name)))
           )
         ),
       ])
@@ -160,29 +154,13 @@ export function AdjustmentFormModal({
             </div>
             <div className="space-y-2">
               <Label htmlFor="location">Location *</Label>
-              <Select
-                value={formData.location_id || "none"}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    location_id: value === "none" ? "" : value,
-                  })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={optionsLoading ? "Loading..." : "Select location"}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Location</SelectItem>
-                  {locations.map((loc) => (
-                    <SelectItem key={loc.id} value={loc.id}>
-                      {loc.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={formData.location_id}
+                onValueChange={(value) => setFormData({ ...formData, location_id: value })}
+                options={locations}
+                placeholder={optionsLoading ? "Loading..." : "Select location"}
+                searchPlaceholder="Search locations..."
+              />
               {errors.location_id && (
                 <p className="text-xs text-red-500">{errors.location_id}</p>
               )}
@@ -191,29 +169,13 @@ export function AdjustmentFormModal({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="item">Item *</Label>
-              <Select
-                value={formData.item_id || "none"}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    item_id: value === "none" ? "" : value,
-                  })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={optionsLoading ? "Loading..." : "Select item"}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Item</SelectItem>
-                  {items.map((item) => (
-                    <SelectItem key={item.id} value={item.id}>
-                      {item.name} {item.item_code ? `(${item.item_code})` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={formData.item_id}
+                onValueChange={(value) => setFormData({ ...formData, item_id: value })}
+                options={items.map((item) => ({ id: item.id, name: `${item.name}${item.item_code ? ` (${item.item_code})` : ""}` }))}
+                placeholder={optionsLoading ? "Loading..." : "Select item"}
+                searchPlaceholder="Search items..."
+              />
               {errors.item_id && (
                 <p className="text-xs text-red-500">{errors.item_id}</p>
               )}

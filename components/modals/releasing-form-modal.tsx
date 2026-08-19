@@ -12,13 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import type { Releasing, CreateReleasingInput } from "@/lib/types/releasing";
 
 interface ReleasingFormModalProps {
@@ -53,8 +47,8 @@ export function ReleasingFormModal({
         import("@/lib/actions/location-actions").then(({ getLocations }) => getLocations()),
         import("@/lib/actions/department-actions").then(({ getDepartments }) => getDepartments()),
       ]).then(([locs, depts]) => {
-        setLocations(locs.map((l: { id: string; name: string }) => ({ id: l.id, name: l.name })));
-        setDepartments(depts.map((d: { id: string; name: string }) => ({ id: d.id, name: d.name })));
+        setLocations(locs.map((l: { id: string; name: string }) => ({ id: l.id, name: l.name })).sort((a, b) => a.name.localeCompare(b.name)));
+        setDepartments(depts.map((d: { id: string; name: string }) => ({ id: d.id, name: d.name })).sort((a, b) => a.name.localeCompare(b.name)));
       }).catch(() => {});
     }
   }, [open]);
@@ -139,52 +133,24 @@ export function ReleasingFormModal({
             </div>
             <div className="space-y-2">
               <Label>From Location</Label>
-              <Select
-                value={formData.from_location_id || "none"}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    from_location_id: value === "none" ? "" : value,
-                  })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select location" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Location</SelectItem>
-                  {locations.map((l) => (
-                    <SelectItem key={l.id} value={l.id}>
-                      {l.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={formData.from_location_id}
+                onValueChange={(value) => setFormData({ ...formData, from_location_id: value })}
+                options={locations}
+                placeholder="Select location"
+                searchPlaceholder="Search locations..."
+              />
             </div>
           </div>
           <div className="space-y-2">
             <Label>To Department</Label>
-            <Select
-              value={formData.to_department_id || "none"}
-              onValueChange={(value) =>
-                setFormData({
-                  ...formData,
-                  to_department_id: value === "none" ? "" : value,
-                })
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select department" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No Department</SelectItem>
-                {departments.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={formData.to_department_id}
+              onValueChange={(value) => setFormData({ ...formData, to_department_id: value })}
+              options={departments}
+              placeholder="Select department"
+              searchPlaceholder="Search departments..."
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="remarks">Remarks</Label>

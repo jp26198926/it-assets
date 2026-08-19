@@ -14,13 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import type { TransferFilters } from "@/lib/types/transfer";
 
 interface TransferAdvancedSearchDialogProps {
@@ -45,7 +39,7 @@ export function TransferAdvancedSearchDialog({
     if (open && locations.length === 0) {
       import("@/lib/actions/location-actions").then(({ getLocations }) => {
         getLocations().then((data) => {
-          setLocations(data.map((l: { id: string; name: string }) => ({ id: l.id, name: l.name })));
+          setLocations(data.map((l: { id: string; name: string }) => ({ id: l.id, name: l.name })).sort((a, b) => a.name.localeCompare(b.name)));
         });
       }).catch(() => {});
     }
@@ -108,60 +102,39 @@ export function TransferAdvancedSearchDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="search-status">Status</Label>
-              <Select
-                value={searchStatus || "none"}
-                onValueChange={(value) => setSearchStatus(value === "none" ? "" : value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">All Statuses</SelectItem>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="Cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={searchStatus}
+                onValueChange={setSearchStatus}
+                options={[
+                  { id: "Active", name: "Active" },
+                  { id: "Completed", name: "Completed" },
+                  { id: "Cancelled", name: "Cancelled" },
+                ]}
+                placeholder="All Statuses"
+                searchPlaceholder="Search statuses..."
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>From Location</Label>
-              <Select
-                value={searchFromLocationId || "none"}
-                onValueChange={(value) => setSearchFromLocationId(value === "none" ? "" : value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="All Locations" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">All Locations</SelectItem>
-                  {locations.map((l) => (
-                    <SelectItem key={l.id} value={l.id}>
-                      {l.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={searchFromLocationId}
+                onValueChange={setSearchFromLocationId}
+                options={locations.map((loc) => ({ id: loc.id, name: loc.name }))}
+                placeholder="All Locations"
+                searchPlaceholder="Search locations..."
+              />
             </div>
             <div className="space-y-2">
               <Label>To Location</Label>
-              <Select
-                value={searchToLocationId || "none"}
-                onValueChange={(value) => setSearchToLocationId(value === "none" ? "" : value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="All Locations" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">All Locations</SelectItem>
-                  {locations.map((l) => (
-                    <SelectItem key={l.id} value={l.id}>
-                      {l.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={searchToLocationId}
+                onValueChange={setSearchToLocationId}
+                options={locations.map((loc) => ({ id: loc.id, name: loc.name }))}
+                placeholder="All Locations"
+                searchPlaceholder="Search locations..."
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">

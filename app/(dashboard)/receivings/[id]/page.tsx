@@ -78,7 +78,7 @@ export default function ReceivingDetailPage() {
         name: i.name,
         uom_name: i.uom_name,
         category_name: i.category_name,
-      })));
+      })).sort((a, b) => a.name.localeCompare(b.name)));
 
       // Load locations
       const { getLocations } = await import("@/lib/actions/location-actions");

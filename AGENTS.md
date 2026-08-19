@@ -114,6 +114,29 @@ Always use `next/image` (`Image` component) instead of the HTML `<img>` tag. Thi
 ## SelectTrigger — Always use w-full
 All `SelectTrigger` components in forms must include `className="w-full"` so dropdowns use the full width of their container. The default `SelectTrigger` is `w-fit`, which causes inconsistent sizing.
 
+## Dropdowns — Use SearchableSelect
+All dropdown selects in forms must use the `SearchableSelect` component from `@/components/ui/searchable-select` instead of the basic `Select` component. This provides typing search functionality for better UX.
+
+**Usage:**
+```tsx
+import { SearchableSelect } from "@/components/ui/searchable-select";
+
+<SearchableSelect
+  value={formData.field_id}
+  onValueChange={(value) => setFormData({ ...formData, field_id: value })}
+  options={options}
+  placeholder="Select option"
+  searchPlaceholder="Search options..."
+/>
+```
+
+**Props:**
+- `value: string` — Currently selected value
+- `onValueChange: (value: string) => void` — Callback when selection changes
+- `options: { id: string; name: string }[]` — Array of options to display
+- `placeholder?: string` — Placeholder text when nothing is selected
+- `searchPlaceholder?: string` — Placeholder text in the search input
+
 ## Select Options — Always sorted A-Z
 All dropdown option lists must be sorted alphabetically (A-Z). Sort at the database query level in the service layer using `.sort({ name: 1 })` (or equivalent field). For employee names, sort by last name then first name.
 

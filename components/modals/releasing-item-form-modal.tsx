@@ -12,13 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import type { ReleasingItem, CreateReleasingItemInput } from "@/lib/types/releasing-item";
 
 interface ReleasingItemFormModalProps {
@@ -144,24 +138,13 @@ export function ReleasingItemFormModal({
         <form id="releasing-item-form" onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
           <div className="space-y-2">
             <Label htmlFor="item_id">Item *</Label>
-            <Select
-              value={formData.item_id || "none"}
-              onValueChange={(value) =>
-                setFormData({ ...formData, item_id: value === "none" ? "" : value })
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select item" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Select Item</SelectItem>
-                {itemOptions.map((opt) => (
-                  <SelectItem key={opt.id} value={opt.id}>
-                    {opt.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={formData.item_id}
+              onValueChange={(value) => setFormData({ ...formData, item_id: value })}
+              options={itemOptions}
+              placeholder="Select item"
+              searchPlaceholder="Search items..."
+            />
             {formData.item_id && (() => {
               const selectedItem = itemOptions.find((opt) => opt.id === formData.item_id);
               if (selectedItem && (selectedItem.uom_name || selectedItem.category_name)) {

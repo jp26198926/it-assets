@@ -77,7 +77,7 @@ export default function ReleasingDetailPage() {
         name: i.name,
         uom_name: i.uom_name,
         category_name: i.category_name,
-      })));
+      })).sort((a, b) => a.name.localeCompare(b.name)));
     } catch {
       toast.error("Failed to load releasing details");
     } finally {

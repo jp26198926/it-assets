@@ -14,13 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import type { ReleasingFilters } from "@/lib/types/releasing";
 
 interface ReleasingAdvancedSearchDialogProps {
@@ -48,8 +42,8 @@ export function ReleasingAdvancedSearchDialog({
         import("@/lib/actions/location-actions").then(({ getLocations }) => getLocations()),
         import("@/lib/actions/department-actions").then(({ getDepartments }) => getDepartments()),
       ]).then(([locs, depts]) => {
-        setLocations(locs.map((l: { id: string; name: string }) => ({ id: l.id, name: l.name })));
-        setDepartments(depts.map((d: { id: string; name: string }) => ({ id: d.id, name: d.name })));
+        setLocations(locs.map((l: { id: string; name: string }) => ({ id: l.id, name: l.name })).sort((a, b) => a.name.localeCompare(b.name)));
+        setDepartments(depts.map((d: { id: string; name: string }) => ({ id: d.id, name: d.name })).sort((a, b) => a.name.localeCompare(b.name)));
       }).catch(() => {});
     }
   }, [open, locations.length]);
@@ -130,58 +124,37 @@ export function ReleasingAdvancedSearchDialog({
           </div>
           <div className="space-y-2">
             <Label>From Location</Label>
-            <Select
-              value={searchLocationId || "none"}
-              onValueChange={(value) => setSearchLocationId(value === "none" ? "" : value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="All Locations" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">All Locations</SelectItem>
-                {locations.map((l) => (
-                  <SelectItem key={l.id} value={l.id}>
-                    {l.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={searchLocationId}
+              onValueChange={setSearchLocationId}
+              options={locations.map((loc) => ({ id: loc.id, name: loc.name }))}
+              placeholder="All Locations"
+              searchPlaceholder="Search locations..."
+            />
           </div>
           <div className="space-y-2">
             <Label>To Department</Label>
-            <Select
-              value={searchDepartmentId || "none"}
-              onValueChange={(value) => setSearchDepartmentId(value === "none" ? "" : value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="All Departments" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">All Departments</SelectItem>
-                {departments.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={searchDepartmentId}
+              onValueChange={setSearchDepartmentId}
+              options={departments}
+              placeholder="All Departments"
+              searchPlaceholder="Search departments..."
+            />
           </div>
           <div className="space-y-2">
             <Label>Status</Label>
-            <Select
-              value={searchStatus || "none"}
-              onValueChange={(value) => setSearchStatus(value === "none" ? "" : value)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">All Statuses</SelectItem>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-                <SelectItem value="Cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={searchStatus}
+              onValueChange={setSearchStatus}
+              options={[
+                { id: "Active", name: "Active" },
+                { id: "Completed", name: "Completed" },
+                { id: "Cancelled", name: "Cancelled" },
+              ]}
+              placeholder="All Statuses"
+              searchPlaceholder="Search statuses..."
+            />
           </div>
         </div>
         <DialogFooter className="flex justify-between">

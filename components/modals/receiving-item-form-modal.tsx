@@ -12,13 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import type { ReceivingItem, CreateReceivingItemInput } from "@/lib/types/receiving-item";
 
 interface ReceivingItemFormModalProps {
@@ -77,6 +71,7 @@ export function ReceivingItemFormModal({
     const newErrors: Record<string, string> = {};
     if (!formData.item_id) newErrors.item_id = "Item is required";
     if (formData.qty <= 0) newErrors.qty = "Quantity must be greater than 0";
+    if (!formData.storage_location_id) newErrors.storage_location_id = "Storage Location is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -95,7 +90,7 @@ export function ReceivingItemFormModal({
             ? new Date(formData.expiration_date)
             : undefined,
           remarks: formData.remarks || undefined,
-          storage_location_id: formData.storage_location_id || undefined,
+          storage_location_id: formData.storage_location_id,
         });
         onOpenChange(false);
       } catch {
@@ -124,24 +119,13 @@ export function ReceivingItemFormModal({
         <form id="receiving-item-form" onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto min-h-0">
           <div className="space-y-2">
             <Label htmlFor="item_id">Item *</Label>
-            <Select
-              value={formData.item_id || "none"}
-              onValueChange={(value) =>
-                setFormData({ ...formData, item_id: value === "none" ? "" : value })
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select item" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Select Item</SelectItem>
-                {itemOptions.map((opt) => (
-                  <SelectItem key={opt.id} value={opt.id}>
-                    {opt.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={formData.item_id}
+              onValueChange={(value) => setFormData({ ...formData, item_id: value })}
+              options={itemOptions}
+              placeholder="Select item"
+              searchPlaceholder="Search items..."
+            />
             {formData.item_id && (() => {
               const selectedItem = itemOptions.find((opt) => opt.id === formData.item_id);
               if (selectedItem && (selectedItem.uom_name || selectedItem.category_name)) {
@@ -205,25 +189,17 @@ export function ReceivingItemFormModal({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="storage_location">Storage Location</Label>
-              <Select
-                value={formData.storage_location_id || "none"}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, storage_location_id: value === "none" ? "" : value })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select location" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Location</SelectItem>
-                  {locationOptions.map((opt) => (
-                    <SelectItem key={opt.id} value={opt.id}>
-                      {opt.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="storage_location">Storage Location *</Label>
+              <SearchableSelect
+                value={formData.storage_location_id}
+                onValueChange={(value) => setFormData({ ...formData, storage_location_id: value })}
+                options={locationOptions}
+                placeholder="Select location"
+                searchPlaceholder="Search locations..."
+              />
+              {errors.storage_location_id && (
+                <p className="text-xs text-red-500">{errors.storage_location_id}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="expiration_date">Expiration Date</Label>
