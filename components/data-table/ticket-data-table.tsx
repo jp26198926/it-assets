@@ -35,6 +35,7 @@ interface TicketDataTableProps<TData, TValue> {
   onView: (ticket: Ticket) => void;
   onDelete: (ticket: Ticket) => void;
   onRestore: (ticket: Ticket) => void;
+  onMarkResolved: (ticket: Ticket) => void;
   onAdd: () => void;
   onServerSearch?: (filters: TicketFilters) => void;
   onServerSearchClear?: () => void;
@@ -50,6 +51,7 @@ export function TicketDataTable<TData, TValue>({
   onView,
   onDelete,
   onRestore,
+  onMarkResolved,
   onAdd,
   onServerSearch,
   onServerSearchClear,
@@ -220,7 +222,7 @@ export function TicketDataTable<TData, TValue>({
                     </div>
                   </div>
                   <div onClick={(e) => e.stopPropagation()}>
-                    <Actions ticket={ticket} onView={onView} onDelete={onDelete} onRestore={onRestore} />
+                    <Actions ticket={ticket} onView={onView} onDelete={onDelete} onRestore={onRestore} onMarkResolved={onMarkResolved} />
                   </div>
                 </div>
               </div>

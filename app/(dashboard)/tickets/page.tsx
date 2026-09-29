@@ -6,6 +6,16 @@ import { TicketDataTable } from "@/components/data-table/ticket-data-table";
 import { createTicketColumns } from "@/components/data-table/ticket-data-table-columns";
 import { TicketFormModal } from "@/components/modals/ticket-form-modal";
 import { TicketDeleteConfirmModal } from "@/components/modals/ticket-delete-confirm-modal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
 import { useAuthorization } from "@/hooks/use-authorization";
@@ -14,6 +24,7 @@ import {
   createTicket,
   deleteTicket,
   restoreTicket,
+  updateTicket,
   getTicketSelectOptions,
 } from "@/lib/actions/ticket-actions";
 import { getAppSettings } from "@/lib/actions/application-actions";
@@ -25,6 +36,7 @@ export default function TicketsPage() {
   const { user: authUser } = useAuthorization();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [deleteTicketItem, setDeleteTicketItem] = useState<Ticket | null>(null);
+  const [resolveTicketItem, setResolveTicketItem] = useState<Ticket | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState<TicketFilters>({
@@ -101,6 +113,24 @@ export default function TicketsPage() {
     }
   };
 
+  const handleMarkResolved = (ticket: Ticket) => {
+    setResolveTicketItem(ticket);
+  };
+
+  const handleMarkResolvedConfirm = async () => {
+    if (resolveTicketItem) {
+      try {
+        await updateTicket(resolveTicketItem.id, { status: "Resolved" });
+        toast.success("Ticket marked as resolved");
+        setResolveTicketItem(null);
+        const refreshed = await getTickets(activeFilters);
+        setTickets(refreshed);
+      } catch {
+        toast.error("Failed to update status");
+      }
+    }
+  };
+
   const handleAdd = () => {
     setFormOpen(true);
   };
@@ -135,6 +165,7 @@ export default function TicketsPage() {
     handleView,
     handleDelete,
     handleRestore,
+    handleMarkResolved,
     appTimezone,
   );
 
@@ -187,6 +218,7 @@ export default function TicketsPage() {
             onView={handleView}
             onDelete={handleDelete}
             onRestore={handleRestore}
+            onMarkResolved={handleMarkResolved}
             onAdd={handleAdd}
             onServerSearch={handleServerSearch}
             onServerSearchClear={handleServerSearchClear}
@@ -208,6 +240,26 @@ export default function TicketsPage() {
           ticketNo={deleteTicketItem?.ticket_no || ""}
           onConfirm={handleDeleteConfirm}
         />
+
+        <AlertDialog
+          open={!!resolveTicketItem}
+          onOpenChange={(open) => !open && setResolveTicketItem(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Mark as Resolved</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to mark this ticket as resolved? This will change the status to &quot;Resolved&quot;.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleMarkResolvedConfirm}>
+                Confirm
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </PageGuard>
   );

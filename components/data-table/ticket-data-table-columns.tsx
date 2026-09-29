@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Eye, Trash2, RotateCcw } from "lucide-react";
+import { MoreHorizontal, Eye, Trash2, RotateCcw, CheckCircle2 } from "lucide-react";
 import { useAuthorization } from "@/hooks/use-authorization";
 import type { Ticket } from "@/lib/types/ticket";
 import { DataTableColumnHeader } from "./data-table-column-header";
@@ -36,14 +36,16 @@ export interface ActionsProps {
   onView: (ticket: Ticket) => void;
   onDelete: (ticket: Ticket) => void;
   onRestore: (ticket: Ticket) => void;
+  onMarkResolved: (ticket: Ticket) => void;
 }
 
-export function Actions({ ticket, onView, onDelete, onRestore }: ActionsProps) {
+export function Actions({ ticket, onView, onDelete, onRestore, onMarkResolved }: ActionsProps) {
   const { hasPermission } = useAuthorization();
   const canDelete = hasPermission("/tickets", "Delete");
   const canRestore = hasPermission("/tickets", "Restore");
 
   const canDeleteStatus = ticket.status === "Open" || ticket.status === "In Progress";
+  const canResolve = !ticket.deleted_at && ticket.status !== "Resolved" && ticket.status !== "Closed";
 
   return (
     <DropdownMenu>
@@ -58,6 +60,15 @@ export function Actions({ ticket, onView, onDelete, onRestore }: ActionsProps) {
           <Eye className="h-4 w-4 text-[#64748b]" />
           View Details
         </DropdownMenuItem>
+        {canResolve && (
+          <DropdownMenuItem
+            onClick={() => onMarkResolved(ticket)}
+            className="cursor-pointer gap-2 text-[#059669]"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            Mark as Resolved
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         {!ticket.deleted_at ? (
           canDelete && canDeleteStatus && (
@@ -89,6 +100,7 @@ export function createTicketColumns(
   onView: (ticket: Ticket) => void,
   onDelete: (ticket: Ticket) => void,
   onRestore: (ticket: Ticket) => void,
+  onMarkResolved: (ticket: Ticket) => void,
   timezone?: string | null,
 ): ColumnDef<Ticket>[] {
   return [
@@ -206,6 +218,7 @@ export function createTicketColumns(
           onView={onView}
           onDelete={onDelete}
           onRestore={onRestore}
+          onMarkResolved={onMarkResolved}
         />
       ),
     },
