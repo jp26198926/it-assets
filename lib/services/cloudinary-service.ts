@@ -67,6 +67,52 @@ export async function testCloudinaryUpload(
   return uploadToCloudinary(fileBase64, fileName, "it-assets/test", "test");
 }
 
+export async function uploadTicketAttachment(
+  file: File,
+  fileName: string
+): Promise<{ success: boolean; message: string; url?: string }> {
+  const settings = await getCloudinarySettings();
+
+  if (!settings.cloud_name || !settings.api_key || !settings.api_secret) {
+    return { success: false, message: "Cloudinary credentials are not configured" };
+  }
+
+  const maxBytes = (settings.max_file_size || 10) * 1024 * 1024;
+  if (file.size > maxBytes) {
+    return {
+      success: false,
+      message: `File size exceeds the maximum allowed size of ${settings.max_file_size || 10} MB`,
+    };
+  }
+
+  cloudinary.config({
+    cloud_name: settings.cloud_name,
+    api_key: settings.api_key,
+    api_secret: settings.api_secret,
+  });
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  const sanitized = fileName.replace(/\.[^/.]+$/, "");
+
+  const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "it-assets/tickets",
+        public_id: `ticket_${Date.now()}_${sanitized}`,
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else if (result) resolve(result);
+        else reject(new Error("Upload returned no result"));
+      }
+    );
+    stream.end(buffer);
+  });
+
+  return { success: true, message: "File uploaded successfully", url: result.secure_url };
+}
+
 export async function uploadToCloudinary(
   fileBase64: string,
   fileName: string,

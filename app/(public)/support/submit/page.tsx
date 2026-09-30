@@ -22,6 +22,7 @@ import { getCurrentUser } from "@/lib/actions/auth-actions";
 interface SelectOptions {
   categories: { id: string; name: string }[];
   departments: { id: string; name: string }[];
+  max_file_size?: number;
 }
 
 interface FormData {
@@ -81,17 +82,15 @@ export default function SubmitTicketPage() {
     fetch("/api/public/tickets/select-options")
       .then((r) => r.json())
       .then((res) => {
-        if (res.success) setOptions(res.data);
+        if (res.success && res.data) {
+          setOptions(res.data);
+          if (res.data.max_file_size) setMaxFileSize(res.data.max_file_size);
+        } else {
+          toast.error(res.error || "Failed to load form options");
+        }
       })
       .catch(() => toast.error("Failed to load form options"))
       .finally(() => setOptionsLoading(false));
-
-    fetch("/api/cloudinary")
-      .then((r) => r.json())
-      .then((res) => {
-        if (res.success) setMaxFileSize(res.data?.max_file_size || 10);
-      })
-      .catch(() => {});
   }, []);
 
   const validate = () => {
@@ -110,9 +109,10 @@ export default function SubmitTicketPage() {
     const fd = new FormData();
     fd.append("file", file);
     fd.append("fileName", file.name);
-    const res = await fetch("/api/tickets/upload", { method: "POST", body: fd });
+    const res = await fetch("/api/public/tickets/upload", { method: "POST", body: fd });
     const data = await res.json();
-    if (data.success && data.url) return data.url;
+    const url = data.data?.url ?? data.url;
+    if (data.success && url) return url;
     toast.error(data.error || `Failed to upload ${file.name}`);
     return null;
   };
@@ -160,7 +160,11 @@ export default function SubmitTicketPage() {
         toast.success("Asset found");
       } else {
         setFormData((prev) => ({ ...prev, asset_id: "", asset_name: "" }));
-        toast.error("Asset not found for this barcode");
+        if (!res.ok && res.status !== 404) {
+          toast.error(data.error || "Failed to look up asset");
+        } else {
+          toast.error("Asset not found for this barcode");
+        }
       }
     } catch {
       toast.error("Failed to lookup asset");

@@ -109,8 +109,9 @@ export function TicketFormModal({
     fd.append("fileName", file.name);
     const res = await fetch("/api/tickets/upload", { method: "POST", body: fd, credentials: "include" });
     const data = await res.json();
-    if (data.success && data.url) {
-      return { success: true, url: data.url };
+    const url = data.data?.url ?? data.url;
+    if (data.success && url) {
+      return { success: true, url };
     }
     return { success: false, error: data.error || "Upload failed" };
   };
