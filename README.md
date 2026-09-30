@@ -27,31 +27,50 @@ npm install
 # Copy and configure environment variables
 cp .env.example .env.local
 
-# Seed the database (creates initial pages, permissions, roles)
+# Seed the database (pages, permissions, roles, and a default admin user)
 npm run db:seed
 
 # Start development server
 npm run dev
 ```
 
+The seed is **idempotent** — safe to re-run. It upserts by unique key (`name` for pages/permissions/roles, `email` for users) and never overwrites an existing admin password.
+
 ### Environment Variables
 
 ```env
 MONGODB_URI=mongodb://localhost:27017/it-assets?replicaSet=rs0
-USERNAME=              # Fallback admin email (used when no users exist)
-PASSWORD=              # Fallback admin password
+
+# Fallback admin (only used when no users exist yet)
+USERNAME=
+PASSWORD=
+
+# Default admin user created by `npm run db:seed`
+SEED_ADMIN_EMAIL=admin@example.com
+SEED_ADMIN_PASSWORD=admin123
+SEED_ADMIN_FIRST_NAME=Admin
+SEED_ADMIN_LAST_NAME=User
+
 JWT_SECRET=your-secret-key
 JWT_EXPIRIES_IN=7d
 ```
 
 ### Initial Login
 
-When no users exist in the database, the system uses a **fallback admin** account:
+After running `npm run db:seed`, log in with the seeded admin account:
+
+- Email: `SEED_ADMIN_EMAIL` (default `admin@example.com`)
+- Password: `SEED_ADMIN_PASSWORD` (default `admin123`)
+- Role: **Administrator** (full access to all pages)
+
+Change the password after first login. Re-running the seed will **not** reset an existing admin password.
+
+If the database has **no users at all**, a **fallback admin** is available instead:
 - Email: value from `USERNAME` env var
 - Password: value from `PASSWORD` env var
 - This admin has full access to all pages
 
-After creating the first real user via registration, the fallback admin is no longer used.
+The fallback admin is disabled as soon as any user exists in the database.
 
 ---
 
@@ -575,7 +594,7 @@ export default function CategoriesPage() {
 After creating the entity, add it to the `pages` collection so it appears in the sidebar and authorization system:
 
 ```typescript
-// In lib/db/seed.ts or via the Pages admin page
+// In lib/db/seed-data.ts (PAGES array) or via the Pages admin page
 {
   name: "Categories",
   path: "/categories",
@@ -596,6 +615,7 @@ In the **Roles** admin page, edit a role and add permissions for the new page:
 - **Delete** — Show Delete action
 - **Restore** — Show Restore action
 - **Export** — Show Export button
+- **Assign** — Show Assign action (tickets)
 - **Print** — Show Print button
 
 ---
@@ -621,6 +641,7 @@ In the **Roles** admin page, edit a role and add permissions for the new page:
 | Delete | Show Delete action button |
 | Restore | Show Restore action button |
 | Export | Show Export button |
+| Assign | Show Assign action (tickets) |
 | Print | Show Print button |
 
 ### Adding Authorization to a New API Route
@@ -720,10 +741,28 @@ Roles store permissions as an embedded array of `{ page_id, permission_id }` pai
 
 ---
 
+## Database Seed
+
+`npm run db:seed` bootstraps a fresh database with everything the app needs to run:
+
+| What | Detail |
+|---|---|
+| **Permissions** | 9 types: Access, View, Add, Edit, Delete, Restore, Export, Assign, Print |
+| **Pages** | 36 page definitions (31 routes + 5 sidebar groups) with icons, order, and parent/child links |
+| **Roles** | `Administrator` (all permissions), `Viewer` (read-only — required by ticket auto-registration), `Technician` (full ticket access, read-only elsewhere) |
+| **Admin user** | `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` (defaults `admin@example.com` / `admin123`), assigned to the Administrator role |
+
+All other collections (assets, tickets, items, departments, …) can stay empty — the app runs fine without them.
+
+Seed data lives in `lib/db/seed-data.ts` (pure data) and is applied by `lib/db/seed.ts` (orchestration). Both are safe to customize before seeding a customer environment.
+
+---
+
 ## Scripts
 
 ```bash
-npm run db:seed              # Seed initial data
+npm run db:seed              # Seed pages, permissions, roles, and default admin
+npm run db:seed-timezones    # Seed timezone list (optional)
 npm run db:migrate-pages     # Migrate pages collection
 npm run db:migrate-permissions # Migrate permissions
 npm run db:migrate-roles     # Migrate roles
