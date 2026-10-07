@@ -72,6 +72,12 @@ export default function CloudinaryPage() {
       setTestFileError("Please select a file to upload");
       return;
     }
+    const maxMB = formData.max_file_size || settings?.max_file_size || 10;
+    const maxBytes = maxMB * 1024 * 1024;
+    if (testFile.size > maxBytes) {
+      setTestFileError(`File size exceeds the maximum allowed size of ${maxMB} MB`);
+      return;
+    }
     setTestFileError("");
     setUploading(true);
     setUploadResult(null);

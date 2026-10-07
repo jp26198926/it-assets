@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { uploadFile } from "@/lib/services/cloudinary-service";
 import { apiSuccess, apiError } from "@/lib/services/api-helpers";
+import { getAuthFromRequest } from "@/lib/services/api-auth";
 
 const ALLOWED_FOLDERS: Record<string, string> = {
   "it-assets/items": "item",
@@ -11,6 +12,11 @@ const ALLOWED_FOLDERS: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthFromRequest();
+    if (!user) {
+      return apiError("Not authenticated", 401);
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const fileName = (formData.get("fileName") as string) || "upload";
