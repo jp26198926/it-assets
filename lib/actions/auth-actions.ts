@@ -215,33 +215,6 @@ export async function verifyEmailChange(otpCode: string, newEmail: string): Prom
   return { success: true, message: "Email updated successfully" };
 }
 
-export async function uploadProfilePhoto(fileBase64: string, fileName: string): Promise<{ success: boolean; url?: string; error?: string }> {
-  const { v2: cloudinary } = await import("cloudinary");
-  const cloudinaryService = await import("@/lib/services/cloudinary-service");
-  const settings = await cloudinaryService.getCloudinarySettings();
-
-  if (!settings.cloud_name || !settings.api_key || !settings.api_secret) {
-    return { success: false, error: "Cloudinary credentials are not configured" };
-  }
-
-  cloudinary.config({
-    cloud_name: settings.cloud_name,
-    api_key: settings.api_key,
-    api_secret: settings.api_secret,
-  });
-
-  try {
-    const result = await cloudinary.uploader.upload(fileBase64, {
-      folder: "it-assets/avatars",
-      public_id: `avatar_${Date.now()}_${fileName.replace(/\.[^/.]+$/, "")}`,
-    });
-
-    return { success: true, url: result.secure_url };
-  } catch {
-    return { success: false, error: "Failed to upload photo" };
-  }
-}
-
 export async function requestPhoneChange(newPhone: string): Promise<{ success: boolean; message?: string; error?: string }> {
   const currentUser = await getCurrentUser();
   if (!currentUser) {

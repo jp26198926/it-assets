@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import * as cloudinaryService from "@/lib/services/cloudinary-service";
+import { uploadFile } from "@/lib/services/cloudinary-service";
 import { apiSuccess, apiError, withPageAuth } from "@/lib/services/api-helpers";
 
 export async function POST(request: NextRequest) {
@@ -7,14 +7,15 @@ export async function POST(request: NextRequest) {
     const { error } = await withPageAuth("/cloudinary", "Access");
     if (error) return error;
 
-    const body = await request.json();
-    const { fileBase64, fileName } = body;
+    const formData = await request.formData();
+    const file = formData.get("file") as File | null;
+    const fileName = (formData.get("fileName") as string) || "test-upload";
 
-    if (!fileBase64 || !fileName) {
-      return apiError("File data and name are required", 400);
+    if (!file) {
+      return apiError("No file provided", 400);
     }
 
-    const result = await cloudinaryService.testCloudinaryUpload(fileBase64, fileName);
+    const result = await uploadFile(file, fileName, "it-assets/test", "test");
     return apiSuccess(result);
   } catch (error) {
     return apiError(error instanceof Error ? error.message : "Failed to upload test file", 500);

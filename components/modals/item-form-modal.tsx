@@ -19,10 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  getItemSelectOptions,
-  uploadItemImage,
-} from "@/lib/actions/item-actions";
+import { getItemSelectOptions } from "@/lib/actions/item-actions";
+import { getCloudinarySettings } from "@/lib/actions/cloudinary-actions";
 import { toast } from "sonner";
 import { Upload, Loader2 } from "lucide-react";
 import type { Item, CreateItemInput } from "@/lib/types/item";
@@ -65,7 +63,12 @@ export function ItemFormModal({
   >([]);
   const [optionsLoading, setOptionsLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [maxFileSize, setMaxFileSize] = useState(10);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    getCloudinarySettings().then((s) => setMaxFileSize(s.max_file_size || 10));
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -110,26 +113,26 @@ export function ItemFormModal({
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be less than 5MB");
+    const maxBytes = maxFileSize * 1024 * 1024;
+    if (file.size > maxBytes) {
+      toast.error(`Image must be less than ${maxFileSize} MB`);
       return;
     }
 
     setUploadingImage(true);
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
-      const result = await uploadItemImage(base64, file.name);
-      if (result.success && result.url) {
-        setFormData({ ...formData, image_url: result.url });
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("fileName", file.name);
+      fd.append("folder", "it-assets/items");
+      const res = await fetch("/api/upload", { method: "POST", body: fd, credentials: "include" });
+      const data = await res.json();
+      const url = data.data?.url ?? data.url;
+      if (data.success && url) {
+        setFormData({ ...formData, image_url: url });
         toast.success("Image uploaded successfully");
       } else {
-        toast.error(result.error || "Upload failed");
+        toast.error(data.error || "Upload failed");
       }
     } catch {
       toast.error("Failed to upload image");

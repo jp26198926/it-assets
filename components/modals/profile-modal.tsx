@@ -18,8 +18,8 @@ import {
   updateMyProfile,
   requestEmailChange,
   requestPhoneChange,
-  uploadProfilePhoto,
 } from "@/lib/actions/auth-actions";
+import { getCloudinarySettings } from "@/lib/actions/cloudinary-actions";
 import { toast } from "sonner";
 import type { AuthUser } from "@/lib/types/auth";
 
@@ -58,6 +58,7 @@ export function ProfileModal({
 
   const [loading, setLoading] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [maxFileSize, setMaxFileSize] = useState(10);
   const [showPhotoMenu, setShowPhotoMenu] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
@@ -65,6 +66,10 @@ export function ProfileModal({
   const [sendingPhoneOtp, setSendingPhoneOtp] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    getCloudinarySettings().then((s) => setMaxFileSize(s.max_file_size || 10));
+  }, []);
 
   useEffect(() => {
     if (user && open) {
@@ -134,28 +139,30 @@ export function ProfileModal({
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image size must be less than 5MB");
+    const maxBytes = maxFileSize * 1024 * 1024;
+    if (file.size > maxBytes) {
+      toast.error(`Image size must be less than ${maxFileSize} MB`);
       return;
     }
 
     setUploadingPhoto(true);
     try {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const base64 = event.target?.result as string;
-        const result = await uploadProfilePhoto(base64, file.name);
-        if (result.success && result.url) {
-          setAvatarUrl(result.url);
-          toast.success("Photo uploaded successfully");
-        } else {
-          toast.error(result.error || "Failed to upload photo");
-        }
-        setUploadingPhoto(false);
-      };
-      reader.readAsDataURL(file);
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("fileName", file.name);
+      fd.append("folder", "it-assets/avatars");
+      const res = await fetch("/api/upload", { method: "POST", body: fd, credentials: "include" });
+      const data = await res.json();
+      const url = data.data?.url ?? data.url;
+      if (data.success && url) {
+        setAvatarUrl(url);
+        toast.success("Photo uploaded successfully");
+      } else {
+        toast.error(data.error || "Failed to upload photo");
+      }
     } catch {
       toast.error("Failed to upload photo");
+    } finally {
       setUploadingPhoto(false);
     }
   };
@@ -209,21 +216,23 @@ export function ProfileModal({
       handleCloseCamera();
 
       try {
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-          const base64 = event.target?.result as string;
-          const result = await uploadProfilePhoto(base64, "camera-photo.jpg");
-          if (result.success && result.url) {
-            setAvatarUrl(result.url);
-            toast.success("Photo captured successfully");
-          } else {
-            toast.error(result.error || "Failed to upload photo");
-          }
-          setUploadingPhoto(false);
-        };
-        reader.readAsDataURL(blob);
+        const file = new File([blob], "camera-photo.jpg", { type: "image/jpeg" });
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("fileName", file.name);
+        fd.append("folder", "it-assets/avatars");
+        const res = await fetch("/api/upload", { method: "POST", body: fd, credentials: "include" });
+        const data = await res.json();
+        const url = data.data?.url ?? data.url;
+        if (data.success && url) {
+          setAvatarUrl(url);
+          toast.success("Photo captured successfully");
+        } else {
+          toast.error(data.error || "Failed to upload photo");
+        }
       } catch {
         toast.error("Failed to upload photo");
+      } finally {
         setUploadingPhoto(false);
       }
     }, "image/jpeg", 0.9);

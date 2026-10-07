@@ -10,10 +10,3 @@ export async function getCloudinarySettings(): Promise<Cloudinary> {
 export async function updateCloudinarySettings(data: UpdateCloudinaryInput): Promise<Cloudinary> {
   return cloudinaryService.updateCloudinarySettings(data);
 }
-
-export async function testCloudinaryUpload(
-  fileBase64: string,
-  fileName: string
-): Promise<{ success: boolean; message: string; url?: string }> {
-  return cloudinaryService.testCloudinaryUpload(fileBase64, fileName);
-}

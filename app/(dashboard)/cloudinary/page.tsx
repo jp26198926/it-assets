@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
-import { getCloudinarySettings, updateCloudinarySettings, testCloudinaryUpload } from "@/lib/actions/cloudinary-actions";
+import { getCloudinarySettings, updateCloudinarySettings } from "@/lib/actions/cloudinary-actions";
 import type { Cloudinary, UpdateCloudinaryInput } from "@/lib/types/cloudinary";
 import { toast } from "sonner";
 import { Loader2, Save, Upload, Info, CheckCircle, ExternalLink } from "lucide-react";
@@ -77,19 +77,18 @@ export default function CloudinaryPage() {
     setUploadResult(null);
 
     try {
-      const reader = new FileReader();
-      const base64 = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(testFile);
-      });
-
-      const result = await testCloudinaryUpload(base64, testFile.name);
-      if (result.success) {
-        toast.success(result.message);
-        if (result.url) setUploadResult({ url: result.url });
+      const fd = new FormData();
+      fd.append("file", testFile);
+      fd.append("fileName", testFile.name);
+      fd.append("folder", "it-assets/test");
+      const res = await fetch("/api/upload", { method: "POST", body: fd, credentials: "include" });
+      const data = await res.json();
+      const url = data.data?.url ?? data.url;
+      if (data.success && url) {
+        toast.success("File uploaded successfully");
+        setUploadResult({ url });
       } else {
-        toast.error(result.message);
+        toast.error(data.error || "Failed to upload test file");
       }
     } catch {
       toast.error("Failed to upload test file");

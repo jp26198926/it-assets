@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { PageGuard } from "@/components/auth/page-guard";
-import { getAppSettings, updateAppSettings, uploadAppImage } from "@/lib/actions/application-actions";
+import { getAppSettings, updateAppSettings } from "@/lib/actions/application-actions";
+import { getCloudinarySettings } from "@/lib/actions/cloudinary-actions";
 import { getTimezoneSelectOptions } from "@/lib/actions/timezone-actions";
 import type { Application, UpdateApplicationInput } from "@/lib/types/application";
 import type { TimezoneSelectOption } from "@/lib/types/timezone";
@@ -24,6 +25,7 @@ export default function ApplicationPage() {
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const [maxFileSize, setMaxFileSize] = useState(10);
   const [timezoneOptions, setTimezoneOptions] = useState<TimezoneSelectOption[]>([]);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
@@ -54,6 +56,10 @@ export default function ApplicationPage() {
       });
       setLoading(false);
     });
+  }, []);
+
+  useEffect(() => {
+    getCloudinarySettings().then((s) => setMaxFileSize(s.max_file_size || 10));
   }, []);
 
   const validate = () => {
@@ -104,25 +110,26 @@ export default function ApplicationPage() {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image size must be less than 5MB");
+    const maxBytes = maxFileSize * 1024 * 1024;
+    if (file.size > maxBytes) {
+      toast.error(`Image size must be less than ${maxFileSize} MB`);
       return;
     }
 
     setUploading(true);
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-      const result = await uploadAppImage(base64, file.name);
-      if (result.success && result.url) {
-        updateField(field, result.url);
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("fileName", file.name);
+      fd.append("folder", "it-assets/branding");
+      const res = await fetch("/api/upload", { method: "POST", body: fd, credentials: "include" });
+      const data = await res.json();
+      const url = data.data?.url ?? data.url;
+      if (data.success && url) {
+        updateField(field, url);
         toast.success("Image uploaded successfully");
       } else {
-        toast.error(result.error || "Failed to upload image");
+        toast.error(data.error || "Failed to upload image");
       }
     } catch {
       toast.error("Failed to upload image");
